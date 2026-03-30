@@ -1,1 +1,19 @@
 tcc crud/
+
+# Gradle cache
+.gradle/
+
+# Local properties (SDK path)
+local.properties
+
+# Build outputs
+build/
+app/build/
+
+# Android Studio
+.idea/
+*.iml
+
+# Keystore
+*.jks
+*.keystore
