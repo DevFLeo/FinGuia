@@ -13,7 +13,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import com.example.finguia.R
+import com.finguia.R
 import com.finguia.ui.home.DashboardScreen
 
 // import com.example.finguia.ui.home.HomeScreen

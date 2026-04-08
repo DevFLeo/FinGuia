@@ -1,10 +1,9 @@
-package com.finguia // Use seu pacote real aqui
+package com.finguia
 
 import android.app.Application
 
 class FinGuiaApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // Aqui você inicializa coisas "invisíveis" no futuro
     }
 }
