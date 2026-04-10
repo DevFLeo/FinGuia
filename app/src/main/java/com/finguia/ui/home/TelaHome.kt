@@ -1,4 +1,4 @@
-package com.finguia.app.ui
+package com.finguia.ui.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -16,10 +16,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.finguia.app.ui.theme.*
+import com.finguia.ui.theme.CardBg
+import com.finguia.ui.theme.DarkBg
+import com.finguia.ui.theme.GojoPurple
+import com.finguia.ui.theme.GrayText
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun TelaHome(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()

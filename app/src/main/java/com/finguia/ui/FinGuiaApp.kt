@@ -14,9 +14,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.finguia.R
-import com.finguia.ui.home.DashboardScreen
-
-// import com.example.finguia.ui.home.HomeScreen
+import com.finguia.ui.home.TelaHome
+import com.finguia.ui.home.TelaHomeDash
 
 @Composable
 fun FinGuiaApp() {
@@ -43,7 +42,7 @@ fun FinGuiaApp() {
             val modifier = Modifier.padding(innerPadding)
             when (currentDestination) {
                 AppDestinations.HOME -> Text("Bem-vindo à Home!", modifier)
-                AppDestinations.DASHBOARD -> DashboardScreen(modifier = modifier)
+                AppDestinations.DASHBOARD -> TelaHomeDash(modifier = modifier)
                 AppDestinations.THEME -> Text("Configurações de Tema", modifier)
             }
         }

@@ -1,4 +1,4 @@
-package com.finguia.ui
+package com.finguia.ui.dashboard
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

@@ -19,9 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import com.example.finguia.R
-import com.example.finguia.ui.home.HomeScreen
-import com.example.finguia.ui.theme.FinGuiaTheme
+import com.finguia.R
+import com.finguia.ui.home.TelaHome
+import com.finguia.ui.theme.FinGuiaTheme
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +61,7 @@ fun FinGuiaApp() {
     ) {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             when (currentDestination) {
-                AppDestinations.HOME -> HomeScreen(modifier = Modifier.padding(innerPadding))
+                AppDestinations.HOME -> TelaHome(modifier = Modifier.padding(innerPadding))
                 else -> Greeting(name = currentDestination.label, modifier = Modifier.padding(innerPadding))
             }
         }
