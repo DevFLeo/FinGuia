@@ -14,8 +14,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.finguia.R
-import com.finguia.ui.home.TelaHome
 import com.finguia.ui.home.TelaHomeDash
+
+
+// Tela principal do aplicativo
+// adicionar tela home
 
 @Composable
 fun FinGuiaApp() {
@@ -41,7 +44,7 @@ fun FinGuiaApp() {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             val modifier = Modifier.padding(innerPadding)
             when (currentDestination) {
-                AppDestinations.HOME -> Text("Bem-vindo à Home!", modifier)
+                AppDestinations.HOME -> Text("Bem-vindo à Tela Inicial do Finguia!", modifier)
                 AppDestinations.DASHBOARD -> TelaHomeDash(modifier = modifier)
                 AppDestinations.THEME -> Text("Configurações de Tema", modifier)
             }
