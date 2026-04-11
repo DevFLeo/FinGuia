@@ -14,6 +14,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.finguia.R
+<<<<<<< Updated upstream
+=======
+import com.finguia.ui.home.telaHome
+>>>>>>> Stashed changes
 import com.finguia.ui.home.TelaHomeDash
 
 
@@ -30,7 +34,7 @@ fun FinGuiaApp() {
                 item(
                     icon = {
                         Icon(
-                            painterResource(destination.icon),
+                            painter = painterResource(destination.icon),
                             contentDescription = destination.label
                         )
                     },
@@ -44,9 +48,13 @@ fun FinGuiaApp() {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             val modifier = Modifier.padding(innerPadding)
             when (currentDestination) {
+<<<<<<< Updated upstream
                 AppDestinations.HOME -> Text("Bem-vindo à Tela Inicial do Finguia!", modifier)
+=======
+                AppDestinations.HOME -> telaHome(modifier = modifier)
+>>>>>>> Stashed changes
                 AppDestinations.DASHBOARD -> TelaHomeDash(modifier = modifier)
-                AppDestinations.THEME -> Text("Configurações de Tema", modifier)
+                AppDestinations.THEME -> Text("Configuracoes de tema", modifier = modifier)
             }
         }
     }
@@ -56,7 +64,7 @@ enum class AppDestinations(
     val label: String,
     val icon: Int,
 ) {
-    HOME("Home", R.drawable.ic_home),
+    HOME("Inicio", R.drawable.ic_home),
     DASHBOARD("Dashboard", R.drawable.ic_dashboard),
-    THEME("Theme", R.drawable.ic_palette),
+    THEME("Tema", R.drawable.ic_palette),
 }

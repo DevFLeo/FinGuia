@@ -16,13 +16,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.finguia.ui.theme.CardBg
-import com.finguia.ui.theme.DarkBg
-import com.finguia.ui.theme.GojoPurple
-import com.finguia.ui.theme.GrayText
+import com.finguia.ui.theme.*
 
 @Composable
-fun TelaHome(modifier: Modifier = Modifier) {
+fun telaHome(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
