@@ -10,7 +10,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FinGuia"
-        android:name=".FinGuiaApplication">
+        android:name=".FinGuiaApp">
 
         <activity
             android:name=".MainActivity"
@@ -23,8 +23,8 @@
             </intent-filter>
         </activity>
 
+        <!-- android:name=".service.NotificationReaderService" -->
         <service
-            android:name=".service.NotificationReaderService"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">

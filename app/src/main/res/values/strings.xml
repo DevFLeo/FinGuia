@@ -1,3 +1,34 @@
 <resources>
-    <string name="app_name">FinGuia</string>
+    <string name="nome_app">FinGuia</string>
+
+    <!-- Strings Tela Home-->
+        <!-- Botoes Tela Home-->
+        <string name="lancar">Lançar</string>
+        <string name="cancelar">Cancelar</string>
+        <string name="editar">Editar</string>
+        <string name="excluir">Excluir</string>
+        <string name="dashboards">Dashboards</string>
+        <string name="buscar">Buscar</string>
+
+        <!-- Strings Tela Lançamento-->
+        <string name="salvar">Salvar"
+        <string name="sim">Sim</string>
+        <string name="nao">Não</string>
+
+    <!-- Strings Notificações-->
+    <string name="canal_notificacoes_descricao">Canal de notificações FinGuia</string>
+    <string name="notificacoes_importancia_alta">Alta</string>
+    <string name="notificacoes_importancia_media">Média</string>
+    <string name="notificacoes_importancia_baixa">Baixa</string>
+    <string name="notificacoes">Notificações</string>
+    <string name="mensagem_notificacao">Você tem uma nova notificação!</string>
+    <string name="botao_notificacao">Abrir Notificação</string>
+
+    <!-- Strings Tela Dashboards-->
+    <string name="dashboards">Dashboards</string>
+    <string name="dashboard_Investimentos">Valor Investido</string>
+    <string name="dashboard_Receitas">Receitas Mensais</string>
+    <string name="dashboard_linha_receita">Receitas</string>
+
+
 </resources>
