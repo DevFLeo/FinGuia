@@ -7,11 +7,11 @@
         <string name="cancelar">Cancelar</string>
         <string name="editar">Editar</string>
         <string name="excluir">Excluir</string>
-        <string name="dashboards">Dashboards</string>
+        <string name="dashboard_home">Valor:</string>
         <string name="buscar">Buscar</string>
 
         <!-- Strings Tela Lançamento-->
-        <string name="salvar">Salvar"
+        <string name="salvar">Salvar"</string>
         <string name="sim">Sim</string>
         <string name="nao">Não</string>
 
