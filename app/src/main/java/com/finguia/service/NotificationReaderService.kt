@@ -1,5 +1,5 @@
 // app/src/main/java/com/finguia/app/service/NotificationReaderService.kt
-package com.finguia.app.service
+package com.finguia.service
 
 import android.app.Notification
 import android.service.notification.NotificationListenerService
