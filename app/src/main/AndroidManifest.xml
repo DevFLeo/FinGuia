@@ -22,7 +22,6 @@
             </intent-filter>
         </activity>
 
-<<<<<<< Updated upstream
         <service
             android:name=".service.NotificationReaderService"
             android:label="@string/nome_app"
@@ -32,8 +31,5 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
-
-=======
->>>>>>> Stashed changes
     </application>
 </manifest>
