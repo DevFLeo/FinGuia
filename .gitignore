@@ -17,3 +17,10 @@ app/build/
 # Keystore
 *.jks
 *.keystore
+
+# JVM crash logs
+hs_err_pid*.log
+replay_pid*.log
+
+# Kotlin build cache
+.kotlin/
