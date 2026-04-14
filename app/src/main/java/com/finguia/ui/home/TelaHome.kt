@@ -19,29 +19,32 @@ import androidx.compose.ui.unit.sp
 import com.finguia.ui.theme.*
 
 @Composable
-fun telaHome(modifier: Modifier = Modifier) {
+fun telaHome(
+    modifier: Modifier = Modifier,
+    aoClicarCriptos: () -> Unit = {}
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(DarkBg)
             .padding(20.dp)
     ) {
-        // 1. TOP BAR (Settings, Bell, User)
+        // 1. BARRA SUPERIOR
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 30.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            TopIconButton(Icons.Default.Settings)
-            TopIconButton(Icons.Default.Notifications)
-            TopIconButton(Icons.Default.Person)
+            BotaoIconeTopo(Icons.Default.Settings)
+            BotaoIconeTopo(Icons.Default.Notifications)
+            BotaoIconeTopo(Icons.Default.Person)
         }
 
-        // 2. DONUT CHART
+        // 2. GRÁFICO ROSCA
         Box(
             modifier = Modifier.fillMaxWidth().height(220.dp),
             contentAlignment = Alignment.Center
         ) {
-            DonutChart(progress = 0.75f) // 75% como no seu HTML
+            GraficoRosca(progresso = 0.75f)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("SALDO TOTAL", color = GrayText, fontSize = 12.sp, letterSpacing = 1.sp)
                 Text("R$ 5.240,00", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
@@ -50,20 +53,32 @@ fun telaHome(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // 3. BUTTON GRID (3 colunas)
+        // 3. GRADE DE BOTÕES
         Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                AppButton(Modifier.weight(1f), Icons.Default.AddCircle, "Lançar")
-                AppButton(Modifier.weight(1f), Icons.Default.Edit, "Editar")
-                AppButton(Modifier.weight(1f), Icons.Default.PieChart, "Dashboard")
+                BotaoAcao(Modifier.weight(1f), Icons.Default.AddCircle, "Lançar")
+                BotaoAcao(Modifier.weight(1f), Icons.Default.Edit, "Editar")
+                BotaoAcao(Modifier.weight(1f), Icons.Default.PieChart, "Painel")
             }
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                AppButton(Modifier.weight(1f), Icons.Default.Calculate, "Calculadora")
-                AppButton(Modifier.weight(1f), Icons.Default.AdsClick, "Metas")
-                AppButton(Modifier.weight(1f), Icons.Default.Search, "Busca")
+                BotaoAcao(Modifier.weight(1f), Icons.Default.Calculate, "Calculadora")
+                BotaoAcao(Modifier.weight(1f), Icons.Default.AdsClick, "Metas")
+                BotaoAcao(Modifier.weight(1f), Icons.Default.Search, "Busca")
             }
 
-            // Botão Largo (Minhas Contas)
+            // Botão Criptomoedas
+            Button(
+                onClick = aoClicarCriptos,
+                modifier = Modifier.fillMaxWidth().height(60.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300))
+            ) {
+                Icon(Icons.Default.MonetizationOn, contentDescription = null)
+                Spacer(Modifier.width(10.dp))
+                Text("Criptomoedas", fontWeight = FontWeight.Bold, color = Color.Black)
+            }
+
+            // Botão Minhas Contas
             Button(
                 onClick = { },
                 modifier = Modifier.fillMaxWidth().height(60.dp),
@@ -79,18 +94,18 @@ fun telaHome(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun TopIconButton(icon: ImageVector) {
+fun BotaoIconeTopo(icone: ImageVector) {
     Surface(
         color = CardBg,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.size(45.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.padding(10.dp))
+        Icon(icone, contentDescription = null, tint = Color.White, modifier = Modifier.padding(10.dp))
     }
 }
 
 @Composable
-fun AppButton(modifier: Modifier, icon: ImageVector, label: String) {
+fun BotaoAcao(modifier: Modifier, icone: ImageVector, rotulo: String) {
     Card(
         modifier = modifier.height(90.dp),
         colors = CardDefaults.cardColors(containerColor = CardBg),
@@ -101,17 +116,16 @@ fun AppButton(modifier: Modifier, icon: ImageVector, label: String) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(icon, contentDescription = null, tint = GojoPurple)
+            Icon(icone, contentDescription = null, tint = GojoPurple)
             Spacer(Modifier.height(8.dp))
-            Text(label, color = Color.White, fontSize = 11.sp)
+            Text(rotulo, color = Color.White, fontSize = 11.sp)
         }
     }
 }
 
 @Composable
-fun DonutChart(progress: Float) {
+fun GraficoRosca(progresso: Float) {
     Canvas(modifier = Modifier.size(200.dp)) {
-        // Fundo cinza do círculo
         drawArc(
             color = Color(0xFF222222),
             startAngle = 0f,
@@ -119,11 +133,10 @@ fun DonutChart(progress: Float) {
             useCenter = false,
             style = Stroke(width = 15.dp.toPx())
         )
-        // Progresso Roxo
         drawArc(
             color = GojoPurple,
             startAngle = -90f,
-            sweepAngle = 360f * progress,
+            sweepAngle = 360f * progresso,
             useCenter = false,
             style = Stroke(width = 15.dp.toPx())
         )

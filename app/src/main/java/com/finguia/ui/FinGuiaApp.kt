@@ -14,49 +14,52 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.finguia.R
+import com.finguia.ui.cripto.TelaCripto
 import com.finguia.ui.home.telaHome
 import com.finguia.ui.home.TelaHomeDash
 
-// Tela principal do aplicativo
-// adicionar tela home
-
 @Composable
 fun FinGuiaApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    var destinoAtual by rememberSaveable { mutableStateOf(DestinosApp.INICIO) }
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
-            AppDestinations.entries.forEach { destination ->
+            DestinosApp.entries.forEach { destino ->
                 item(
                     icon = {
                         Icon(
-                            painter = painterResource(destination.icon),
-                            contentDescription = destination.label
+                            painter = painterResource(destino.icone),
+                            contentDescription = destino.rotulo
                         )
                     },
-                    label = { Text(destination.label) },
-                    selected = destination == currentDestination,
-                    onClick = { currentDestination = destination }
+                    label = { Text(destino.rotulo) },
+                    selected = destino == destinoAtual,
+                    onClick = { destinoAtual = destino }
                 )
             }
         }
     ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            val modifier = Modifier.padding(innerPadding)
-            when (currentDestination) {
-                AppDestinations.HOME -> telaHome(modifier = modifier)
-                AppDestinations.DASHBOARD -> TelaHomeDash(modifier = modifier)
-                AppDestinations.THEME -> Text("Configuracoes de tema", modifier = modifier)
+        Scaffold(modifier = Modifier.fillMaxSize()) { paddingInterno ->
+            val modifier = Modifier.padding(paddingInterno)
+            when (destinoAtual) {
+                DestinosApp.INICIO -> telaHome(
+                    modifier = modifier,
+                    aoClicarCriptos = { destinoAtual = DestinosApp.CRIPTOMOEDAS }
+                )
+                DestinosApp.DASHBOARD -> TelaHomeDash(modifier = modifier)
+                DestinosApp.CRIPTOMOEDAS -> TelaCripto(modifier = modifier)
+                DestinosApp.TEMA -> Text("Configurações de tema", modifier = modifier)
             }
         }
     }
 }
 
-enum class AppDestinations(
-    val label: String,
-    val icon: Int,
+enum class DestinosApp(
+    val rotulo: String,
+    val icone: Int,
 ) {
-    HOME("Inicio", R.drawable.ic_home),
-    DASHBOARD("Dashboard", R.drawable.ic_dashboard),
-    THEME("Tema", R.drawable.ic_palette),
+    INICIO("Início", R.drawable.ic_home),
+    DASHBOARD("Painel", R.drawable.ic_dashboard),
+    CRIPTOMOEDAS("Criptos", R.drawable.ic_cripto),
+    TEMA("Tema", R.drawable.ic_palette),
 }
