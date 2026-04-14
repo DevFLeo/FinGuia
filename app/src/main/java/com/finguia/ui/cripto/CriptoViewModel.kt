@@ -29,7 +29,7 @@ class CriptoViewModel : ViewModel() {
         viewModelScope.launch {
             while (true) {
                 buscarCriptos()
-                delay(60_000L)
+                delay(30_000L)
             }
         }
     }
