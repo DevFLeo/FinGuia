@@ -17,6 +17,8 @@ import com.finguia.R
 import com.finguia.ui.cripto.TelaCripto
 import com.finguia.ui.home.telaHome
 import com.finguia.ui.home.TelaHomeDash
+import com.finguia.ui.transacoes.TelaLancar
+import com.finguia.ui.transacoes.TelaTransacoes
 
 @Composable
 fun FinGuiaApp() {
@@ -48,6 +50,8 @@ fun FinGuiaApp() {
                 )
                 DestinosApp.DASHBOARD -> TelaHomeDash(modifier = modifier)
                 DestinosApp.CRIPTOMOEDAS -> TelaCripto(modifier = modifier)
+                DestinosApp.LANCAR -> TelaLancar(modifier = modifier)
+                DestinosApp.EXTRATO -> TelaTransacoes()
                 DestinosApp.TEMA -> Text("Configurações de tema", modifier = modifier)
             }
         }
@@ -60,6 +64,8 @@ enum class DestinosApp(
 ) {
     INICIO("Início", R.drawable.ic_home),
     DASHBOARD("Painel", R.drawable.ic_dashboard),
+    LANCAR("Lançar", R.drawable.ic_favorite),
+    EXTRATO("Extrato", R.drawable.ic_extrato),
     CRIPTOMOEDAS("Criptos", R.drawable.ic_cripto),
     TEMA("Tema", R.drawable.ic_palette),
 }
