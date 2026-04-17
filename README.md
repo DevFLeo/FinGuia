@@ -48,7 +48,7 @@ Você recebe uma notificação do Nubank → FinGuia captura → Classifica como
 
 - Gráficos de evolução de gastos por categoria
 - Metas de economia
-- Lançamento manual de transações
+- Lançamento manual de transações (tela criada, lógica de persistência pendente)
 - Calculadora financeira integrada
 - Busca e filtros no extrato
 
@@ -103,7 +103,7 @@ O projeto segue o padrão **MVVM (Model-View-ViewModel)** com separação clara 
 | HTTP Client | Retrofit 2 + Gson | 2.11.0 |
 | Build | Gradle Kotlin DSL + KSP | AGP 8.7.3 |
 | Min SDK | Android 7.0 (API 24) | - |
-| Target SDK | Android 15 (API 36) | - |
+| Target SDK | Android 16 (API 36) | - |
 
 ---
 
@@ -209,10 +209,10 @@ O parser usa regex para capturar valores monetários em qualquer formato brasile
 Banco do Brasil, Itaú, Itaú Empresas, Bradesco, Santander, Caixa Econômica, Sicoob, Sicredi, Banrisul, Ailos, Banco Modal, Banco Original, Banco da Amazônia, Bancoob, HSBC
 
 ### Fintechs e Bancos Digitais
-Nubank, Banco Inter, C6 Bank, Next, Neon, Agibank, Sofisa Direto, Dindin, Will Bank, BS2, Digio, BV, Stone, PagBank
+Nubank, Banco Inter, C6 Bank, Next, Neon, Agibank, Sofisa Direto, Dindin, Will Bank, BS2, Digio, Realize Bank, BV, Cred System, Banco Votorantim, Stone, Boa Compra
 
 ### Carteiras Digitais e Pagamentos
-PicPay, Mercado Pago, PayPal, Getnet, Cielo, Rede
+PicPay, Mercado Pago, PagBank, PayPal, Getnet, Cielo, Rede
 
 ### Corretoras e Investimentos
 XP, Rico, Clear, Nuinvest, Avenue, Toro
@@ -267,7 +267,7 @@ Sem essa permissão, o serviço de captura não funcionará. O app deve orientar
 
 ---
 
-## Roadmap
+## Roadmap Beta
 
 ### v1.1 — Onboarding e Permissões
 - [ ] Tela de boas-vindas explicando o funcionamento

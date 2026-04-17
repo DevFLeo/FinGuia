@@ -1,0 +1,35 @@
+package com.finguia.ui.transacoes
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.finguia.dados.TransacaoBancaria
+import com.finguia.dados.TransacaoRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+class TransacaoViewModel(app: Application) : AndroidViewModel(app) {
+
+    private val repository = TransacaoRepository(app)
+
+    val transacoes: StateFlow<List<TransacaoBancaria>> = repository
+        .listarTodas()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val totalReceitas: StateFlow<Double> = repository
+        .totalReceitas()
+        .map { it ?: 0.0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
+
+    val totalDespesas: StateFlow<Double> = repository
+        .totalDespesas()
+        .map { it ?: 0.0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
+
+    fun deletar(id: Long) {
+        viewModelScope.launch { repository.deletar(id) }
+    }
+}
