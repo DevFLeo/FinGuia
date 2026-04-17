@@ -2,11 +2,35 @@ package com.finguia.ui.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,32 +40,42 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.finguia.ui.theme.*
+import com.finguia.ui.theme.CardBg
+import com.finguia.ui.theme.DarkBg
+import com.finguia.ui.theme.GojoPurple
+import com.finguia.ui.theme.GrayText
 
 @Composable
 fun telaHome(
     modifier: Modifier = Modifier,
-    aoClicarCriptos: () -> Unit = {}
+    aoClicarCriptos: () -> Unit = {},
+    aoClicarDashboard: () -> Unit = {},
+    aoClicarLancar: () -> Unit = {},
+    aoClicarExtrato: () -> Unit = {},
+    aoClicarTema: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(DarkBg)
-            .padding(20.dp)
+            .padding(horizontal = 20.dp, vertical = 18.dp)
     ) {
-        // 1. BARRA SUPERIOR
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 30.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp, bottom = 26.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             BotaoIconeTopo(Icons.Default.Settings)
             BotaoIconeTopo(Icons.Default.Notifications)
+            BotaoIconeTopo(Icons.Default.Search)
             BotaoIconeTopo(Icons.Default.Person)
         }
 
-        // 2. GRÁFICO ROSCA
         Box(
-            modifier = Modifier.fillMaxWidth().height(220.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp),
             contentAlignment = Alignment.Center
         ) {
             GraficoRosca(progresso = 0.75f)
@@ -51,42 +85,72 @@ fun telaHome(
             }
         }
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
-        // 3. GRADE DE BOTÕES
         Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                BotaoAcao(Modifier.weight(1f), Icons.Default.AddCircle, "Lançar")
-                BotaoAcao(Modifier.weight(1f), Icons.Default.Edit, "Editar")
-                BotaoAcao(Modifier.weight(1f), Icons.Default.PieChart, "Painel")
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                BotaoAcao(Modifier.weight(1f), Icons.Default.Calculate, "Calculadora")
-                BotaoAcao(Modifier.weight(1f), Icons.Default.AdsClick, "Metas")
-                BotaoAcao(Modifier.weight(1f), Icons.Default.Search, "Busca")
+                BotaoAcao(
+                    modifier = Modifier.weight(1f),
+                    icone = Icons.Default.AddCircle,
+                    rotulo = "Lancar",
+                    aoClicar = aoClicarLancar
+                )
+                BotaoAcao(
+                    modifier = Modifier.weight(1f),
+                    icone = Icons.Default.Edit,
+                    rotulo = "Extrato",
+                    aoClicar = aoClicarExtrato
+                )
+                BotaoAcao(
+                    modifier = Modifier.weight(1f),
+                    icone = Icons.Default.PieChart,
+                    rotulo = "Painel",
+                    aoClicar = aoClicarDashboard
+                )
             }
 
-            // Botão Criptomoedas
+            Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+                BotaoAcao(
+                    modifier = Modifier.weight(1f),
+                    icone = Icons.Default.Calculate,
+                    rotulo = "Calculadora"
+                )
+                BotaoAcao(
+                    modifier = Modifier.weight(1f),
+                    icone = Icons.Default.AccountBalance,
+                    rotulo = "Contas"
+                )
+                BotaoAcao(
+                    modifier = Modifier.weight(1f),
+                    icone = Icons.Default.Settings,
+                    rotulo = "Tema",
+                    aoClicar = aoClicarTema
+                )
+            }
+
             Button(
                 onClick = aoClicarCriptos,
-                modifier = Modifier.fillMaxWidth().height(60.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300))
             ) {
-                Icon(Icons.Default.MonetizationOn, contentDescription = null)
-                Spacer(Modifier.width(10.dp))
+                Icon(Icons.Default.AccountBalance, contentDescription = null, tint = Color.Black)
+                Spacer(Modifier.size(10.dp))
                 Text("Criptomoedas", fontWeight = FontWeight.Bold, color = Color.Black)
             }
 
-            // Botão Minhas Contas
             Button(
                 onClick = { },
-                modifier = Modifier.fillMaxWidth().height(60.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
             ) {
                 Icon(Icons.Default.AccountBalance, contentDescription = null)
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.size(10.dp))
                 Text("Minhas Contas", fontWeight = FontWeight.Bold)
             }
         }
@@ -94,20 +158,34 @@ fun telaHome(
 }
 
 @Composable
-fun BotaoIconeTopo(icone: ImageVector) {
+fun BotaoIconeTopo(
+    icone: ImageVector,
+    aoClicar: () -> Unit = {}
+) {
     Surface(
         color = CardBg,
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.size(45.dp)
+        modifier = Modifier
+            .size(45.dp)
+            .clickable(onClick = aoClicar)
     ) {
-        Icon(icone, contentDescription = null, tint = Color.White, modifier = Modifier.padding(10.dp))
+        Box(contentAlignment = Alignment.Center) {
+            Icon(icone, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+        }
     }
 }
 
 @Composable
-fun BotaoAcao(modifier: Modifier, icone: ImageVector, rotulo: String) {
+fun BotaoAcao(
+    modifier: Modifier,
+    icone: ImageVector,
+    rotulo: String,
+    aoClicar: () -> Unit = {}
+) {
     Card(
-        modifier = modifier.height(90.dp),
+        modifier = modifier
+            .height(90.dp)
+            .clickable(onClick = aoClicar),
         colors = CardDefaults.cardColors(containerColor = CardBg),
         shape = RoundedCornerShape(18.dp)
     ) {
