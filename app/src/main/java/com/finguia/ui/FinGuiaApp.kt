@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finguia.R
+import com.finguia.ui.calculadora.TelaCalculadora
 import com.finguia.ui.cripto.TelaCripto
 import com.finguia.ui.home.TelaHomeDash
 import com.finguia.ui.home.telaHome
@@ -66,12 +67,14 @@ fun FinGuiaApp() {
                 aoClicarDashboard = { destinoAtual = DestinosApp.DASHBOARD },
                 aoClicarLancar = { destinoAtual = DestinosApp.LANCAR },
                 aoClicarExtrato = { destinoAtual = DestinosApp.EXTRATO },
-                aoClicarTema = { destinoAtual = DestinosApp.TEMA }
+                aoClicarTema = { destinoAtual = DestinosApp.TEMA },
+                aoClicarCalculadora = { destinoAtual = DestinosApp.CALCULADORA }
             )
             DestinosApp.DASHBOARD -> TelaHomeDash(modifier = modifier)
             DestinosApp.CRIPTOMOEDAS -> TelaCripto(modifier = modifier)
             DestinosApp.LANCAR -> TelaLancar(modifier = modifier)
             DestinosApp.EXTRATO -> TelaTransacoes()
+            DestinosApp.CALCULADORA -> TelaCalculadora(modifier = modifier)
             DestinosApp.TEMA -> Text(
                 text = "Configuracoes de tema",
                 modifier = modifier.padding(24.dp),
@@ -163,5 +166,6 @@ enum class DestinosApp(
     LANCAR("Lancar", R.drawable.ic_favorite),
     EXTRATO("Extrato", R.drawable.ic_extrato),
     CRIPTOMOEDAS("Criptos", R.drawable.ic_cripto),
+    CALCULADORA("Calc", R.drawable.ic_home),
     TEMA("Tema", R.drawable.ic_palette),
 }

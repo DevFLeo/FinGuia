@@ -52,7 +52,8 @@ fun telaHome(
     aoClicarDashboard: () -> Unit = {},
     aoClicarLancar: () -> Unit = {},
     aoClicarExtrato: () -> Unit = {},
-    aoClicarTema: () -> Unit = {}
+    aoClicarTema: () -> Unit = {},
+    aoClicarCalculadora: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -113,7 +114,8 @@ fun telaHome(
                 BotaoAcao(
                     modifier = Modifier.weight(1f),
                     icone = Icons.Default.Calculate,
-                    rotulo = "Calculadora"
+                    rotulo = "Calculadora",
+                    aoClicar = aoClicarCalculadora
                 )
                 BotaoAcao(
                     modifier = Modifier.weight(1f),
