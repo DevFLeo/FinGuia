@@ -29,5 +29,7 @@ data class TransacaoBancaria(
     val descricao: String,
     val tituloNotificacao: String,
     val textoNotificacao: String,
-    val timestampMs: Long = System.currentTimeMillis()
+    val timestampMs: Long = System.currentTimeMillis(),
+    // Indica se o lançamento foi marcado como recorrente pelo usuário
+    val recorrente: Boolean = false
 )

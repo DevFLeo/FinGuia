@@ -27,6 +27,10 @@ interface TransacaoDao {
     @Query("SELECT SUM(valor) FROM transacoes_bancarias WHERE tipo IN ('PIX_ENVIADO','COMPRA_DEBITO','COMPRA_CREDITO','BOLETO_PAGO','TRANSFERENCIA_ENVIADA','SAQUE')")
     fun totalDespesas(): Flow<Double?>
 
+    // Busca apenas os lançamentos marcados como recorrentes pelo usuário
+    @Query("SELECT * FROM transacoes_bancarias WHERE recorrente = 1 ORDER BY timestampMs DESC")
+    fun listarRecorrentes(): Flow<List<TransacaoBancaria>>
+
     @Query("DELETE FROM transacoes_bancarias WHERE id = :id")
     suspend fun deletar(id: Long)
 

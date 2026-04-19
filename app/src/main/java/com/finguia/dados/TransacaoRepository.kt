@@ -19,5 +19,7 @@ class TransacaoRepository(context: Context) {
 
     fun totalDespesas(): Flow<Double?> = dao.totalDespesas()
 
+    fun listarRecorrentes(): Flow<List<TransacaoBancaria>> = dao.listarRecorrentes()
+
     suspend fun deletar(id: Long) = dao.deletar(id)
 }

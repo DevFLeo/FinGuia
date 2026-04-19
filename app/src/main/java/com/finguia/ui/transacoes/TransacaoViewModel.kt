@@ -29,6 +29,15 @@ class TransacaoViewModel(app: Application) : AndroidViewModel(app) {
         .map { it ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
 
+    // Apenas lançamentos marcados como recorrentes
+    val recorrentes: StateFlow<List<TransacaoBancaria>> = repository
+        .listarRecorrentes()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun inserir(transacao: TransacaoBancaria) {
+        viewModelScope.launch { repository.salvar(transacao) }
+    }
+
     fun deletar(id: Long) {
         viewModelScope.launch { repository.deletar(id) }
     }
