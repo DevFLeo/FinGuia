@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finguia.R
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.ui.calculadora.TelaCalculadora
 import com.finguia.ui.cripto.TelaCripto
 import com.finguia.ui.home.TelaHomeDash
@@ -44,10 +45,15 @@ import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import com.finguia.ui.transacoes.TelaLancar
 import com.finguia.ui.transacoes.TelaTransacoes
+import com.finguia.ui.transacoes.TransacaoViewModel
 
 @Composable
 fun FinGuiaApp() {
     var destinoAtual by rememberSaveable { mutableStateOf(DestinosApp.INICIO) }
+
+    // ViewModel único compartilhado entre TelaLancar e TelaTransacoes para garantir
+    // que inserções na tela de lançamento reflitam imediatamente no extrato
+    val transacaoViewModel: TransacaoViewModel = viewModel()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -63,6 +69,7 @@ fun FinGuiaApp() {
         when (destinoAtual) {
             DestinosApp.INICIO -> telaHome(
                 modifier = modifier,
+                viewModel = transacaoViewModel,
                 aoClicarCriptos = { destinoAtual = DestinosApp.CRIPTOMOEDAS },
                 aoClicarDashboard = { destinoAtual = DestinosApp.DASHBOARD },
                 aoClicarLancar = { destinoAtual = DestinosApp.LANCAR },
@@ -70,13 +77,13 @@ fun FinGuiaApp() {
                 aoClicarTema = { destinoAtual = DestinosApp.TEMA },
                 aoClicarCalculadora = { destinoAtual = DestinosApp.CALCULADORA }
             )
-            DestinosApp.DASHBOARD -> TelaHomeDash(modifier = modifier)
+            DestinosApp.DASHBOARD    -> TelaHomeDash(modifier = modifier, viewModel = transacaoViewModel)
             DestinosApp.CRIPTOMOEDAS -> TelaCripto(modifier = modifier)
-            DestinosApp.LANCAR -> TelaLancar(modifier = modifier)
-            DestinosApp.EXTRATO -> TelaTransacoes()
-            DestinosApp.CALCULADORA -> TelaCalculadora(modifier = modifier)
-            DestinosApp.TEMA -> Text(
-                text = "Configuracoes de tema",
+            DestinosApp.LANCAR       -> TelaLancar(modifier = modifier, viewModel = transacaoViewModel)
+            DestinosApp.EXTRATO      -> TelaTransacoes(viewModel = transacaoViewModel)
+            DestinosApp.CALCULADORA  -> TelaCalculadora(modifier = modifier)
+            DestinosApp.TEMA         -> Text(
+                text = "Configurações de tema",
                 modifier = modifier.padding(24.dp),
                 color = Color.White
             )
@@ -163,7 +170,7 @@ enum class DestinosApp(
 ) {
     INICIO("Inicio", R.drawable.ic_home),
     DASHBOARD("Painel", R.drawable.ic_dashboard),
-    LANCAR("Lancar", R.drawable.ic_favorite),
+    LANCAR("Lançar", R.drawable.ic_favorite),
     EXTRATO("Extrato", R.drawable.ic_extrato),
     CRIPTOMOEDAS("Criptos", R.drawable.ic_cripto),
     CALCULADORA("Calc", R.drawable.ic_home),

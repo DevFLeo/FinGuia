@@ -32,6 +32,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,12 +44,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
+import com.finguia.ui.theme.DebtRed
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
+import com.finguia.ui.theme.MoneyGreen
+import com.finguia.ui.transacoes.TransacaoViewModel
 
 @Composable
 fun telaHome(
     modifier: Modifier = Modifier,
+    viewModel: TransacaoViewModel,
     aoClicarCriptos: () -> Unit = {},
     aoClicarDashboard: () -> Unit = {},
     aoClicarLancar: () -> Unit = {},
@@ -55,12 +61,25 @@ fun telaHome(
     aoClicarTema: () -> Unit = {},
     aoClicarCalculadora: () -> Unit = {}
 ) {
+    // Dados reais vindos do banco SQLite via ViewModel
+    val totalReceitas by viewModel.totalReceitas.collectAsState()
+    val totalDespesas by viewModel.totalDespesas.collectAsState()
+    val saldoTotal = totalReceitas - totalDespesas
+
+    // Proporção de gastos em relação às receitas (usado no gráfico de rosca)
+    val proporcaoGastos = if (totalReceitas > 0.0) {
+        (totalDespesas / totalReceitas).coerceIn(0.0, 1.0).toFloat()
+    } else {
+        0f
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(DarkBg)
             .padding(horizontal = 20.dp, vertical = 18.dp)
     ) {
+        // ── Ícones superiores ────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -73,27 +92,57 @@ fun telaHome(
             BotaoIconeTopo(Icons.Default.Person)
         }
 
+        // ── Gráfico de rosca com saldo real ──────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(220.dp),
             contentAlignment = Alignment.Center
         ) {
-            GraficoRosca(progresso = 0.75f)
+            GraficoRosca(progresso = proporcaoGastos)
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("SALDO TOTAL", color = GrayText, fontSize = 12.sp, letterSpacing = 1.sp)
-                Text("R$ 5.240,00", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "SALDO TOTAL",
+                    color = GrayText,
+                    fontSize = 12.sp,
+                    letterSpacing = 1.sp
+                )
+                Text(
+                    text = formatarMoeda(saldoTotal),
+                    // Verde se positivo, vermelho se negativo
+                    color = if (saldoTotal >= 0) Color.White else DebtRed,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                // Subtítulo mostrando entradas e saídas de forma compacta
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "+${formatarMoeda(totalReceitas)}",
+                        color = MoneyGreen,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(text = "·", color = GrayText, fontSize = 11.sp)
+                    Text(
+                        text = "-${formatarMoeda(totalDespesas)}",
+                        color = DebtRed,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(28.dp))
 
+        // ── Botões de ação rápida ────────────────────────────
         Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
                 BotaoAcao(
                     modifier = Modifier.weight(1f),
                     icone = Icons.Default.AddCircle,
-                    rotulo = "Lancar",
+                    rotulo = "Lançar",
                     aoClicar = aoClicarLancar
                 )
                 BotaoAcao(
@@ -159,6 +208,10 @@ fun telaHome(
     }
 }
 
+// ─────────────────────────────────────────────
+// COMPONENTES
+// ─────────────────────────────────────────────
+
 @Composable
 fun BotaoIconeTopo(
     icone: ImageVector,
@@ -203,9 +256,11 @@ fun BotaoAcao(
     }
 }
 
+// Gráfico de rosca: a faixa roxa representa a proporção de gastos sobre as receitas
 @Composable
 fun GraficoRosca(progresso: Float) {
     Canvas(modifier = Modifier.size(200.dp)) {
+        // Trilha de fundo
         drawArc(
             color = Color(0xFF222222),
             startAngle = 0f,
@@ -213,6 +268,7 @@ fun GraficoRosca(progresso: Float) {
             useCenter = false,
             style = Stroke(width = 15.dp.toPx())
         )
+        // Faixa de progresso (gastos em relação às receitas)
         drawArc(
             color = GojoPurple,
             startAngle = -90f,
@@ -222,3 +278,7 @@ fun GraficoRosca(progresso: Float) {
         )
     }
 }
+
+// Formata Double para o padrão monetário brasileiro: R$ 1.500,00
+private fun formatarMoeda(valor: Double): String =
+    "R$ %,.2f".format(valor).replace(",", "X").replace(".", ",").replace("X", ".")
