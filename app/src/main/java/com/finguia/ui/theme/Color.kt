@@ -1,5 +1,6 @@
 package com.finguia.ui.theme
 
+import android.R
 import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)
@@ -18,3 +19,11 @@ val DebtRed = Color(0xFFFF4D4D)
 val DarkBg = Color(0xFF0A0A0C)
 val CardBg = Color(0xFF16161E)
 val GrayText = Color(0xFF888888)
+
+// Cores da Tela Investimentos
+// GojoPurple já está definida como cripto.
+val Fundos = Color(0xFDcb00fd)
+val Coe = Color(0xFD8b1fa5)
+val TesouroD = Color(0xFDae27ce)
+val RendaV = Color(0xFEc454df)
+val RendaF = Color(0xFE9400d3)
