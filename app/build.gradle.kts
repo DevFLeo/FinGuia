@@ -55,5 +55,6 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+    implementation(libs.splashscreen)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.FinGuia" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.FinGuia.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#0D1B2A</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/fin_guia_modelo_4_2</item>
+        <item name="postSplashScreenTheme">@style/Theme.FinGuia</item>
+    </style>
 </resources>
