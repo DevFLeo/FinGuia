@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -30,6 +31,9 @@ interface TransacaoDao {
     // Busca apenas os lançamentos marcados como recorrentes pelo usuário
     @Query("SELECT * FROM transacoes_bancarias WHERE recorrente = 1 ORDER BY timestampMs DESC")
     fun listarRecorrentes(): Flow<List<TransacaoBancaria>>
+
+    @Update
+    suspend fun atualizar(transacao: TransacaoBancaria)
 
     @Query("DELETE FROM transacoes_bancarias WHERE id = :id")
     suspend fun deletar(id: Long)

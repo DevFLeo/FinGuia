@@ -21,5 +21,7 @@ class TransacaoRepository(context: Context) {
 
     fun listarRecorrentes(): Flow<List<TransacaoBancaria>> = dao.listarRecorrentes()
 
+    suspend fun atualizar(transacao: TransacaoBancaria) = dao.atualizar(transacao)
+
     suspend fun deletar(id: Long) = dao.deletar(id)
 }

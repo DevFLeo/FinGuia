@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -23,69 +25,143 @@ import com.finguia.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+private data class TelaMetrics(
+    val paddingH: Dp,
+    val spacerSm: Dp,
+    val spacerMd: Dp,
+    val cardPadding: Dp,
+    val iconBoxSize: Dp,
+    val iconSm: Dp,
+    val iconMd: Dp,
+    val iconLg: Dp,
+    val deleteButtonSize: Dp,
+    val deleteIconSize: Dp,
+    val fontTitle: TextUnit,
+    val fontSubtitle: TextUnit,
+    val fontLabel: TextUnit,
+    val fontValue: TextUnit,
+    val fontBankName: TextUnit,
+    val fontDesc: TextUnit,
+    val fontDate: TextUnit,
+    val fontEmpty: TextUnit,
+    val fontEmptySub: TextUnit,
+    val cardGap: Dp,
+    val resumoGap: Dp,
+    val emptyTopPad: Dp,
+)
+
+@Composable
+private fun rememberMetrics(maxWidthDp: Dp): TelaMetrics {
+    val isCompact = maxWidthDp < 400.dp
+    val isMedium = maxWidthDp < 600.dp
+    return remember(maxWidthDp) {
+        when {
+            isCompact -> TelaMetrics(
+                paddingH = 12.dp, spacerSm = 10.dp, spacerMd = 12.dp,
+                cardPadding = 10.dp, iconBoxSize = 34.dp, iconSm = 16.dp,
+                iconMd = 20.dp, iconLg = 52.dp, deleteButtonSize = 28.dp,
+                deleteIconSize = 14.dp, fontTitle = 18.sp, fontSubtitle = 11.sp,
+                fontLabel = 10.sp, fontValue = 14.sp, fontBankName = 13.sp,
+                fontDesc = 11.sp, fontDate = 9.sp, fontEmpty = 13.sp,
+                fontEmptySub = 11.sp, cardGap = 6.dp, resumoGap = 8.dp,
+                emptyTopPad = 40.dp,
+            )
+            isMedium -> TelaMetrics(
+                paddingH = 16.dp, spacerSm = 12.dp, spacerMd = 16.dp,
+                cardPadding = 14.dp, iconBoxSize = 40.dp, iconSm = 20.dp,
+                iconMd = 24.dp, iconLg = 64.dp, deleteButtonSize = 32.dp,
+                deleteIconSize = 16.dp, fontTitle = 22.sp, fontSubtitle = 12.sp,
+                fontLabel = 11.sp, fontValue = 16.sp, fontBankName = 14.sp,
+                fontDesc = 12.sp, fontDate = 10.sp, fontEmpty = 15.sp,
+                fontEmptySub = 12.sp, cardGap = 8.dp, resumoGap = 12.dp,
+                emptyTopPad = 60.dp,
+            )
+            else -> TelaMetrics(
+                paddingH = 24.dp, spacerSm = 14.dp, spacerMd = 20.dp,
+                cardPadding = 18.dp, iconBoxSize = 48.dp, iconSm = 24.dp,
+                iconMd = 28.dp, iconLg = 80.dp, deleteButtonSize = 36.dp,
+                deleteIconSize = 18.dp, fontTitle = 26.sp, fontSubtitle = 14.sp,
+                fontLabel = 13.sp, fontValue = 18.sp, fontBankName = 16.sp,
+                fontDesc = 14.sp, fontDate = 12.sp, fontEmpty = 17.sp,
+                fontEmptySub = 14.sp, cardGap = 10.dp, resumoGap = 16.dp,
+                emptyTopPad = 80.dp,
+            )
+        }
+    }
+}
+
 @Composable
 fun TelaTransacoes(viewModel: TransacaoViewModel = viewModel()) {
     val transacoes by viewModel.transacoes.collectAsState()
     val totalReceitas by viewModel.totalReceitas.collectAsState()
     val totalDespesas by viewModel.totalDespesas.collectAsState()
 
-    Column(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(DarkBg)
-            .padding(horizontal = 16.dp)
     ) {
-        Spacer(Modifier.height(16.dp))
+        val m = rememberMetrics(maxWidth)
 
-        Text(
-            text = "Extrato Bancário",
-            color = Color.White,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            text = "Capturado automaticamente via notificações",
-            color = GrayText,
-            fontSize = 12.sp
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        // Cards de resumo receitas/despesas
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = m.paddingH)
         ) {
-            ResumoCard(
-                titulo = "Entradas",
-                valor = totalReceitas,
-                cor = MoneyGreen,
-                icone = Icons.Default.TrendingUp,
-                modifier = Modifier.weight(1f)
-            )
-            ResumoCard(
-                titulo = "Saídas",
-                valor = totalDespesas,
-                cor = DebtRed,
-                icone = Icons.Default.TrendingDown,
-                modifier = Modifier.weight(1f)
-            )
-        }
+            Spacer(Modifier.height(m.spacerMd))
 
-        Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Extrato Bancário",
+                color = Color.White,
+                fontSize = m.fontTitle,
+                fontWeight = FontWeight.Bold
+            )
 
-        if (transacoes.isEmpty()) {
-            EstadoVazio()
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(transacoes, key = { it.id }) { transacao ->
-                    CartaoTransacao(
-                        transacao = transacao,
-                        onDeletar = { viewModel.deletar(transacao.id) }
-                    )
+            Text(
+                text = "Capturado automaticamente via notificações",
+                color = GrayText,
+                fontSize = m.fontSubtitle
+            )
+
+            Spacer(Modifier.height(m.spacerMd))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(m.resumoGap)
+            ) {
+                ResumoCard(
+                    titulo = "Entradas",
+                    valor = totalReceitas,
+                    cor = MoneyGreen,
+                    icone = Icons.Default.TrendingUp,
+                    m = m,
+                    modifier = Modifier.weight(1f)
+                )
+                ResumoCard(
+                    titulo = "Saídas",
+                    valor = totalDespesas,
+                    cor = DebtRed,
+                    icone = Icons.Default.TrendingDown,
+                    m = m,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(Modifier.height(m.spacerMd))
+
+            if (transacoes.isEmpty()) {
+                EstadoVazio(m)
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(m.cardGap)) {
+                    items(transacoes, key = { it.id }) { transacao ->
+                        CartaoTransacao(
+                            transacao = transacao,
+                            m = m,
+                            onDeletar = { viewModel.deletar(transacao.id) }
+                        )
+                    }
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
-                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
@@ -97,6 +173,7 @@ private fun ResumoCard(
     valor: Double,
     cor: Color,
     icone: ImageVector,
+    m: TelaMetrics,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -105,17 +182,17 @@ private fun ResumoCard(
         colors = CardDefaults.cardColors(containerColor = CardBg)
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(m.cardPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(m.spacerSm)
         ) {
-            Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(24.dp))
+            Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(m.iconMd))
             Column {
-                Text(titulo, color = GrayText, fontSize = 11.sp)
+                Text(titulo, color = GrayText, fontSize = m.fontLabel)
                 Text(
                     text = formatarValor(valor),
                     color = cor,
-                    fontSize = 16.sp,
+                    fontSize = m.fontValue,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -126,6 +203,7 @@ private fun ResumoCard(
 @Composable
 private fun CartaoTransacao(
     transacao: TransacaoBancaria,
+    m: TelaMetrics,
     onDeletar: () -> Unit
 ) {
     val ehEntrada = transacao.tipo in listOf(
@@ -145,13 +223,12 @@ private fun CartaoTransacao(
         colors = CardDefaults.cardColors(containerColor = CardBg)
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(m.cardPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Ícone do tipo de transação
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(m.iconBoxSize)
                     .background(corValor.copy(alpha = 0.15f), RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
             ) {
@@ -159,29 +236,29 @@ private fun CartaoTransacao(
                     imageVector = iconeParaTipo(transacao.tipo),
                     contentDescription = null,
                     tint = corValor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(m.iconSm)
                 )
             }
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(m.spacerSm))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = transacao.banco,
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = m.fontBankName,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = transacao.descricao,
                     color = GrayText,
-                    fontSize = 12.sp,
+                    fontSize = m.fontDesc,
                     maxLines = 2
                 )
                 Text(
                     text = dataFormatada,
                     color = GrayText.copy(alpha = 0.6f),
-                    fontSize = 10.sp
+                    fontSize = m.fontDate
                 )
             }
 
@@ -191,18 +268,18 @@ private fun CartaoTransacao(
                 Text(
                     text = "$prefixoValor${formatarValor(transacao.valor)}",
                     color = corValor,
-                    fontSize = 14.sp,
+                    fontSize = m.fontBankName,
                     fontWeight = FontWeight.Bold
                 )
                 IconButton(
                     onClick = onDeletar,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(m.deleteButtonSize)
                 ) {
                     Icon(
                         Icons.Default.DeleteOutline,
                         contentDescription = "Remover",
                         tint = GrayText,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(m.deleteIconSize)
                     )
                 }
             }
@@ -211,30 +288,30 @@ private fun CartaoTransacao(
 }
 
 @Composable
-private fun EstadoVazio() {
+private fun EstadoVazio(m: TelaMetrics) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 60.dp),
+            .padding(top = m.emptyTopPad),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(m.spacerSm)
     ) {
         Icon(
             Icons.Default.NotificationsNone,
             contentDescription = null,
             tint = GrayText,
-            modifier = Modifier.size(64.dp)
+            modifier = Modifier.size(m.iconLg)
         )
         Text(
             text = "Nenhuma transação capturada ainda",
             color = GrayText,
-            fontSize = 15.sp,
+            fontSize = m.fontEmpty,
             fontWeight = FontWeight.Medium
         )
         Text(
             text = "As notificações dos seus bancos serão\ncapturadas automaticamente aqui.",
             color = GrayText.copy(alpha = 0.6f),
-            fontSize = 12.sp,
+            fontSize = m.fontEmptySub,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }

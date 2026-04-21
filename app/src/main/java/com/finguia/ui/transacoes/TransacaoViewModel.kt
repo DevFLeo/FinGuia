@@ -19,6 +19,8 @@ class TransacaoViewModel(app: Application) : AndroidViewModel(app) {
         .listarTodas()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    val todasTransacoes = transacoes
+
     val totalReceitas: StateFlow<Double> = repository
         .totalReceitas()
         .map { it ?: 0.0 }
@@ -36,6 +38,10 @@ class TransacaoViewModel(app: Application) : AndroidViewModel(app) {
 
     fun inserir(transacao: TransacaoBancaria) {
         viewModelScope.launch { repository.salvar(transacao) }
+    }
+
+    fun atualizar(transacao: TransacaoBancaria) {
+        viewModelScope.launch { repository.atualizar(transacao) }
     }
 
     fun deletar(id: Long) {

@@ -166,6 +166,7 @@ fun CardCategoriaInvestimento(item: ItemInvestimento) {
 /**
  * Barra de navegação superior com abas "Brasil" e "Global".
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarInvestimentos() {
     Column(modifier = Modifier.background(DarkBg)) {
