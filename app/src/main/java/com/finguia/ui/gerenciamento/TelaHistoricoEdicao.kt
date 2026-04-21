@@ -38,7 +38,7 @@ fun TelaHistoricoEdicao(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("REGISTROS DO DOMÍNIO",
+                    Text("Registros",
                         style = androidx.compose.ui.text.TextStyle(
                             fontWeight = FontWeight.Black,
                             letterSpacing = 2.sp,
@@ -65,7 +65,7 @@ fun TelaHistoricoEdicao(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-            // Barra de Busca Estilo "Six Eyes" (Enxerga tudo)
+            // Barra de Busca
             OutlinedTextField(
                 value = textoBusca,
                 onValueChange = { textoBusca = it },
@@ -84,7 +84,7 @@ fun TelaHistoricoEdicao(
                 )
             )
 
-            // A Lista dos "Fatos Históricos"
+            // A Lista do historico
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 20.dp)
@@ -104,13 +104,13 @@ fun TelaHistoricoEdicao(
         }
     }
 
-    // Modal de Edição (Onde a mágica acontece)
+    // Modal da edição de transação
     transacaoParaEditar?.let { transacao ->
         ModalEditarTransacao(
             transacao = transacao,
             onDismiss = { transacaoParaEditar = null },
             onConfirmar = { novaTransacao ->
-                viewModel.atualizar(novaTransacao) // Certifique-se de ter essa função no seu VM
+                viewModel.atualizar(novaTransacao) // Certificar se há uma função de atualização no ViewModel
                 transacaoParaEditar = null
             }
         )
@@ -133,7 +133,6 @@ private fun CardTransacaoEditavel(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Círculo de Categoria com Roxo Vibrante
         Box(
             modifier = Modifier
                 .size(40.dp)

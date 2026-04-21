@@ -22,8 +22,8 @@ val GrayText = Color(0xFF888888)
 
 // Cores da Tela Investimentos
 // GojoPurple já está definida como cripto.
-val Fundos = Color(0xFDcb00fd)
+val Fundos = Color(0xFDA00BC7)
 val Coe = Color(0xFD8b1fa5)
 val TesouroD = Color(0xFDae27ce)
-val RendaV = Color(0xFEc454df)
+val RendaV = Color(0xFEA64EBD)
 val RendaF = Color(0xFE9400d3)
