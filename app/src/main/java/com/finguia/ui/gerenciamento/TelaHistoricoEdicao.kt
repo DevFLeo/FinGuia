@@ -79,7 +79,8 @@ fun TelaHistoricoEdicao(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = GojoPurple,
                     unfocusedBorderColor = CardBg,
-                    containerColor = CardBg,
+                    focusedContainerColor = CardBg,
+                    unfocusedContainerColor = CardBg,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White
                 )
