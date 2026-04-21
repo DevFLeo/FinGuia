@@ -26,6 +26,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -44,9 +45,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -413,7 +416,9 @@ enum class AbaCalculadora(val rotulo: String) {
     CONVERSAO("Cambio"),
     FINANCEIRA("Renda Fixa"),
     CIENTIFICA("Cientifica"),
-    INVESTIMENTOS("ROI")
+    INVESTIMENTOS("ROI"),
+    PRECO_VENDA("Markup"),
+    ENDIVIDAMENTO("Dividas")
 }
 
 @Composable
@@ -448,10 +453,12 @@ fun TelaCalculadora(modifier: Modifier = Modifier) {
         }
 
         when (aba) {
-            AbaCalculadora.CONVERSAO -> BlocoConversao()
-            AbaCalculadora.FINANCEIRA -> BlocoFinanceira()
-            AbaCalculadora.CIENTIFICA -> BlocoCientifica()
+            AbaCalculadora.CONVERSAO    -> BlocoConversao()
+            AbaCalculadora.FINANCEIRA   -> BlocoFinanceira()
+            AbaCalculadora.CIENTIFICA   -> BlocoCientifica()
             AbaCalculadora.INVESTIMENTOS -> BlocoInvestimentos()
+            AbaCalculadora.PRECO_VENDA  -> BlocoPrecoVenda()
+            AbaCalculadora.ENDIVIDAMENTO -> BlocoEndividamento()
         }
     }
 }
@@ -788,21 +795,42 @@ private fun BlocoCientifica() {
 
 @Composable
 private fun BlocoInvestimentos() {
-    var investido by remember { mutableStateOf("1000") }
-    var aporte by remember { mutableStateOf("100") }
+    // Estados de entrada
+    var investidoInicial by remember { mutableStateOf("1000") }
+    var aporteMensal by remember { mutableStateOf("100") }
     var meses by remember { mutableStateOf("12") }
-    var expectativaAA by remember { mutableStateOf("12.0") }
+    var taxaAnoNome by remember { mutableStateOf("12.0") }
+    var inflacaoAno by remember { mutableStateOf("4.5") }
 
-    val inv = investido.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val ap = aporte.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val m = meses.toIntOrNull() ?: 0
-    val exp = expectativaAA.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val taxaMes = aaParaAm(exp)
-    val totalInvestido = inv + ap * m
-    val valorFinal = simularMensal(inv, ap, m, taxaMes)
-    val ganho = valorFinal - totalInvestido
-    val roi = if (totalInvestido > 0) ganho / totalInvestido * 100 else 0.0
-    val taxaMesPct = taxaMes * 100
+    // Conversões e Cálculos
+    val p = investidoInicial.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val pmt = aporteMensal.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val n = meses.toIntOrNull() ?: 0
+    val iAno = (taxaAnoNome.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val infAno = (inflacaoAno.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+
+    // Taxas mensais equivalentes
+    val iMes = (1.0 + iAno).pow(1.0 / 12.0) - 1.0
+    val infMes = (1.0 + infAno).pow(1.0 / 12.0) - 1.0
+
+    val totalInvestido = p + pmt * n
+    val valorFinalBruto = simularMensal(p, pmt, n, iMes)
+    val lucroBruto = (valorFinalBruto - totalInvestido).coerceAtLeast(0.0)
+
+    // Estimativa de Imposto de Renda
+    val aliquotaIR = when {
+        n <= 6 -> 0.225
+        n <= 12 -> 0.20
+        n <= 24 -> 0.175
+        else -> 0.15
+    }
+    val valorIR = lucroBruto * aliquotaIR
+    val valorFinalLiquido = valorFinalBruto - valorIR
+    val lucroLiquido = valorFinalLiquido - totalInvestido
+
+    // ROI Real: Ajustando o valor final pela inflação acumulada
+    val valorFinalDeflacionado = valorFinalLiquido / (1.0 + infMes).pow(n.toDouble())
+    val roiRealTotal = if (totalInvestido > 0) ((valorFinalDeflacionado / totalInvestido) - 1) * 100 else 0.0
 
     Column(
         modifier = Modifier
@@ -810,59 +838,214 @@ private fun BlocoInvestimentos() {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Text("Simulador rapido de ROI", color = Color.White, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(8.dp))
-        CampoNumerico("Aporte inicial (R$)", investido) { investido = it }
-        CampoNumerico("Aporte mensal (R$)", aporte) { aporte = it }
-        CampoNumerico("Periodo (meses)", meses) { meses = it }
-        CampoNumerico("Expectativa a.a. (%)", expectativaAA) { expectativaAA = it }
-
+        Text("Expansão de Patrimônio (ROI)", color = GojoPurple, fontWeight = FontWeight.Black, fontSize = 18.sp)
         Spacer(Modifier.height(12.dp))
+
+        CampoNumerico("Aporte Inicial (R$)", investidoInicial) { investidoInicial = it }
+        CampoNumerico("Aporte Mensal (R$)", aporteMensal) { aporteMensal = it }
+        CampoNumerico("Tempo (Meses)", meses) { meses = it }
+        CampoNumerico("Rentabilidade Anual (%)", taxaAnoNome) { taxaAnoNome = it }
+        CampoNumerico("Inflação Estimada Anual (%)", inflacaoAno) { inflacaoAno = it }
+
+        Spacer(Modifier.height(20.dp))
+
+        // Card Principal
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = CardBg),
-            shape = RoundedCornerShape(14.dp)
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Column(Modifier.padding(16.dp)) {
-                LinhaResultado("Total investido", formatarBrl(totalInvestido))
-                LinhaResultado("Valor final", formatarBrl(valorFinal))
-                LinhaResultado("Ganho", formatarBrl(ganho), cor = if (ganho >= 0) MoneyGreen else DebtRed)
-                LinhaResultado("ROI", "${"%.2f".format(roi)}%", cor = if (roi >= 0) MoneyGreen else DebtRed)
-                LinhaResultado("Taxa equivalente a.m.", "${"%.4f".format(taxaMesPct)}%")
+            Column(Modifier.padding(20.dp)) {
+                Text("RESULTADO FINAL LÍQUIDO", color = GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(formatarBrl(valorFinalLiquido), color = MoneyGreen, fontSize = 28.sp, fontWeight = FontWeight.Black)
+
+                Divider(Modifier.padding(vertical = 12.dp), color = GrayText.copy(alpha = 0.2f))
+
+                LinhaResultado("Total Investido", formatarBrl(totalInvestido))
+                LinhaResultado("Lucro Limpo (Pós-IR)", formatarBrl(lucroLiquido), cor = MoneyGreen)
+                LinhaResultado("Imposto (Est. ${"%.1f".format(aliquotaIR*100)}%)", "- ${formatarBrl(valorIR)}", cor = DebtRed)
             }
         }
 
-        Spacer(Modifier.height(16.dp))
-        Text("Referencias (a.a., exceto quando indicado)", color = GrayText, fontSize = 12.sp)
-        Spacer(Modifier.height(8.dp))
-        val refs = listOf(
-            "Selic efetiva" to "14,65% a.a.",
-            "CDI" to "14,65% a.a.",
-            "IPCA" to "4,05% a.a.",
-            "TR" to "0,1667% a.m.",
-            "Tesouro Prefixado" to "14,00% a.a.",
-            "Custodia B3 (Tesouro)" to "0,20% a.a.",
-            "Tesouro IPCA+ (juro real)" to "6,50% a.a.",
-            "Adm. Fundo DI" to "0,25% a.a.",
-            "CDB" to "100% do CDI",
-            "Fundo DI" to "98,17% do CDI",
-            "LCI/LCA" to "85% do CDI (isento IR)",
-            "Poupanca" to "0,6675% a.m. (isento IR)"
-        )
-        refs.forEach { (k, v) ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                Text(k, color = GrayText, fontSize = 12.sp, modifier = Modifier.weight(1f))
-                Text(v, color = Color.White, fontSize = 12.sp)
+        Spacer(Modifier.height(12.dp))
+
+        // Card de ROI Real
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = GojoPurple.copy(alpha = 0.1f)),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, GojoPurple.copy(alpha = 0.3f))
+        ) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("ROI REAL (Ajustado pela Inflação)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text("Este é poder de compra real.", color = GrayText, fontSize = 11.sp)
+                }
+                Text(
+                    text = "${"%.2f".format(roiRealTotal)}%",
+                    color = if (roiRealTotal >= 0) MoneyGreen else DebtRed,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
             }
         }
+        Spacer(Modifier.height(80.dp))
     }
 }
-
 @Composable
 private fun LinhaResultado(rotulo: String, valor: String, cor: Color = Color.White) {
     Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
         Text(rotulo, color = GrayText, fontSize = 13.sp, modifier = Modifier.weight(1f))
         Text(valor, color = cor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+// ============================================================
+// ABA 5 - MARKUP
+// ============================================================
+
+@Composable
+private fun BlocoPrecoVenda() {
+    var custoBase by remember { mutableStateOf("100") }
+    var despesasFixas by remember { mutableStateOf("10") }
+    var despesasVariaveis by remember { mutableStateOf("15") }
+    var margemLucro by remember { mutableStateOf("20") }
+
+    // Processamento dos valores de entrada
+    val c = custoBase.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val df = (despesasFixas.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val dv = (despesasVariaveis.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val ml = (margemLucro.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+
+    // Cálculo do Markup Divisor
+    // O divisor representa a fração do preço que resta após deduzir todas as porcentagens
+    val totalIndices = df + dv + ml
+    val divisor = 1.0 - totalIndices
+
+    val precoVenda = if (divisor > 0) c / divisor else 0.0
+    val lucroUnitario = if (precoVenda > 0) precoVenda * ml else 0.0
+    val multiplicadorMarkup = if (c > 0) precoVenda / c else 0.0
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text("Calculadora de Markup", color = GojoPurple, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+        CampoNumerico("Custo Direto (R$)", custoBase) { custoBase = it }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(Modifier.weight(1f)) {
+                CampoNumerico("Custos Fixos (%)", despesasFixas) { despesasFixas = it }
+            }
+            Box(Modifier.weight(1f)) {
+                CampoNumerico("Impostos/Taxas (%)", despesasVariaveis) { despesasVariaveis = it }
+            }
+        }
+
+        CampoNumerico("Margem Líquida Desejada (%)", margemLucro) { margemLucro = it }
+
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = CardBg),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, GojoPurple.copy(alpha = 0.5f))
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("VALOR DE VENDA", color = GrayText, fontSize = 12.sp)
+                Text(formatarBrl(precoVenda), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black)
+
+                Divider(color = GrayText.copy(alpha = 0.1f))
+
+                LinhaResultado("Lucro Real", formatarBrl(lucroUnitario), cor = MoneyGreen)
+                LinhaResultado("Índice Multiplicador", "${"%.2f".format(multiplicadorMarkup)}x")
+            }
+        }
+
+        if (divisor <= 0) {
+            Text(
+                "Erro: A soma das taxas excede 100%. Verifique os parâmetros.",
+                color = DebtRed,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(Modifier.height(80.dp))
+    }
+}
+
+// ============================================================
+// ABA 5 - SIMULADOR ENDIVIDAMENTO E DIVIDA
+// ============================================================
+
+@Composable
+private fun BlocoEndividamento() {
+    var valorPrincipal by remember { mutableStateOf("1000") }
+    var taxaMensal by remember { mutableStateOf("8.0") }
+    var periodoMeses by remember { mutableStateOf("12") }
+
+    // Processamento matemático dos parâmetros
+    val p = valorPrincipal.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val i = (taxaMensal.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val n = periodoMeses.toIntOrNull() ?: 0
+
+    // Cálculo de Juros Compostos: M = P * (1 + i)^n
+    val montanteFinal = p * (1 + i).toDouble().pow(n.toDouble())
+    val totalJuros = montanteFinal - p
+    val multiplicadorDivida = if (p > 0) montanteFinal / p else 0.0
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text("Simulador de Passivos (Dívidas)", color = DebtRed, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+        CampoNumerico("Valor Original da Dívida (R$)", valorPrincipal) { valorPrincipal = it }
+        CampoNumerico("Taxa de Juros Mensal (%)", taxaMensal) { taxaMensal = it }
+        CampoNumerico("Tempo de Atraso/Parcelamento (Meses)", periodoMeses) { periodoMeses = it }
+
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = CardBg),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, DebtRed.copy(alpha = 0.5f))
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("VALOR TOTAL AO FINAL DO PERÍODO", color = GrayText, fontSize = 12.sp)
+                Text(formatarBrl(montanteFinal), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black)
+
+                Divider(color = GrayText.copy(alpha = 0.1f))
+
+                LinhaResultado("Total apenas em Juros", formatarBrl(totalJuros), cor = DebtRed)
+                LinhaResultado("Fator de Multiplicação", "${"%.2f".format(multiplicadorDivida)}x")
+            }
+        }
+
+        // Análise Crítica do Professor
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(DebtRed.copy(alpha = 0.1f))
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "Análise Técnica: Uma taxa de ${taxaMensal}% ao mês representa um custo efetivo anual de ${"%.2f".format(((1+i).pow(12)-1)*100)}%. O capital exposto dobra de valor em aproximadamente ${"%.1f".format(72/(taxaMensal.toDoubleOrNull() ?: 1.0))} meses.",
+                color = GrayText,
+                fontSize = 11.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(Modifier.height(80.dp))
     }
 }
 
