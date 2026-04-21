@@ -1,5 +1,8 @@
 package com.finguia.ui.home
 
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,7 +39,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -99,7 +104,7 @@ fun telaHome(
                 .height(220.dp),
             contentAlignment = Alignment.Center
         ) {
-            GraficoRosca(progresso = proporcaoGastos)
+            GraficoRosca(progresso = proporcaoGastos, saldoPositivo = saldoTotal >= 0)
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -256,26 +261,62 @@ fun BotaoAcao(
     }
 }
 
-// Gráfico de rosca: a faixa roxa representa a proporção de gastos sobre as receitas
+// Easing suave tipo "overshoot" para entrada do arco
+private val EaseOutBack = Easing { t ->
+    val c1 = 1.70158f
+    val c3 = c1 + 1f
+    (1 + c3 * (t - 1).let { it * it * it } + c1 * (t - 1).let { it * it }).coerceIn(0f, 1f)
+}
+
 @Composable
-fun GraficoRosca(progresso: Float) {
+fun GraficoRosca(progresso: Float, saldoPositivo: Boolean = true) {
+    val progressoAnimado by animateFloatAsState(
+        targetValue = progresso,
+        animationSpec = tween(durationMillis = 1200, easing = EaseOutBack),
+        label = "grafico_rosca"
+    )
+
+    // Cor do arco: verde se saldo positivo e gastos < 80%, vermelho se negativo ou acima de 80%
+    val corArco = when {
+        !saldoPositivo || progresso >= 0.8f -> DebtRed
+        progresso >= 0.6f -> Color(0xFFFFB300)
+        else -> MoneyGreen
+    }
+
+    // Glow: cor semitransparente mais larga atrás do arco principal
+    val corGlow = corArco.copy(alpha = 0.25f)
+
     Canvas(modifier = Modifier.size(200.dp)) {
+        val strokePx = 15.dp.toPx()
+        val glowPx = 28.dp.toPx()
+
         // Trilha de fundo
         drawArc(
-            color = Color(0xFF222222),
-            startAngle = 0f,
+            color = Color(0xFF1E1E1E),
+            startAngle = -90f,
             sweepAngle = 360f,
             useCenter = false,
-            style = Stroke(width = 15.dp.toPx())
+            style = Stroke(width = strokePx, cap = StrokeCap.Round)
         )
-        // Faixa de progresso (gastos em relação às receitas)
-        drawArc(
-            color = GojoPurple,
-            startAngle = -90f,
-            sweepAngle = 360f * progresso,
-            useCenter = false,
-            style = Stroke(width = 15.dp.toPx())
-        )
+
+        if (progressoAnimado > 0f) {
+            // Camada de glow (brilho difuso)
+            drawArc(
+                color = corGlow,
+                startAngle = -90f,
+                sweepAngle = 360f * progressoAnimado,
+                useCenter = false,
+                style = Stroke(width = glowPx, cap = StrokeCap.Round)
+            )
+            // Arco principal com cor dinâmica
+            drawArc(
+                color = corArco,
+                startAngle = -90f,
+                sweepAngle = 360f * progressoAnimado,
+                useCenter = false,
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
+            )
+        }
     }
 }
 
