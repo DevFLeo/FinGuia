@@ -52,7 +52,7 @@ private val CATEGORIAS_DIVIDAS = listOf(
     Categoria(Icons.Default.AccountBalance, "Contas",        "Boletos / Aluguel", TipoTransacao.BOLETO_PAGO,    false),
     Categoria(Icons.Default.CreditCard,     "Emergência",    "Imprevistos",       TipoTransacao.COMPRA_DEBITO,  false),
     Categoria(Icons.Default.Restaurant,     "Comida",        "Alimentação",       TipoTransacao.COMPRA_DEBITO,  false),
-    Categoria(Icons.Default.LocalCafe,      "Lanches",       "Saídas rápidas",    TipoTransacao.COMPRA_DEBITO,  false),
+    Categoria(Icons.Default.LocalCafe,      "Saídas Rápidas","Saídas Não Especificadas", TipoTransacao.COMPRA_DEBITO,  false),
     Categoria(Icons.Default.Receipt,        "Boletos",       "Pagamentos",        TipoTransacao.BOLETO_PAGO,    false),
     Categoria(Icons.Default.MoneyOff,       "Dívidas Gerais","Outros gastos",     TipoTransacao.COMPRA_CREDITO, false),
 )
