@@ -834,12 +834,18 @@ private fun BotaoAcaoRapida(
             .background(cor.copy(alpha = 0.12f))
             .border(1.dp, cor.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
             .clickable(onClick = aoClicar)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(20.dp))
-        Text(texto, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(18.dp))
+        Text(
+            texto,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1
+        )
     }
 }
 
