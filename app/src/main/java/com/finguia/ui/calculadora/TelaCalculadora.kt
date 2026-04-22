@@ -32,8 +32,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -438,16 +438,17 @@ fun TelaCalculadora(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 8.dp)
         )
 
-        TabRow(
+        ScrollableTabRow(
             selectedTabIndex = aba.ordinal,
             containerColor = DarkBg,
-            contentColor = Color.White
+            contentColor = Color.White,
+            edgePadding = 0.dp
         ) {
             AbaCalculadora.entries.forEach { a ->
                 Tab(
                     selected = a == aba,
                     onClick = { aba = a },
-                    text = { Text(a.rotulo, fontSize = 12.sp) }
+                    text = { Text(a.rotulo, fontSize = 13.sp, maxLines = 1) }
                 )
             }
         }
@@ -734,7 +735,8 @@ private fun BlocoCientifica() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -742,15 +744,15 @@ private fun BlocoCientifica() {
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.padding(12.dp)) {
-                Text(expressao.ifEmpty { " " }, color = GrayText, fontSize = 16.sp, maxLines = 2)
-                Text(resultado, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text(expressao.ifEmpty { " " }, color = GrayText, fontSize = 14.sp, maxLines = 2)
+                Text(resultado, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
         teclas.forEach { linha ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 linha.forEach { tecla ->
                     Button(
                         onClick = {
@@ -777,15 +779,16 @@ private fun BlocoCientifica() {
                             }
                         ),
                         shape = RoundedCornerShape(10.dp),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(4.dp),
-                        modifier = Modifier.weight(1f).height(54.dp)
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(2.dp),
+                        modifier = Modifier.weight(1f).height(48.dp)
                     ) {
-                        if (tecla == "<-") Icon(Icons.Default.Backspace, contentDescription = null, tint = Color.White)
-                        else Text(tecla, color = Color.White, fontSize = 14.sp)
+                        if (tecla == "<-") Icon(Icons.Default.Backspace, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        else Text(tecla, color = Color.White, fontSize = 12.sp)
                     }
                 }
             }
         }
+        Spacer(Modifier.height(80.dp))
     }
 }
 
