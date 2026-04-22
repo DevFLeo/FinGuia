@@ -161,7 +161,7 @@ fun telaHome(
                 BotaoAcao(
                     modifier = Modifier.weight(1f),
                     icone = Icons.Default.Edit,
-                    rotulo = "Extrato",
+                    rotulo = "Extratos",
                     aoClicar = aoClicarExtrato
                 )
                 BotaoAcao(

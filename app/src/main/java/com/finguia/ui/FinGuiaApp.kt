@@ -212,7 +212,7 @@ enum class DestinosApp(
     INICIO("Início", R.drawable.ic_home),
     DASHBOARD("Painel", R.drawable.ic_dashboard, exibirNaBarra = false),
     LANCAR("Lançar", R.drawable.ic_favorite),
-    EXTRATO("Extrato", R.drawable.ic_extrato),
+    EXTRATO("Extratos", R.drawable.ic_extrato),
     INVESTIMENTOS("Invest", R.drawable.ic_dashboard, exibirNaBarra = false),
     CRIPTOMOEDAS("Criptos", R.drawable.ic_cripto, exibirNaBarra = false),
     CALCULADORA("Calc", R.drawable.ic_calculadora, exibirNaBarra = false),

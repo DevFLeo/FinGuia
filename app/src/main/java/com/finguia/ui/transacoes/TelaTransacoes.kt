@@ -113,7 +113,7 @@ fun TelaTransacoes(viewModel: TransacaoViewModel = viewModel()) {
             Spacer(Modifier.height(m.spacerMd))
 
             Text(
-                text = "Extrato Bancário",
+                text = "Extratos Bancários",
                 color = Color.White,
                 fontSize = m.fontTitle,
                 fontWeight = FontWeight.Bold
