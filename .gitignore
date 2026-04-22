@@ -24,3 +24,9 @@ replay_pid*.log
 
 # Kotlin build cache
 .kotlin/
+
+# VSCode
+.vscode/
+
+# Scripts locais de deploy
+deploy_device.bat
