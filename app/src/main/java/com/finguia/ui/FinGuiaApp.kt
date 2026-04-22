@@ -20,8 +20,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,14 +37,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finguia.R
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.finguia.dados.TransacaoBancaria
+import com.finguia.ui.busca.TelaDetalheTransacao
+import com.finguia.ui.busca.TelaBusca
 import com.finguia.ui.calculadora.TelaCalculadora
+import com.finguia.ui.configuracoes.ConfiguracoesViewModel
+import com.finguia.ui.configuracoes.TelaConfiguracoes
 import com.finguia.ui.cripto.TelaCripto
 import com.finguia.ui.home.TelaHomeDash
 import com.finguia.ui.home.telaHome
+import com.finguia.ui.investimentos.TelaInvestimentos
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
+import com.finguia.ui.transacoes.CategoriaViewModel
 import com.finguia.ui.transacoes.TelaLancar
 import com.finguia.ui.transacoes.TelaTransacoes
 import com.finguia.ui.transacoes.TransacaoViewModel
@@ -50,10 +59,12 @@ import com.finguia.ui.transacoes.TransacaoViewModel
 @Composable
 fun FinGuiaApp() {
     var destinoAtual by rememberSaveable { mutableStateOf(DestinosApp.INICIO) }
+    var transacaoDetalhe by remember { androidx.compose.runtime.mutableStateOf<TransacaoBancaria?>(null) }
 
-    // ViewModel único compartilhado entre TelaLancar e TelaTransacoes para garantir
-    // que inserções na tela de lançamento reflitam imediatamente no extrato
     val transacaoViewModel: TransacaoViewModel = viewModel()
+    val configViewModel: ConfiguracoesViewModel = viewModel()
+    val categoriaViewModel: CategoriaViewModel = viewModel()
+    val ocultarSaldo by configViewModel.ocultarSaldo.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -66,27 +77,47 @@ fun FinGuiaApp() {
         }
     ) { paddingInterno ->
         val modifier = Modifier.padding(paddingInterno)
-        when (destinoAtual) {
-            DestinosApp.INICIO -> telaHome(
+        // Detalhe de transação sobrepõe qualquer tela (navegação imperativa)
+        val detalhe = transacaoDetalhe
+        if (detalhe != null) {
+            TelaDetalheTransacao(
+                transacao = detalhe,
                 modifier = modifier,
-                viewModel = transacaoViewModel,
-                aoClicarCriptos = { destinoAtual = DestinosApp.CRIPTOMOEDAS },
-                aoClicarDashboard = { destinoAtual = DestinosApp.DASHBOARD },
-                aoClicarLancar = { destinoAtual = DestinosApp.LANCAR },
-                aoClicarExtrato = { destinoAtual = DestinosApp.EXTRATO },
-                aoClicarTema = { destinoAtual = DestinosApp.TEMA },
-                aoClicarCalculadora = { destinoAtual = DestinosApp.CALCULADORA }
+                aoVoltar = { transacaoDetalhe = null }
             )
-            DestinosApp.DASHBOARD    -> TelaHomeDash(modifier = modifier, viewModel = transacaoViewModel)
-            DestinosApp.CRIPTOMOEDAS -> TelaCripto(modifier = modifier)
-            DestinosApp.LANCAR       -> TelaLancar(modifier = modifier, viewModel = transacaoViewModel)
-            DestinosApp.EXTRATO      -> TelaTransacoes(viewModel = transacaoViewModel)
-            DestinosApp.CALCULADORA  -> TelaCalculadora(modifier = modifier)
-            DestinosApp.TEMA         -> Text(
-                text = "Configurações de tema",
-                modifier = modifier.padding(24.dp),
-                color = Color.White
-            )
+        } else {
+            when (destinoAtual) {
+                DestinosApp.INICIO -> telaHome(
+                    modifier = modifier,
+                    viewModel = transacaoViewModel,
+                    ocultarSaldo = ocultarSaldo,
+                    aoClicarDashboard = { destinoAtual = DestinosApp.INVESTIMENTOS },
+                    aoClicarLancar = { destinoAtual = DestinosApp.LANCAR },
+                    aoClicarExtrato = { destinoAtual = DestinosApp.EXTRATO },
+                    aoClicarCalculadora = { destinoAtual = DestinosApp.CALCULADORA },
+                    aoClicarCriptos = { destinoAtual = DestinosApp.CRIPTOMOEDAS },
+                    aoClicarTema = { destinoAtual = DestinosApp.CONFIGURACOES },
+                    aoClicarBusca = { destinoAtual = DestinosApp.BUSCA }
+                )
+                DestinosApp.BUSCA -> TelaBusca(
+                    modifier = modifier,
+                    transacaoViewModel = transacaoViewModel,
+                    categoriaViewModel = categoriaViewModel,
+                    aoNavegar = { rota ->
+                        val destino = DestinosApp.entries.find { it.name == rota }
+                        if (destino != null) destinoAtual = destino
+                    },
+                    aoAbrirDetalhe = { transacao -> transacaoDetalhe = transacao },
+                    aoVoltar = { destinoAtual = DestinosApp.INICIO }
+                )
+                DestinosApp.DASHBOARD      -> TelaHomeDash(modifier = modifier, viewModel = transacaoViewModel)
+                DestinosApp.INVESTIMENTOS  -> TelaInvestimentos(modifier = modifier)
+                DestinosApp.CRIPTOMOEDAS   -> TelaCripto(modifier = modifier)
+                DestinosApp.LANCAR         -> TelaLancar(modifier = modifier, viewModel = transacaoViewModel)
+                DestinosApp.EXTRATO        -> TelaTransacoes(viewModel = transacaoViewModel)
+                DestinosApp.CALCULADORA    -> TelaCalculadora(modifier = modifier)
+                DestinosApp.CONFIGURACOES  -> TelaConfiguracoes(modifier = modifier, configViewModel = configViewModel)
+            }
         }
     }
 }
@@ -111,7 +142,7 @@ private fun BarraInferiorFinGuia(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Bottom
         ) {
-            DestinosApp.entries.forEach { destino ->
+            DestinosApp.entries.filter { it.exibirNaBarra }.forEach { destino ->
                 ItemBarraInferior(
                     destino = destino,
                     selecionado = destino == destinoAtual,
@@ -167,12 +198,15 @@ private fun ItemBarraInferior(
 enum class DestinosApp(
     val rotulo: String,
     val icone: Int,
+    val exibirNaBarra: Boolean = true,
 ) {
     INICIO("Inicio", R.drawable.ic_home),
-    DASHBOARD("Painel", R.drawable.ic_dashboard),
+    DASHBOARD("Painel", R.drawable.ic_dashboard, exibirNaBarra = false),
     LANCAR("Lançar", R.drawable.ic_favorite),
     EXTRATO("Extrato", R.drawable.ic_extrato),
-    CRIPTOMOEDAS("Criptos", R.drawable.ic_cripto),
-    CALCULADORA("Calc", R.drawable.ic_home),
-    TEMA("Tema", R.drawable.ic_palette),
+    INVESTIMENTOS("Invest", R.drawable.ic_dashboard, exibirNaBarra = false),
+    CRIPTOMOEDAS("Criptos", R.drawable.ic_cripto, exibirNaBarra = false),
+    CALCULADORA("Calc", R.drawable.ic_calculadora, exibirNaBarra = false),
+    CONFIGURACOES("Config", R.drawable.ic_home, exibirNaBarra = false),
+    BUSCA("Busca", R.drawable.ic_home, exibirNaBarra = false),
 }

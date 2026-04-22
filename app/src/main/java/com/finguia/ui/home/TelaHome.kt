@@ -21,17 +21,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -47,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,12 +60,14 @@ import com.finguia.ui.transacoes.TransacaoViewModel
 fun telaHome(
     modifier: Modifier = Modifier,
     viewModel: TransacaoViewModel,
-    aoClicarCriptos: () -> Unit = {},
+    ocultarSaldo: Boolean = false,
     aoClicarDashboard: () -> Unit = {},
     aoClicarLancar: () -> Unit = {},
     aoClicarExtrato: () -> Unit = {},
+    aoClicarCalculadora: () -> Unit = {},
+    aoClicarCriptos: () -> Unit = {},
     aoClicarTema: () -> Unit = {},
-    aoClicarCalculadora: () -> Unit = {}
+    aoClicarBusca: () -> Unit = {}
 ) {
     // Dados reais vindos do banco SQLite via ViewModel
     val totalReceitas by viewModel.totalReceitas.collectAsState()
@@ -97,9 +97,9 @@ fun telaHome(
                 .padding(top = 6.dp, bottom = 26.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            BotaoIconeTopo(Icons.Default.Settings)
+            BotaoIconeTopo(Icons.Default.Settings, aoClicar = aoClicarTema)
             BotaoIconeTopo(Icons.Default.Notifications)
-            BotaoIconeTopo(Icons.Default.Search)
+            BotaoIconeTopo(Icons.Default.Search, aoClicar = aoClicarBusca)
             BotaoIconeTopo(Icons.Default.Person)
         }
 
@@ -120,23 +120,21 @@ fun telaHome(
                     letterSpacing = 1.sp
                 )
                 Text(
-                    text = formatarMoeda(saldoTotal),
-                    // Verde se positivo, vermelho se negativo
+                    text = if (ocultarSaldo) "R$ ••••••" else formatarMoeda(saldoTotal),
                     color = if (saldoTotal >= 0) Color.White else DebtRed,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
-                // Subtítulo mostrando entradas e saídas de forma compacta
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "+${formatarMoeda(totalReceitas)}",
+                        text = if (ocultarSaldo) "+••••••" else "+${formatarMoeda(totalReceitas)}",
                         color = MoneyGreen,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(text = "·", color = GrayText, fontSize = 11.sp)
                     Text(
-                        text = "-${formatarMoeda(totalDespesas)}",
+                        text = if (ocultarSaldo) "-••••••" else "-${formatarMoeda(totalDespesas)}",
                         color = DebtRed,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold
@@ -164,58 +162,47 @@ fun telaHome(
                 )
                 BotaoAcao(
                     modifier = Modifier.weight(1f),
-                    icone = Icons.Default.PieChart,
-                    rotulo = "Painel",
-                    aoClicar = aoClicarDashboard
-                )
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                BotaoAcao(
-                    modifier = Modifier.weight(1f),
                     icone = Icons.Default.Calculate,
                     rotulo = "Calculadora",
                     aoClicar = aoClicarCalculadora
                 )
-                BotaoAcao(
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+                BotaoAcaoRes(
                     modifier = Modifier.weight(1f),
-                    icone = Icons.Default.AccountBalance,
-                    rotulo = "Contas"
+                    iconeRes = com.finguia.R.drawable.ic_cripto,
+                    rotulo = "Criptos",
+                    aoClicar = aoClicarCriptos
                 )
                 BotaoAcao(
                     modifier = Modifier.weight(1f),
-                    icone = Icons.Default.Settings,
-                    rotulo = "Tema",
-                    aoClicar = aoClicarTema
+                    icone = Icons.Default.PieChart,
+                    rotulo = "Investimentos",
+                    aoClicar = aoClicarDashboard
                 )
-            }
-
-            Button(
-                onClick = aoClicarCriptos,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300))
-            ) {
-                Icon(Icons.Default.AccountBalance, contentDescription = null, tint = Color.Black)
-                Spacer(Modifier.size(10.dp))
-                Text("Criptomoedas", fontWeight = FontWeight.Bold, color = Color.Black)
-            }
-
-            Button(
-                onClick = { },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
-            ) {
-                Icon(Icons.Default.AccountBalance, contentDescription = null)
-                Spacer(Modifier.size(10.dp))
-                Text("Minhas Contas", fontWeight = FontWeight.Bold)
             }
         }
+
+        Spacer(Modifier.height(28.dp))
+
+        // ── Painel financeiro embutido ───────────────────────
+        Text(
+            text = "PAINEL FINANCEIRO",
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp
+        )
+        Text(
+            text = "Visão geral das suas finanças",
+            color = GrayText,
+            fontSize = 12.sp
+        )
+        Spacer(Modifier.height(16.dp))
+        SecoesPainel(viewModel = viewModel)
+
+        Spacer(Modifier.height(80.dp))
     }
 }
 
@@ -261,6 +248,32 @@ fun BotaoAcao(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(icone, contentDescription = null, tint = GojoPurple)
+            Spacer(Modifier.height(8.dp))
+            Text(rotulo, color = Color.White, fontSize = 11.sp)
+        }
+    }
+}
+
+@Composable
+fun BotaoAcaoRes(
+    modifier: Modifier,
+    iconeRes: Int,
+    rotulo: String,
+    aoClicar: () -> Unit = {}
+) {
+    Card(
+        modifier = modifier
+            .height(90.dp)
+            .clickable(onClick = aoClicar),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(painterResource(iconeRes), contentDescription = null, tint = GojoPurple)
             Spacer(Modifier.height(8.dp))
             Text(rotulo, color = Color.White, fontSize = 11.sp)
         }
