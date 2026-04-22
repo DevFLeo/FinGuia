@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -67,7 +68,10 @@ fun telaHome(
     aoClicarCalculadora: () -> Unit = {},
     aoClicarCriptos: () -> Unit = {},
     aoClicarTema: () -> Unit = {},
-    aoClicarBusca: () -> Unit = {}
+    aoClicarBusca: () -> Unit = {},
+    aoClicarNoticias: () -> Unit = {},
+    aoClicarPerfil: () -> Unit = {},
+    aoClicarNotificacoes: () -> Unit = {}
 ) {
     // Dados reais vindos do banco SQLite via ViewModel
     val totalReceitas by viewModel.totalReceitas.collectAsState()
@@ -98,9 +102,9 @@ fun telaHome(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             BotaoIconeTopo(Icons.Default.Settings, aoClicar = aoClicarTema)
-            BotaoIconeTopo(Icons.Default.Notifications)
+            BotaoIconeTopo(Icons.Default.Notifications, aoClicar = aoClicarNotificacoes)
             BotaoIconeTopo(Icons.Default.Search, aoClicar = aoClicarBusca)
-            BotaoIconeTopo(Icons.Default.Person)
+            BotaoIconeTopo(Icons.Default.Person, aoClicar = aoClicarPerfil)
         }
 
         // ── Gráfico de rosca com saldo real ──────────────────
@@ -180,6 +184,12 @@ fun telaHome(
                     icone = Icons.Default.PieChart,
                     rotulo = "Investimentos",
                     aoClicar = aoClicarDashboard
+                )
+                BotaoAcao(
+                    modifier = Modifier.weight(1f),
+                    icone = Icons.Default.Newspaper,
+                    rotulo = "Notícias",
+                    aoClicar = aoClicarNoticias
                 )
             }
         }

@@ -47,6 +47,9 @@ import com.finguia.ui.cripto.TelaCripto
 import com.finguia.ui.home.TelaHomeDash
 import com.finguia.ui.home.telaHome
 import com.finguia.ui.investimentos.TelaInvestimentos
+import com.finguia.ui.noticias.TelaNoticias
+import com.finguia.ui.notificacoes.TelaNotificacoes
+import com.finguia.ui.perfil.TelaPerfil
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.GojoPurple
@@ -97,7 +100,10 @@ fun FinGuiaApp() {
                     aoClicarCalculadora = { destinoAtual = DestinosApp.CALCULADORA },
                     aoClicarCriptos = { destinoAtual = DestinosApp.CRIPTOMOEDAS },
                     aoClicarTema = { destinoAtual = DestinosApp.CONFIGURACOES },
-                    aoClicarBusca = { destinoAtual = DestinosApp.BUSCA }
+                    aoClicarBusca = { destinoAtual = DestinosApp.BUSCA },
+                    aoClicarNoticias = { destinoAtual = DestinosApp.NOTICIAS },
+                    aoClicarPerfil = { destinoAtual = DestinosApp.PERFIL },
+                    aoClicarNotificacoes = { destinoAtual = DestinosApp.NOTIFICACOES }
                 )
                 DestinosApp.BUSCA -> TelaBusca(
                     modifier = modifier,
@@ -117,6 +123,9 @@ fun FinGuiaApp() {
                 DestinosApp.EXTRATO        -> TelaTransacoes(viewModel = transacaoViewModel)
                 DestinosApp.CALCULADORA    -> TelaCalculadora(modifier = modifier)
                 DestinosApp.CONFIGURACOES  -> TelaConfiguracoes(modifier = modifier, configViewModel = configViewModel)
+                DestinosApp.NOTICIAS       -> TelaNoticias(modifier = modifier, aoVoltar = { destinoAtual = DestinosApp.INICIO })
+                DestinosApp.PERFIL         -> TelaPerfil(modifier = modifier, aoVoltar = { destinoAtual = DestinosApp.INICIO })
+                DestinosApp.NOTIFICACOES   -> TelaNotificacoes(modifier = modifier, viewModel = transacaoViewModel, aoVoltar = { destinoAtual = DestinosApp.INICIO })
             }
         }
     }
@@ -209,4 +218,7 @@ enum class DestinosApp(
     CALCULADORA("Calc", R.drawable.ic_calculadora, exibirNaBarra = false),
     CONFIGURACOES("Config", R.drawable.ic_home, exibirNaBarra = false),
     BUSCA("Busca", R.drawable.ic_home, exibirNaBarra = false),
+    NOTICIAS("Notícias", R.drawable.ic_home, exibirNaBarra = false),
+    PERFIL("Perfil", R.drawable.ic_home, exibirNaBarra = false),
+    NOTIFICACOES("Alertas", R.drawable.ic_home, exibirNaBarra = false),
 }
