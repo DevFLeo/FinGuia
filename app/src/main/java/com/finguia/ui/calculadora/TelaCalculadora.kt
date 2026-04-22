@@ -986,21 +986,48 @@ private fun BlocoPrecoVenda() {
 // ABA 5 - SIMULADOR ENDIVIDAMENTO E DIVIDA
 // ============================================================
 
+/**
+ * Simula amortização mês a mês. Retorna meses até quitar e total pago em juros.
+ * Se parcela não cobre os juros, retorna null (dívida infinita).
+ */
+private fun simularAmortizacao(
+    principal: Double,
+    taxaMensal: Double,
+    parcela: Double,
+    maxMeses: Int = 1200
+): Triple<Int, Double, Double>? {
+    if (parcela <= 0 || principal <= 0) return null
+    var saldo = principal
+    var totalPago = 0.0
+    var totalJuros = 0.0
+    var meses = 0
+    while (saldo > 0.01 && meses < maxMeses) {
+        val juros = saldo * taxaMensal
+        if (parcela <= juros) return null
+        val amortizado = parcela - juros
+        saldo -= amortizado
+        totalJuros += juros
+        totalPago += if (saldo < 0) parcela + saldo else parcela
+        if (saldo < 0) saldo = 0.0
+        meses++
+    }
+    return Triple(meses, totalPago, totalJuros)
+}
+
 @Composable
 private fun BlocoEndividamento() {
-    var valorPrincipal by remember { mutableStateOf("1000") }
-    var taxaMensal by remember { mutableStateOf("8.0") }
-    var periodoMeses by remember { mutableStateOf("12") }
+    var valorPrincipal by remember { mutableStateOf("5000") }
+    var taxaMensal by remember { mutableStateOf("3.0") }
+    var parcelaMensal by remember { mutableStateOf("300") }
+    var aporteExtra by remember { mutableStateOf("100") }
 
-    // Processamento matemático dos parâmetros
     val p = valorPrincipal.replace(",", ".").toDoubleOrNull() ?: 0.0
     val i = (taxaMensal.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val n = periodoMeses.toIntOrNull() ?: 0
+    val parcela = parcelaMensal.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val extra = aporteExtra.replace(",", ".").toDoubleOrNull() ?: 0.0
 
-    // Cálculo de Juros Compostos: M = P * (1 + i)^n
-    val montanteFinal = p * (1 + i).toDouble().pow(n.toDouble())
-    val totalJuros = montanteFinal - p
-    val multiplicadorDivida = if (p > 0) montanteFinal / p else 0.0
+    val cenarioBase = simularAmortizacao(p, i, parcela)
+    val cenarioAcelerado = simularAmortizacao(p, i, parcela + extra)
 
     Column(
         modifier = Modifier
@@ -1009,30 +1036,67 @@ private fun BlocoEndividamento() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Simulador de Passivos (Dívidas)", color = DebtRed, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text("Simulador de Endividamento", color = DebtRed, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text("Quanto tempo até quitar e quanto custa em juros", color = GrayText, fontSize = 12.sp)
 
-        CampoNumerico("Valor Original da Dívida (R$)", valorPrincipal) { valorPrincipal = it }
+        CampoNumerico("Valor da Dívida (R$)", valorPrincipal) { valorPrincipal = it }
         CampoNumerico("Taxa de Juros Mensal (%)", taxaMensal) { taxaMensal = it }
-        CampoNumerico("Tempo de Atraso/Parcelamento (Meses)", periodoMeses) { periodoMeses = it }
+        CampoNumerico("Parcela Mensal Atual (R$)", parcelaMensal) { parcelaMensal = it }
+        CampoNumerico("Aporte Extra por Mês (R$)", aporteExtra) { aporteExtra = it }
 
+        // Cenário base
         Card(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = CardBg),
             shape = RoundedCornerShape(16.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, DebtRed.copy(alpha = 0.5f))
         ) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("VALOR TOTAL AO FINAL DO PERÍODO", color = GrayText, fontSize = 12.sp)
-                Text(formatarBrl(montanteFinal), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black)
-
-                Divider(color = GrayText.copy(alpha = 0.1f))
-
-                LinhaResultado("Total apenas em Juros", formatarBrl(totalJuros), cor = DebtRed)
-                LinhaResultado("Fator de Multiplicação", "${"%.2f".format(multiplicadorDivida)}x")
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("CENÁRIO ATUAL", color = GrayText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                if (cenarioBase == null) {
+                    Text("Dívida nunca será quitada", color = DebtRed, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        "A parcela não cobre os juros mensais. Aumente o valor da parcela ou negocie a taxa.",
+                        color = GrayText, fontSize = 12.sp
+                    )
+                } else {
+                    val (meses, totalPago, juros) = cenarioBase
+                    Text("Quita em $meses meses", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                    Text("(${meses / 12} anos e ${meses % 12} meses)", color = GrayText, fontSize = 12.sp)
+                    Divider(color = GrayText.copy(alpha = 0.1f))
+                    LinhaResultado("Total pago", formatarBrl(totalPago))
+                    LinhaResultado("Total em juros", formatarBrl(juros), cor = DebtRed)
+                }
             }
         }
 
-        // Análise Crítica do Professor
+        // Cenário acelerado
+        if (extra > 0 && cenarioAcelerado != null) {
+            val (mesesAc, totalAc, jurosAc) = cenarioAcelerado
+            val mesesEconomizados = (cenarioBase?.first ?: 0) - mesesAc
+            val jurosEconomizados = (cenarioBase?.third ?: 0.0) - jurosAc
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MoneyGreen.copy(alpha = 0.1f)),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MoneyGreen.copy(alpha = 0.5f))
+            ) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("COM APORTE EXTRA DE ${formatarBrl(extra)}/mês", color = MoneyGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text("Quita em $mesesAc meses", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                    Divider(color = GrayText.copy(alpha = 0.1f))
+                    LinhaResultado("Total pago", formatarBrl(totalAc))
+                    LinhaResultado("Total em juros", formatarBrl(jurosAc))
+                    if (mesesEconomizados > 0) {
+                        LinhaResultado("Tempo economizado", "$mesesEconomizados meses", cor = MoneyGreen)
+                        LinhaResultado("Juros economizados", formatarBrl(jurosEconomizados), cor = MoneyGreen)
+                    }
+                }
+            }
+        }
+
+        // Análise Crítica
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1040,8 +1104,11 @@ private fun BlocoEndividamento() {
                 .background(DebtRed.copy(alpha = 0.1f))
                 .padding(12.dp)
         ) {
+            val taxaAnual = ((1+i).pow(12)-1)*100
             Text(
-                text = "Análise Técnica: Uma taxa de ${taxaMensal}% ao mês representa um custo efetivo anual de ${"%.2f".format(((1+i).pow(12)-1)*100)}%. O capital exposto dobra de valor em aproximadamente ${"%.1f".format(72/(taxaMensal.toDoubleOrNull() ?: 1.0))} meses.",
+                text = "Taxa mensal de ${taxaMensal}% equivale a ${"%.2f".format(taxaAnual)}% ao ano. " +
+                       if (cenarioBase == null) "Parcela insuficiente — dívida cresce para sempre."
+                       else "Sem pagamentos, a dívida dobraria em ${"%.1f".format(72/(taxaMensal.toDoubleOrNull() ?: 1.0))} meses.",
                 color = GrayText,
                 fontSize = 11.sp,
                 textAlign = TextAlign.Center
