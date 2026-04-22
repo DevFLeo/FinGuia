@@ -106,6 +106,7 @@ fun TelaTransacoes(viewModel: TransacaoViewModel = viewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .padding(horizontal = m.paddingH)
         ) {
             Spacer(Modifier.height(m.spacerMd))
