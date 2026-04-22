@@ -494,7 +494,7 @@ private fun AbaLancar(
                 modifier   = Modifier.weight(1f),
                 icone      = Icons.Default.AddBox,
                 texto      = "Nova Categoria",
-                cor        = MoneyGreen,
+                cor        = GojoPurple,
                 aoClicar   = aocriarCategoria
             )
         }

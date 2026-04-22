@@ -151,7 +151,7 @@ class MoedasViewModel : ViewModel() {
                     )
                 }.sortedBy { it.codigo }
             } catch (e: Exception) {
-                _erro.value = "Falha ao buscar cotacoes. Verifique sua conexao."
+                _erro.value = "Falha ao buscar cotações. Verifique sua conexão."
             } finally {
                 _carregando.value = false
             }
@@ -200,7 +200,7 @@ private class Avaliador(private val src: String) {
                 consume('*') || consume('x') || consume('X') -> v * potencia()
                 consume('/') || consume('÷') -> {
                     val d = potencia()
-                    if (d == 0.0) erro("divisao por zero")
+                    if (d == 0.0) erro("divisão por zero")
                     v / d
                 }
                 else -> return v
@@ -225,7 +225,7 @@ private class Avaliador(private val src: String) {
         saltarEspaco()
         if (consume('(')) {
             val v = expr()
-            if (!consume(')')) erro("parentese faltando")
+            if (!consume(')')) erro("parêntese faltando")
             return v
         }
         val c = peek() ?: erro("fim inesperado")
@@ -242,9 +242,9 @@ private class Avaliador(private val src: String) {
             "pi" -> Math.PI
             "e" -> Math.E
             else -> {
-                if (!consume('(')) erro("funcao '$nome' exige '('")
+                if (!consume('(')) erro("função '$nome' exige '('")
                 val arg = expr()
-                if (!consume(')')) erro("parentese faltando apos '$nome'")
+                if (!consume(')')) erro("parêntese faltando após '$nome'")
                 when (nome) {
                     "sin", "sen" -> sin(arg)
                     "cos" -> cos(arg)
@@ -254,7 +254,7 @@ private class Avaliador(private val src: String) {
                     "log" -> log10(arg)
                     "exp" -> exp(arg)
                     "abs" -> kotlin.math.abs(arg)
-                    else -> erro("funcao desconhecida: $nome")
+                    else -> erro("função desconhecida: $nome")
                 }
             }
         }
@@ -264,7 +264,7 @@ private class Avaliador(private val src: String) {
         saltarEspaco()
         val ini = pos
         while (pos < src.length && (src[pos].isDigit() || src[pos] == '.')) pos++
-        if (ini == pos) erro("numero esperado")
+        if (ini == pos) erro("número esperado")
         return src.substring(ini, pos).toDouble()
     }
 }
@@ -404,7 +404,7 @@ fun calcularInvestimentos(p: ParametrosInvestimento): List<ResultadoAtivo> {
         ResultadoAtivo("CDB (${"%.0f".format(p.rentCdbPctCdi)}% CDI)", cdbBruto, 0.0, cdbIr, cdbLiq, rentAA(cdbLiq, total, meses)),
         ResultadoAtivo("LCI/LCA (${"%.0f".format(p.rentLciLcaPctCdi)}% CDI)", lciBruto, 0.0, lciIr, lciLiq, rentAA(lciLiq, total, meses)),
         ResultadoAtivo("Fundo DI (${"%.0f".format(p.rentFundoDiPctCdi)}% CDI)", fdiBruto, fdiCustos, fdiIr, fdiLiq, rentAA(fdiLiq, total, meses)),
-        ResultadoAtivo("Poupanca", poupBruto, 0.0, poupIr, poupLiq, rentAA(poupLiq, total, meses))
+        ResultadoAtivo("Poupança", poupBruto, 0.0, poupIr, poupLiq, rentAA(poupLiq, total, meses))
     ).sortedByDescending { it.liquido }
 }
 
@@ -413,12 +413,12 @@ fun calcularInvestimentos(p: ParametrosInvestimento): List<ResultadoAtivo> {
 // ============================================================
 
 enum class AbaCalculadora(val rotulo: String) {
-    CONVERSAO("Cambio"),
+    CONVERSAO("Câmbio"),
     FINANCEIRA("Renda Fixa"),
-    CIENTIFICA("Cientifica"),
+    CIENTIFICA("Científica"),
     INVESTIMENTOS("ROI"),
     PRECO_VENDA("Markup"),
-    ENDIVIDAMENTO("Dividas")
+    ENDIVIDAMENTO("Dívidas")
 }
 
 @Composable
@@ -487,7 +487,7 @@ private fun BlocoConversao(vm: MoedasViewModel = viewModel()) {
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Cotacoes em tempo real", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text("Cotações em tempo real", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             Button(
                 onClick = { vm.atualizar() },
                 colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
@@ -541,7 +541,7 @@ private fun BlocoConversao(vm: MoedasViewModel = viewModel()) {
         }
 
         Spacer(Modifier.height(16.dp))
-        Text("Cotacoes (x1 = BRL)", color = GrayText, fontSize = 12.sp)
+        Text("Cotações (x1 = BRL)", color = GrayText, fontSize = 12.sp)
         Spacer(Modifier.height(8.dp))
         lista.forEach { m ->
             Card(
@@ -552,7 +552,7 @@ private fun BlocoConversao(vm: MoedasViewModel = viewModel()) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("${m.codigo}  -  ${m.nome}", color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Variacao 24h: ${"%.2f".format(m.variacaoPct)}%",
+                        Text("Variação 24h: ${"%.2f".format(m.variacaoPct)}%",
                             color = if (m.variacaoPct >= 0) MoneyGreen else DebtRed, fontSize = 12.sp)
                     }
                     Text("R$ ${"%.4f".format(m.valorEmReais)}", color = Color.White, fontWeight = FontWeight.Bold)
@@ -632,13 +632,13 @@ private fun BlocoFinanceira() {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Text("Parametros basicos", color = Color.White, fontWeight = FontWeight.Bold)
+        Text("Parâmetros básicos", color = Color.White, fontWeight = FontWeight.Bold)
         CampoNumerico("Investimento inicial (R$)", inicial) { inicial = it }
         CampoNumerico("Aporte mensal (R$)", aporte) { aporte = it }
-        CampoNumerico("Periodo (meses)", meses) { meses = it }
+        CampoNumerico("Período (meses)", meses) { meses = it }
 
         Spacer(Modifier.height(8.dp))
-        Text("Indices de mercado", color = Color.White, fontWeight = FontWeight.Bold)
+        Text("Índices de mercado", color = Color.White, fontWeight = FontWeight.Bold)
         CampoNumerico("Selic efetiva a.a. (%)", selic) { selic = it }
         CampoNumerico("CDI a.a. (%)", cdi) { cdi = it }
         CampoNumerico("IPCA a.a. (%)", ipca) { ipca = it }
@@ -647,16 +647,16 @@ private fun BlocoFinanceira() {
         Spacer(Modifier.height(8.dp))
         Text("Tesouro Direto", color = Color.White, fontWeight = FontWeight.Bold)
         CampoNumerico("Juro nominal Tesouro Prefixado a.a. (%)", tesPre) { tesPre = it }
-        CampoNumerico("Taxa de custodia B3 a.a. (%)", custodia) { custodia = it }
+        CampoNumerico("Taxa de custódia B3 a.a. (%)", custodia) { custodia = it }
         CampoNumerico("Juro real Tesouro IPCA+ a.a. (%)", tesIpca) { tesIpca = it }
 
         Spacer(Modifier.height(8.dp))
         Text("Outros ativos", color = Color.White, fontWeight = FontWeight.Bold)
-        CampoNumerico("Taxa de administracao Fundo DI a.a. (%)", admFdi) { admFdi = it }
+        CampoNumerico("Taxa de administração Fundo DI a.a. (%)", admFdi) { admFdi = it }
         CampoNumerico("Rentabilidade CDB (% do CDI)", rentCdb) { rentCdb = it }
         CampoNumerico("Rentabilidade Fundo DI (% do CDI)", rentFdi) { rentFdi = it }
         CampoNumerico("Rentabilidade LCI/LCA (% do CDI)", rentLci) { rentLci = it }
-        CampoNumerico("Rentabilidade Poupanca a.m. (%)", poup) { poup = it }
+        CampoNumerico("Rentabilidade Poupança a.m. (%)", poup) { poup = it }
 
         Spacer(Modifier.height(12.dp))
         Button(
@@ -684,7 +684,7 @@ private fun BlocoFinanceira() {
             },
             colors = ButtonDefaults.buttonColors(containerColor = GojoPurple),
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Calcular simulacao") }
+        ) { Text("Calcular simulação") }
 
         Spacer(Modifier.height(16.dp))
         if (resultados.isNotEmpty()) {
@@ -706,10 +706,10 @@ private fun CardResultadoAtivo(r: ResultadoAtivo, destaque: Boolean) {
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(r.nome, color = Color.White, fontWeight = FontWeight.Bold)
-            Text("Liquido: ${formatarBrl(r.liquido)}", color = MoneyGreen, fontWeight = FontWeight.Bold)
+            Text("Líquido: ${formatarBrl(r.liquido)}", color = MoneyGreen, fontWeight = FontWeight.Bold)
             Text("Bruto: ${formatarBrl(r.bruto)}", color = GrayText, fontSize = 12.sp)
             Text("Custos: ${formatarBrl(r.custos)}  |  IR: ${formatarBrl(r.ir)}", color = GrayText, fontSize = 12.sp)
-            Text("Rent. liquida: ${"%.2f".format(r.rentLiquidaAA)}% a.a.", color = Color.White, fontSize = 12.sp)
+            Text("Rent. líquida: ${"%.2f".format(r.rentLiquidaAA)}% a.a.", color = Color.White, fontSize = 12.sp)
         }
     }
 }

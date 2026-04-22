@@ -209,7 +209,7 @@ enum class DestinosApp(
     val icone: Int,
     val exibirNaBarra: Boolean = true,
 ) {
-    INICIO("Inicio", R.drawable.ic_home),
+    INICIO("Início", R.drawable.ic_home),
     DASHBOARD("Painel", R.drawable.ic_dashboard, exibirNaBarra = false),
     LANCAR("Lançar", R.drawable.ic_favorite),
     EXTRATO("Extrato", R.drawable.ic_extrato),
