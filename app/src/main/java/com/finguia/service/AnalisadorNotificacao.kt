@@ -8,81 +8,94 @@ import com.finguia.dados.TipoTransacao
  */
 object AnalisadorNotificacao {
 
-    // Regex para capturar valores monetários em formato brasileiro
-    // Ex: R$ 1.500,00 | R$250,00 | 1.200,50 | R$ 0,99
+    // Regex para valores em formato brasileiro. Prioriza:
+    //  1. Valores com R$ e decimais: R$ 1.500,00 | R$250,00 | R$ 0,99
+    //  2. Valores com R$ sem decimais: R$ 1.500 | R$ 50
+    //  3. Valores soltos no formato 1.234,56 (evita pegar datas tipo 12/05)
     private val REGEX_VALOR = Regex(
-        """R\$\s*([\d.,]+)|([\d]{1,3}(?:\.\d{3})*(?:,\d{2}))""",
+        """R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2}|\d{1,3}(?:\.\d{3})+|\d+)""" +
+            """|\b(\d{1,3}(?:\.\d{3})*,\d{2})\b""",
         RegexOption.IGNORE_CASE
     )
 
-    // Palavras-chave mapeadas para tipos de transação (lowercase para comparação)
+    // Palavras-chave por tipo. A ordem NÃO define prioridade — o algoritmo
+    // escolhe a palavra-chave mais longa (mais específica) que casar, para
+    // evitar que termos genéricos como "fatura" ou "pix de" engulam frases
+    // específicas como "fatura vencendo" ou "você enviou um pix".
     private val PALAVRAS_TIPO: List<Pair<TipoTransacao, List<String>>> = listOf(
-        TipoTransacao.PIX_RECEBIDO to listOf(
-            "pix recebido", "você recebeu um pix", "recebeu via pix",
-            "transferência pix recebida", "pix de ", "recebeu pix",
-            "chegou um pix", "pix creditado"
-        ),
         TipoTransacao.PIX_ENVIADO to listOf(
-            "pix enviado", "você enviou um pix", "pix realizado",
-            "transferência pix enviada", "pix efetuado", "pix debitado",
-            "pix para ", "enviou pix"
+            "você enviou um pix", "transferência pix enviada", "pix enviado",
+            "pix realizado", "pix efetuado", "pix debitado", "pix para ",
+            "enviou pix", "pix de saída", "pix de envio"
         ),
-        TipoTransacao.COMPRA_CREDITO to listOf(
-            "compra no crédito", "compra crédito", "crédito aprovado",
-            "compra aprovada", "parcelado em", "fatura", "crédito autorizado",
-            "compra autorizada no crédito", "transação aprovada no crédito"
-        ),
-        TipoTransacao.COMPRA_DEBITO to listOf(
-            "compra no débito", "compra débito", "débito aprovado",
-            "compra efetuada no débito", "transação no débito",
-            "compra realizada no débito", "débito autorizado"
-        ),
-        TipoTransacao.BOLETO_PAGO to listOf(
-            "boleto pago", "pagamento de boleto", "boleto compensado",
-            "boleto quitado", "pagamento efetuado", "conta paga",
-            "pagamento realizado", "conta quitada", "débito de boleto"
-        ),
-        TipoTransacao.TRANSFERENCIA_RECEBIDA to listOf(
-            "transferência recebida", "ted recebido", "doc recebido",
-            "crédito em conta", "depósito recebido", "ted creditado",
-            "transferência creditada"
-        ),
-        TipoTransacao.TRANSFERENCIA_ENVIADA to listOf(
-            "transferência enviada", "ted enviado", "doc enviado",
-            "transferência realizada", "ted efetuado", "transferência debitada"
-        ),
-        TipoTransacao.ESTORNO to listOf(
-            "estorno", "devolução", "reembolso", "chargeback",
-            "cancelamento", "crédito de estorno", "valor estornado"
-        ),
-        TipoTransacao.SAQUE to listOf(
-            "saque realizado", "retirada", "saque no caixa",
-            "saque efetuado", "retirada em espécie"
-        ),
-        TipoTransacao.DEPOSITO to listOf(
-            "depósito realizado", "depósito em conta", "depósito identificado",
-            "crédito por depósito"
+        TipoTransacao.PIX_RECEBIDO to listOf(
+            "você recebeu um pix", "transferência pix recebida", "pix recebido",
+            "recebeu via pix", "recebeu pix", "chegou um pix", "pix creditado",
+            "pix de entrada"
         ),
         TipoTransacao.COBRANCA to listOf(
-            "cobrança", "fatura vencendo", "fatura disponível",
-            "débito automático", "cobrança agendada", "vencimento",
-            "mensalidade", "assinatura debitada"
+            "fatura vencendo", "fatura disponível", "fatura fechada",
+            "cobrança agendada", "débito automático", "assinatura debitada",
+            "mensalidade", "vencimento hoje", "vencimento amanhã", "cobrança"
+        ),
+        TipoTransacao.COMPRA_CREDITO to listOf(
+            "compra autorizada no crédito", "transação aprovada no crédito",
+            "compra aprovada no crédito", "compra no crédito", "compra crédito",
+            "crédito aprovado", "crédito autorizado", "parcelado em",
+            "compra aprovada"
+        ),
+        TipoTransacao.COMPRA_DEBITO to listOf(
+            "compra realizada no débito", "compra efetuada no débito",
+            "transação no débito", "compra no débito", "compra débito",
+            "débito aprovado", "débito autorizado"
+        ),
+        TipoTransacao.BOLETO_PAGO to listOf(
+            "pagamento de boleto", "débito de boleto", "boleto compensado",
+            "boleto quitado", "boleto pago", "conta quitada", "conta paga",
+            "pagamento efetuado", "pagamento realizado"
+        ),
+        TipoTransacao.TRANSFERENCIA_RECEBIDA to listOf(
+            "transferência recebida", "transferência creditada",
+            "ted recebido", "ted creditado", "doc recebido",
+            "crédito em conta", "depósito recebido"
+        ),
+        TipoTransacao.TRANSFERENCIA_ENVIADA to listOf(
+            "transferência enviada", "transferência realizada",
+            "transferência debitada", "ted enviado", "ted efetuado", "doc enviado"
+        ),
+        TipoTransacao.ESTORNO to listOf(
+            "crédito de estorno", "valor estornado", "estorno",
+            "devolução", "reembolso", "chargeback"
+        ),
+        TipoTransacao.SAQUE to listOf(
+            "saque no caixa", "saque realizado", "saque efetuado",
+            "retirada em espécie", "retirada"
+        ),
+        TipoTransacao.DEPOSITO to listOf(
+            "depósito identificado", "depósito em conta", "depósito realizado",
+            "crédito por depósito"
         )
     )
 
     /**
-     * Tenta identificar o tipo de transação com base no texto completo da notificação.
-     * Combina título + texto para maximizar a detecção.
+     * Escolhe o tipo cuja palavra-chave mais longa aparece no conteúdo.
+     * Isso resolve colisões como "pix de" (dentro de "você enviou um pix de...")
+     * sendo erroneamente pareado com PIX_RECEBIDO quando o correto é PIX_ENVIADO.
      */
     fun identificarTipo(titulo: String?, texto: String?): TipoTransacao {
         val conteudo = "${titulo.orEmpty()} ${texto.orEmpty()}".lowercase()
 
+        var melhorTipo = TipoTransacao.DESCONHECIDO
+        var melhorTamanho = 0
         for ((tipo, palavras) in PALAVRAS_TIPO) {
-            if (palavras.any { conteudo.contains(it) }) {
-                return tipo
+            for (palavra in palavras) {
+                if (palavra.length > melhorTamanho && conteudo.contains(palavra)) {
+                    melhorTamanho = palavra.length
+                    melhorTipo = tipo
+                }
             }
         }
-        return TipoTransacao.DESCONHECIDO
+        return melhorTipo
     }
 
     /**
@@ -93,13 +106,19 @@ object AnalisadorNotificacao {
         val conteudo = "${titulo.orEmpty()} ${texto.orEmpty()}"
         val match = REGEX_VALOR.find(conteudo) ?: return 0.0
 
-        // Grupo 1 = com prefixo R$, Grupo 2 = apenas número formatado
-        val valorBruto = (match.groupValues[1].ifEmpty { match.groupValues[2] })
-            .trim()
-            .replace(".", "")   // remove separador de milhar
-            .replace(",", ".") // troca vírgula decimal por ponto
+        val valorBruto = match.groupValues[1].ifEmpty { match.groupValues[2] }.trim()
+        if (valorBruto.isEmpty()) return 0.0
 
-        return valorBruto.toDoubleOrNull() ?: 0.0
+        // Formato BR: "." é milhar, "," é decimal.
+        // Se há vírgula, ela é o separador decimal.
+        // Se não há vírgula, removemos os pontos (milhar) e tratamos como inteiro.
+        val normalizado = if (valorBruto.contains(',')) {
+            valorBruto.replace(".", "").replace(",", ".")
+        } else {
+            valorBruto.replace(".", "")
+        }
+
+        return normalizado.toDoubleOrNull() ?: 0.0
     }
 
     /**
