@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.dados.TipoTransacao
+import com.finguia.ui.gerenciamento.ModalEditarTransacao
 import com.finguia.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -153,15 +154,29 @@ fun TelaTransacoes(viewModel: TransacaoViewModel = viewModel()) {
             if (transacoes.isEmpty()) {
                 EstadoVazio(m)
             } else {
+                var transacaoEditando by remember { mutableStateOf<TransacaoBancaria?>(null) }
+
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(m.cardGap)) {
                     items(transacoes, key = { it.id }) { transacao ->
                         CartaoTransacao(
                             transacao = transacao,
-                            m = m,
-                            onDeletar = { viewModel.deletar(transacao.id) }
+                            m         = m,
+                            onDeletar = { viewModel.deletar(transacao.id) },
+                            onEditar  = { transacaoEditando = transacao }
                         )
                     }
                     item { Spacer(Modifier.height(80.dp)) }
+                }
+
+                transacaoEditando?.let { t ->
+                    ModalEditarTransacao(
+                        transacao   = t,
+                        onDismiss   = { transacaoEditando = null },
+                        onConfirmar = { atualizada ->
+                            viewModel.atualizar(atualizada)
+                            transacaoEditando = null
+                        }
+                    )
                 }
             }
         }
@@ -205,7 +220,8 @@ private fun ResumoCard(
 private fun CartaoTransacao(
     transacao: TransacaoBancaria,
     m: TelaMetrics,
-    onDeletar: () -> Unit
+    onDeletar: () -> Unit,
+    onEditar: () -> Unit
 ) {
     val ehEntrada = transacao.tipo in listOf(
         TipoTransacao.PIX_RECEBIDO,
@@ -272,16 +288,23 @@ private fun CartaoTransacao(
                     fontSize = m.fontBankName,
                     fontWeight = FontWeight.Bold
                 )
-                IconButton(
-                    onClick = onDeletar,
-                    modifier = Modifier.size(m.deleteButtonSize)
-                ) {
-                    Icon(
-                        Icons.Default.DeleteOutline,
-                        contentDescription = "Remover",
-                        tint = GrayText,
-                        modifier = Modifier.size(m.deleteIconSize)
-                    )
+                Row {
+                    IconButton(onClick = onEditar, modifier = Modifier.size(m.deleteButtonSize)) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Editar",
+                            tint = GojoPurple,
+                            modifier = Modifier.size(m.deleteIconSize)
+                        )
+                    }
+                    IconButton(onClick = onDeletar, modifier = Modifier.size(m.deleteButtonSize)) {
+                        Icon(
+                            Icons.Default.DeleteOutline,
+                            contentDescription = "Remover",
+                            tint = GrayText,
+                            modifier = Modifier.size(m.deleteIconSize)
+                        )
+                    }
                 }
             }
         }
