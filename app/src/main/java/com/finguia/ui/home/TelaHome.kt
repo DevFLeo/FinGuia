@@ -276,67 +276,51 @@ private val EaseOutBack = Easing { t ->
 
 @Composable
 fun GraficoRosca(progresso: Float, saldoPositivo: Boolean = true) {
-    // progresso = proporção de dívidas (0..1). O restante é receitas.
-    val propDividaAnimada by animateFloatAsState(
-        targetValue = progresso.coerceIn(0f, 1f),
+    val progressoAnimado by animateFloatAsState(
+        targetValue = progresso,
         animationSpec = tween(durationMillis = 1200, easing = EaseOutBack),
-        label = "grafico_rosca_divida"
+        label = "grafico_rosca"
     )
-    val propGanhoAnimada by animateFloatAsState(
-        targetValue = (1f - progresso).coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = 1200, easing = EaseOutBack),
-        label = "grafico_rosca_ganho"
-    )
+
+    // Cor do arco: verde se saldo positivo e gastos < 80%, vermelho se negativo ou acima de 80%
+    val corArco = when {
+        !saldoPositivo || progresso >= 0.8f -> DebtRed
+        progresso >= 0.6f -> Color(0xFFFFB300)
+        else -> MoneyGreen
+    }
+
+    // Glow: cor semitransparente mais larga atrás do arco principal
+    val corGlow = corArco.copy(alpha = 0.25f)
 
     Canvas(modifier = Modifier.size(200.dp)) {
-        val strokePx = 18.dp.toPx()
-        val glowPx = 30.dp.toPx()
+        val strokePx = 15.dp.toPx()
+        val glowPx = 28.dp.toPx()
 
-        // Trilha de fundo escura
+        // Trilha de fundo
         drawArc(
             color = Color(0xFF1E1E1E),
             startAngle = -90f,
             sweepAngle = 360f,
             useCenter = false,
-            style = Stroke(width = strokePx, cap = StrokeCap.Butt)
+            style = Stroke(width = strokePx, cap = StrokeCap.Round)
         )
 
-        val anguloDivida = 360f * propDividaAnimada
-        val anguloGanho = 360f * propGanhoAnimada
-
-        // Arco vermelho (dívidas) — começa no topo (-90°)
-        if (anguloDivida > 0f) {
+        if (progressoAnimado > 0f) {
+            // Camada de glow (brilho difuso)
             drawArc(
-                color = DebtRed.copy(alpha = 0.25f),
+                color = corGlow,
                 startAngle = -90f,
-                sweepAngle = anguloDivida,
+                sweepAngle = 360f * progressoAnimado,
                 useCenter = false,
-                style = Stroke(width = glowPx, cap = StrokeCap.Butt)
+                style = Stroke(width = glowPx, cap = StrokeCap.Round)
             )
+            // Arco principal com cor dinâmica
             drawArc(
-                color = DebtRed,
+                color = corArco,
                 startAngle = -90f,
-                sweepAngle = anguloDivida,
+                sweepAngle = 360f * progressoAnimado,
                 useCenter = false,
-                style = Stroke(width = strokePx, cap = StrokeCap.Butt)
-            )
-        }
-
-        // Arco verde (ganhos) — começa onde o vermelho termina
-        if (anguloGanho > 0f) {
-            drawArc(
-                color = MoneyGreen.copy(alpha = 0.25f),
-                startAngle = -90f + anguloDivida,
-                sweepAngle = anguloGanho,
-                useCenter = false,
-                style = Stroke(width = glowPx, cap = StrokeCap.Butt)
-            )
-            drawArc(
-                color = MoneyGreen,
-                startAngle = -90f + anguloDivida,
-                sweepAngle = anguloGanho,
-                useCenter = false,
-                style = Stroke(width = strokePx, cap = StrokeCap.Butt)
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
             )
         }
     }
