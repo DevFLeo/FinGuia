@@ -1,5 +1,7 @@
 package com.finguia.ui.notificacoes
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,17 +14,26 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.service.NotificationListenerHelper
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -51,6 +62,27 @@ fun TelaNotificacoes(
     val totalReceitas by viewModel.totalReceitas.collectAsState()
     val totalDespesas by viewModel.totalDespesas.collectAsState()
 
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var permissaoAtiva by remember { mutableStateOf(NotificationListenerHelper.listenerAtivo(context)) }
+
+    // Reavalia o status quando o usuário volta das configurações. Se o estado
+    // passou de inativo para ativo, força um rebind do listener — o Android
+    // às vezes não reconecta sozinho na primeira concessão.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val agora = NotificationListenerHelper.listenerAtivo(context)
+                if (agora && !permissaoAtiva) {
+                    NotificationListenerHelper.reconectarListener(context)
+                }
+                permissaoAtiva = agora
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     val alertas = gerarAlertas(totalReceitas, totalDespesas, transacoes)
     val capturas = transacoes.sortedByDescending { it.timestampMs }.take(20)
 
@@ -74,6 +106,18 @@ fun TelaNotificacoes(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            item {
+                CardStatusPermissao(
+                    ativa = permissaoAtiva,
+                    aoAtivar = {
+                        context.startActivity(
+                            Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    }
+                )
+            }
+
             if (alertas.isNotEmpty()) {
                 item {
                     Text("ALERTAS", color = GojoPurple, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
@@ -176,6 +220,54 @@ private fun CardCapturaTransacao(t: TransacaoBancaria) {
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+@Composable
+private fun CardStatusPermissao(ativa: Boolean, aoAtivar: () -> Unit) {
+    val cor = if (ativa) MoneyGreen else DebtRed
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = cor.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, cor.copy(alpha = 0.4f))
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    if (ativa) Icons.Default.CheckCircle else Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = cor,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    if (ativa) "Captura ativa" else "Captura desativada",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                if (ativa)
+                    "O FinGuia está lendo as notificações dos seus bancos."
+                else
+                    "Ative o acesso a notificações do FinGuia para capturar transações automaticamente.",
+                color = GrayText,
+                fontSize = 12.sp
+            )
+            if (!ativa) {
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = aoAtivar,
+                    colors = ButtonDefaults.buttonColors(containerColor = GojoPurple),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Ativar agora", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
