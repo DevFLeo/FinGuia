@@ -36,6 +36,22 @@ class TransacaoViewModel(app: Application) : AndroidViewModel(app) {
         .listarRecorrentes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    // Lançamentos agendados (futuros, ainda não efetivados)
+    val agendadas: StateFlow<List<TransacaoBancaria>> = repository
+        .listarAgendadas()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun efetivar(transacao: TransacaoBancaria) {
+        viewModelScope.launch {
+            repository.atualizar(
+                transacao.copy(
+                    efetivado = true,
+                    timestampMs = System.currentTimeMillis()
+                )
+            )
+        }
+    }
+
     fun inserir(transacao: TransacaoBancaria) {
         viewModelScope.launch { repository.salvar(transacao) }
     }
@@ -47,4 +63,6 @@ class TransacaoViewModel(app: Application) : AndroidViewModel(app) {
     fun deletar(id: Long) {
         viewModelScope.launch { repository.deletar(id) }
     }
+
+    suspend fun buscar(query: String): List<TransacaoBancaria> = repository.buscar(query)
 }

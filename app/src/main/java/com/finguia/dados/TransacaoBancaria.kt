@@ -31,5 +31,9 @@ data class TransacaoBancaria(
     val textoNotificacao: String,
     val timestampMs: Long = System.currentTimeMillis(),
     // Indica se o lançamento foi marcado como recorrente pelo usuário
-    val recorrente: Boolean = false
+    val recorrente: Boolean = false,
+    // Data de efetivação agendada (null = lançamento imediato)
+    val dataAgendada: Long? = null,
+    // Se false, é um lançamento futuro ainda não efetivado (não entra em totais)
+    val efetivado: Boolean = true
 )

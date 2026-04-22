@@ -13,19 +13,23 @@ interface TransacaoDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun inserir(transacao: TransacaoBancaria): Long
 
-    @Query("SELECT * FROM transacoes_bancarias ORDER BY timestampMs DESC")
+    @Query("SELECT * FROM transacoes_bancarias WHERE efetivado = 1 ORDER BY timestampMs DESC")
     fun listarTodas(): Flow<List<TransacaoBancaria>>
 
-    @Query("SELECT * FROM transacoes_bancarias WHERE tipo IN ('PIX_RECEBIDO','TRANSFERENCIA_RECEBIDA','DEPOSITO','ESTORNO') ORDER BY timestampMs DESC")
+    // Inclui agendadas (não efetivadas) para a tela de lançamentos futuros
+    @Query("SELECT * FROM transacoes_bancarias WHERE efetivado = 0 ORDER BY dataAgendada ASC")
+    fun listarAgendadas(): Flow<List<TransacaoBancaria>>
+
+    @Query("SELECT * FROM transacoes_bancarias WHERE efetivado = 1 AND tipo IN ('PIX_RECEBIDO','TRANSFERENCIA_RECEBIDA','DEPOSITO','ESTORNO') ORDER BY timestampMs DESC")
     fun listarReceitas(): Flow<List<TransacaoBancaria>>
 
-    @Query("SELECT * FROM transacoes_bancarias WHERE tipo IN ('PIX_ENVIADO','COMPRA_DEBITO','COMPRA_CREDITO','BOLETO_PAGO','TRANSFERENCIA_ENVIADA','SAQUE') ORDER BY timestampMs DESC")
+    @Query("SELECT * FROM transacoes_bancarias WHERE efetivado = 1 AND tipo IN ('PIX_ENVIADO','COMPRA_DEBITO','COMPRA_CREDITO','BOLETO_PAGO','TRANSFERENCIA_ENVIADA','SAQUE') ORDER BY timestampMs DESC")
     fun listarDespesas(): Flow<List<TransacaoBancaria>>
 
-    @Query("SELECT SUM(valor) FROM transacoes_bancarias WHERE tipo IN ('PIX_RECEBIDO','TRANSFERENCIA_RECEBIDA','DEPOSITO','ESTORNO')")
+    @Query("SELECT SUM(valor) FROM transacoes_bancarias WHERE efetivado = 1 AND tipo IN ('PIX_RECEBIDO','TRANSFERENCIA_RECEBIDA','DEPOSITO','ESTORNO')")
     fun totalReceitas(): Flow<Double?>
 
-    @Query("SELECT SUM(valor) FROM transacoes_bancarias WHERE tipo IN ('PIX_ENVIADO','COMPRA_DEBITO','COMPRA_CREDITO','BOLETO_PAGO','TRANSFERENCIA_ENVIADA','SAQUE')")
+    @Query("SELECT SUM(valor) FROM transacoes_bancarias WHERE efetivado = 1 AND tipo IN ('PIX_ENVIADO','COMPRA_DEBITO','COMPRA_CREDITO','BOLETO_PAGO','TRANSFERENCIA_ENVIADA','SAQUE')")
     fun totalDespesas(): Flow<Double?>
 
     // Busca apenas os lançamentos marcados como recorrentes pelo usuário
@@ -40,4 +44,15 @@ interface TransacaoDao {
 
     @Query("DELETE FROM transacoes_bancarias")
     suspend fun deletarTodas()
+
+    @Query("""
+        SELECT * FROM transacoes_bancarias
+        WHERE LOWER(descricao) LIKE LOWER(:query)
+           OR LOWER(banco) LIKE LOWER(:query)
+           OR LOWER(tituloNotificacao) LIKE LOWER(:query)
+           OR LOWER(textoNotificacao) LIKE LOWER(:query)
+        ORDER BY timestampMs DESC
+        LIMIT 50
+    """)
+    suspend fun buscar(query: String): List<TransacaoBancaria>
 }

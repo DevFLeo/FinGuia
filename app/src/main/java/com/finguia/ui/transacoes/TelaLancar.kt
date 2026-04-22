@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.finguia.dados.CategoriaCustom
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.ui.theme.*
@@ -31,38 +32,44 @@ import com.finguia.ui.theme.*
 // MODELO DE CATEGORIA DE LANÇAMENTO
 // ─────────────────────────────────────────────
 
-// Representa um tipo de lançamento que o usuário pode realizar manualmente
 private data class Categoria(
     val icone: ImageVector,
     val label: String,
     val sublabel: String,
     val tipo: TipoTransacao,
-    val ehEntrada: Boolean
+    val ehEntrada: Boolean,
+    val idCustom: Long? = null
 )
 
-// Categorias de ganho — mapeadas apenas para tipos que contam como receita no DAO
 private val CATEGORIAS_GANHOS = listOf(
     Categoria(Icons.Default.WorkOutline, "Freelancer",  "Trabalho extra",   TipoTransacao.PIX_RECEBIDO, true),
     Categoria(Icons.Default.Shuffle,     "Esporádico",  "Ganhos variados",  TipoTransacao.DEPOSITO,     true),
     Categoria(Icons.Default.Payments,    "Salário",     "Renda fixa",       TipoTransacao.DEPOSITO,     true),
 )
 
-// Categorias de despesa — mapeadas apenas para tipos que contam como despesa no DAO
 private val CATEGORIAS_DIVIDAS = listOf(
-    Categoria(Icons.Default.AccountBalance, "Contas",        "Boletos / Aluguel", TipoTransacao.BOLETO_PAGO,    false),
-    Categoria(Icons.Default.CreditCard,     "Emergência",    "Imprevistos",       TipoTransacao.COMPRA_DEBITO,  false),
-    Categoria(Icons.Default.Restaurant,     "Comida",        "Alimentação",       TipoTransacao.COMPRA_DEBITO,  false),
+    Categoria(Icons.Default.AccountBalance, "Contas",        "Boletos / Aluguel",        TipoTransacao.BOLETO_PAGO,    false),
+    Categoria(Icons.Default.CreditCard,     "Emergência",    "Imprevistos",              TipoTransacao.COMPRA_DEBITO,  false),
+    Categoria(Icons.Default.Restaurant,     "Comida",        "Alimentação",              TipoTransacao.COMPRA_DEBITO,  false),
     Categoria(Icons.Default.LocalCafe,      "Saídas Rápidas","Saídas Não Especificadas", TipoTransacao.COMPRA_DEBITO,  false),
-    Categoria(Icons.Default.Receipt,        "Boletos",       "Pagamentos",        TipoTransacao.BOLETO_PAGO,    false),
-    Categoria(Icons.Default.MoneyOff,       "Dívidas Gerais","Outros gastos",     TipoTransacao.COMPRA_CREDITO, false),
+    Categoria(Icons.Default.Receipt,        "Boletos",       "Pagamentos",               TipoTransacao.BOLETO_PAGO,    false),
+    Categoria(Icons.Default.MoneyOff,       "Dívidas Gerais","Outros gastos",            TipoTransacao.COMPRA_CREDITO, false),
 )
 
-// Templates rápidos para a aba de recorrentes
 private val TEMPLATES_RECORRENTES = listOf(
-    Categoria(Icons.Default.TrendingUp,   "Salário",         "Renda mensal fixa",       TipoTransacao.DEPOSITO,      true),
-    Categoria(Icons.Default.TrendingDown, "Contas Fixas",    "Despesas mensais fixas",   TipoTransacao.BOLETO_PAGO,   false),
-    Categoria(Icons.Default.WorkOutline,  "Freelancer Fixo", "Renda recorrente",         TipoTransacao.PIX_RECEBIDO,  true),
-    Categoria(Icons.Default.CreditCard,   "Assinatura",      "Streaming / Serviços",     TipoTransacao.COMPRA_CREDITO,false),
+    Categoria(Icons.Default.TrendingUp,   "Salário",         "Renda mensal fixa",      TipoTransacao.DEPOSITO,      true),
+    Categoria(Icons.Default.TrendingDown, "Contas Fixas",    "Despesas mensais fixas", TipoTransacao.BOLETO_PAGO,   false),
+    Categoria(Icons.Default.WorkOutline,  "Freelancer Fixo", "Renda recorrente",       TipoTransacao.PIX_RECEBIDO,  true),
+    Categoria(Icons.Default.CreditCard,   "Assinatura",      "Streaming / Serviços",   TipoTransacao.COMPRA_CREDITO,false),
+)
+
+private fun CategoriaCustom.paraCategoriaUi() = Categoria(
+    icone     = Icons.Default.Category,
+    label     = label,
+    sublabel  = sublabel,
+    tipo      = tipo,
+    ehEntrada = ehEntrada,
+    idCustom  = id
 )
 
 // ─────────────────────────────────────────────
@@ -72,13 +79,16 @@ private val TEMPLATES_RECORRENTES = listOf(
 @Composable
 fun TelaLancar(
     modifier: Modifier = Modifier,
-    viewModel: TransacaoViewModel = viewModel()
+    viewModel: TransacaoViewModel = viewModel(),
+    categoriaVm: CategoriaViewModel = viewModel()
 ) {
     var abaSelecionada by remember { mutableStateOf(0) }
-    val abas = listOf("Lançar", "Recorrente", "Notificação")
+    val abas = listOf("Lançar", "Recorrente", "Agendado", "Notif")
 
-    // Categoria clicada — quando não-nula, abre o dialog de confirmação
     var categoriaSelecionada by remember { mutableStateOf<Categoria?>(null) }
+    var mostrarDialogAvulso   by remember { mutableStateOf(false) }
+    var mostrarDialogCriar    by remember { mutableStateOf(false) }
+    var mostrarDialogAgendar  by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -88,37 +98,63 @@ fun TelaLancar(
     ) {
         Spacer(Modifier.height(16.dp))
 
-        BarraAbas(
-            abas = abas,
-            selecionada = abaSelecionada,
-            aoSelecionar = { abaSelecionada = it }
-        )
+        BarraAbas(abas = abas, selecionada = abaSelecionada, aoSelecionar = { abaSelecionada = it })
 
         Spacer(Modifier.height(20.dp))
 
         when (abaSelecionada) {
-            0 -> AbaLancar(aoClicarCategoria = { categoriaSelecionada = it })
+            0 -> AbaLancar(
+                categoriaVm       = categoriaVm,
+                aoClicarCategoria = { categoriaSelecionada = it },
+                aoLancarAvulso    = { mostrarDialogAvulso = true },
+                aocriarCategoria  = { mostrarDialogCriar  = true }
+            )
             1 -> AbaRecorrente(viewModel = viewModel, aoClicarCategoria = { categoriaSelecionada = it })
-            2 -> AbaNotificacao()
+            2 -> AbaAgendado(viewModel = viewModel, aoCriarAgendamento = { mostrarDialogAgendar = true })
+            3 -> AbaNotificacao()
         }
     }
 
-    // Dialog de lançamento — exibido ao clicar em qualquer categoria
+    // Dialog de lançamento agendado (valor futuro)
+    if (mostrarDialogAgendar) {
+        DialogLancamentoAgendado(
+            aoConfirmar = { valor, descricao, tipo, dataMs ->
+                viewModel.inserir(
+                    TransacaoBancaria(
+                        banco             = "Manual",
+                        pacoteApp         = "manual",
+                        tipo              = tipo,
+                        valor             = valor,
+                        descricao         = descricao,
+                        tituloNotificacao = "",
+                        textoNotificacao  = "",
+                        dataAgendada      = dataMs,
+                        efetivado         = false,
+                        timestampMs       = dataMs
+                    )
+                )
+                mostrarDialogAgendar = false
+            },
+            aoCancelar = { mostrarDialogAgendar = false }
+        )
+    }
+
+    // Dialog de lançamento por categoria
     categoriaSelecionada?.let { categoria ->
         DialogLancamento(
-            categoria = categoria,
+            categoria   = categoria,
             ehRecorrente = abaSelecionada == 1,
             aoConfirmar = { valor, descricao ->
                 viewModel.inserir(
                     TransacaoBancaria(
-                        banco = "Manual",
-                        pacoteApp = "manual",
-                        tipo = categoria.tipo,
-                        valor = valor,
-                        descricao = descricao,
-                        tituloNotificacao = "",
-                        textoNotificacao = "",
-                        recorrente = abaSelecionada == 1
+                        banco              = "Manual",
+                        pacoteApp          = "manual",
+                        tipo               = categoria.tipo,
+                        valor              = valor,
+                        descricao          = descricao,
+                        tituloNotificacao  = "",
+                        textoNotificacao   = "",
+                        recorrente         = abaSelecionada == 1
                     )
                 )
                 categoriaSelecionada = null
@@ -126,10 +162,42 @@ fun TelaLancar(
             aoCancelar = { categoriaSelecionada = null }
         )
     }
+
+    // Dialog de lançamento avulso (sem categoria pré-definida)
+    if (mostrarDialogAvulso) {
+        DialogLancamentoAvulso(
+            aoConfirmar = { valor, descricao, tipo ->
+                viewModel.inserir(
+                    TransacaoBancaria(
+                        banco             = "Manual",
+                        pacoteApp         = "manual",
+                        tipo              = tipo,
+                        valor             = valor,
+                        descricao         = descricao,
+                        tituloNotificacao = "",
+                        textoNotificacao  = ""
+                    )
+                )
+                mostrarDialogAvulso = false
+            },
+            aoCancelar = { mostrarDialogAvulso = false }
+        )
+    }
+
+    // Dialog de criação de nova categoria
+    if (mostrarDialogCriar) {
+        DialogCriarCategoria(
+            aoConfirmar = { nova ->
+                categoriaVm.inserir(nova)
+                mostrarDialogCriar = false
+            },
+            aoCancelar = { mostrarDialogCriar = false }
+        )
+    }
 }
 
 // ─────────────────────────────────────────────
-// DIALOG DE LANÇAMENTO
+// DIALOG DE LANÇAMENTO POR CATEGORIA
 // ─────────────────────────────────────────────
 
 @Composable
@@ -147,43 +215,197 @@ private fun DialogLancamento(
 
     AlertDialog(
         onDismissRequest = aoCancelar,
-        containerColor = CardBg,
+        containerColor   = CardBg,
         title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(categoria.icone, contentDescription = null, tint = corAcento, modifier = Modifier.size(24.dp))
                 Column {
                     Text(categoria.label, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                    if (ehRecorrente) {
+                    if (ehRecorrente)
                         Text("Lançamento recorrente", color = GojoPurple, fontSize = 11.sp)
-                    } else {
+                    else
                         Text(categoria.sublabel, color = GrayText, fontSize = 11.sp)
-                    }
                 }
             }
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                CampoValor(valorTexto, corAcento, erroValor,
+                    onChange = { valorTexto = it; erroValor = false })
+                CampoDescricao(descricao, onChange = { descricao = it })
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val valor = parsearValorBrasileiro(valorTexto)
+                    if (valor == null || valor <= 0.0) erroValor = true
+                    else aoConfirmar(valor, descricao.ifBlank { categoria.label })
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = corAcento)
+            ) { Text("Confirmar", color = Color.White, fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = {
+            TextButton(onClick = aoCancelar) { Text("Cancelar", color = GrayText) }
+        }
+    )
+}
 
-                // ── Campo: Valor ──────────────────────────────────
+// ─────────────────────────────────────────────
+// DIALOG DE LANÇAMENTO AVULSO
+// ─────────────────────────────────────────────
+
+@Composable
+private fun DialogLancamentoAvulso(
+    aoConfirmar: (valor: Double, descricao: String, tipo: TipoTransacao) -> Unit,
+    aoCancelar: () -> Unit
+) {
+    var valorTexto by remember { mutableStateOf("") }
+    var descricao  by remember { mutableStateOf("") }
+    var ehEntrada  by remember { mutableStateOf(false) }
+    var erroValor  by remember { mutableStateOf(false) }
+
+    val corAcento = if (ehEntrada) MoneyGreen else DebtRed
+    val tipoSelecionado = if (ehEntrada) TipoTransacao.DEPOSITO else TipoTransacao.COMPRA_DEBITO
+
+    AlertDialog(
+        onDismissRequest = aoCancelar,
+        containerColor   = CardBg,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.Default.AddCircleOutline, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(24.dp))
+                Text("Lançar Valor Avulso", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+
+                // Toggle Entrada / Saída
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(CardBg)
+                        .border(1.dp, GojoPurple.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                        .padding(4.dp)
+                ) {
+                    listOf("Saída" to false, "Entrada" to true).forEach { (label, valor) ->
+                        val ativo = ehEntrada == valor
+                        val cor   = if (valor) MoneyGreen else DebtRed
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (ativo) cor.copy(alpha = 0.18f) else Color.Transparent)
+                                .border(if (ativo) 1.dp else 0.dp, if (ativo) cor else Color.Transparent, RoundedCornerShape(10.dp))
+                                .clickable { ehEntrada = valor }
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text       = label,
+                                color      = if (ativo) cor else GrayText,
+                                fontSize   = 13.sp,
+                                fontWeight = if (ativo) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+
+                CampoValor(valorTexto, corAcento, erroValor,
+                    onChange = { valorTexto = it; erroValor = false })
+                CampoDescricao(descricao, onChange = { descricao = it },
+                    placeholder = "Ex: Lanche, uber, transferência...")
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val valor = parsearValorBrasileiro(valorTexto)
+                    if (valor == null || valor <= 0.0) erroValor = true
+                    else aoConfirmar(valor, descricao.ifBlank { if (ehEntrada) "Entrada avulsa" else "Saída avulsa" }, tipoSelecionado)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = corAcento)
+            ) { Text("Confirmar", color = Color.White, fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = {
+            TextButton(onClick = aoCancelar) { Text("Cancelar", color = GrayText) }
+        }
+    )
+}
+
+// ─────────────────────────────────────────────
+// DIALOG DE CRIAR CATEGORIA
+// ─────────────────────────────────────────────
+
+@Composable
+private fun DialogCriarCategoria(
+    aoConfirmar: (CategoriaCustom) -> Unit,
+    aoCancelar: () -> Unit
+) {
+    var label     by remember { mutableStateOf("") }
+    var sublabel  by remember { mutableStateOf("") }
+    var ehEntrada by remember { mutableStateOf(false) }
+    var erroLabel by remember { mutableStateOf(false) }
+
+    val tipoSelecionado = if (ehEntrada) TipoTransacao.DEPOSITO else TipoTransacao.COMPRA_DEBITO
+    val corAcento       = if (ehEntrada) MoneyGreen else DebtRed
+
+    AlertDialog(
+        onDismissRequest = aoCancelar,
+        containerColor   = CardBg,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.Default.AddBox, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(24.dp))
+                Text("Nova Categoria", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+
+                // Toggle Ganho / Gasto
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(CardBg)
+                        .border(1.dp, GojoPurple.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                        .padding(4.dp)
+                ) {
+                    listOf("Gasto" to false, "Ganho" to true).forEach { (rotulo, valor) ->
+                        val ativo = ehEntrada == valor
+                        val cor   = if (valor) MoneyGreen else DebtRed
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (ativo) cor.copy(alpha = 0.18f) else Color.Transparent)
+                                .border(if (ativo) 1.dp else 0.dp, if (ativo) cor else Color.Transparent, RoundedCornerShape(10.dp))
+                                .clickable { ehEntrada = valor }
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text       = rotulo,
+                                color      = if (ativo) cor else GrayText,
+                                fontSize   = 13.sp,
+                                fontWeight = if (ativo) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+
                 OutlinedTextField(
-                    value = valorTexto,
-                    onValueChange = { entrada ->
-                        // Aceita apenas dígitos, vírgula e ponto decimal
-                        valorTexto = entrada.filter { it.isDigit() || it == ',' || it == '.' }
-                        erroValor = false
-                    },
-                    label      = { Text("Valor (R$)", color = GrayText) },
-                    placeholder = { Text("Ex: 1.500,00", color = GrayText.copy(alpha = 0.5f)) },
-                    isError    = erroValor,
-                    supportingText = if (erroValor) {
-                        { Text("Informe um valor válido maior que zero", color = DebtRed, fontSize = 11.sp) }
+                    value       = label,
+                    onValueChange = { label = it; erroLabel = false },
+                    label       = { Text("Nome da categoria", color = GrayText) },
+                    placeholder = { Text("Ex: Academias, Jogos...", color = GrayText.copy(alpha = 0.5f)) },
+                    isError     = erroLabel,
+                    supportingText = if (erroLabel) {
+                        { Text("Informe um nome para a categoria", color = DebtRed, fontSize = 11.sp) }
                     } else null,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
+                    singleLine  = true,
+                    colors      = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = corAcento,
                         unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
                         focusedTextColor     = Color.White,
@@ -192,46 +414,44 @@ private fun DialogLancamento(
                         errorBorderColor     = DebtRed,
                         errorTextColor       = Color.White,
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier    = Modifier.fillMaxWidth()
                 )
 
-                // ── Campo: Descrição ──────────────────────────────
                 OutlinedTextField(
-                    value = descricao,
-                    onValueChange = { descricao = it },
-                    label       = { Text("Descrição", color = GrayText) },
-                    placeholder = { Text("Ex: Salário de abril", color = GrayText.copy(alpha = 0.5f)) },
+                    value       = sublabel,
+                    onValueChange = { sublabel = it },
+                    label       = { Text("Descrição (opcional)", color = GrayText) },
+                    placeholder = { Text("Ex: Mensalidade, hobby...", color = GrayText.copy(alpha = 0.5f)) },
                     singleLine  = true,
-                    colors = OutlinedTextFieldDefaults.colors(
+                    colors      = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = GojoPurple,
                         unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
                         focusedTextColor     = Color.White,
                         unfocusedTextColor   = Color.White,
                         cursorColor          = GojoPurple,
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier    = Modifier.fillMaxWidth()
                 )
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    val valor = parsearValorBrasileiro(valorTexto)
-                    if (valor == null || valor <= 0.0) {
-                        erroValor = true
-                    } else {
-                        aoConfirmar(valor, descricao.ifBlank { categoria.label })
-                    }
+                    if (label.isBlank()) { erroLabel = true; return@Button }
+                    aoConfirmar(
+                        CategoriaCustom(
+                            label     = label.trim(),
+                            sublabel  = sublabel.trim().ifBlank { if (ehEntrada) "Ganho" else "Gasto" },
+                            tipo      = tipoSelecionado,
+                            ehEntrada = ehEntrada
+                        )
+                    )
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = corAcento)
-            ) {
-                Text("Confirmar", color = Color.White, fontWeight = FontWeight.Bold)
-            }
+                colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
+            ) { Text("Criar", color = Color.White, fontWeight = FontWeight.Bold) }
         },
         dismissButton = {
-            TextButton(onClick = aoCancelar) {
-                Text("Cancelar", color = GrayText)
-            }
+            TextButton(onClick = aoCancelar) { Text("Cancelar", color = GrayText) }
         }
     )
 }
@@ -241,13 +461,47 @@ private fun DialogLancamento(
 // ─────────────────────────────────────────────
 
 @Composable
-private fun AbaLancar(aoClicarCategoria: (Categoria) -> Unit) {
+private fun AbaLancar(
+    categoriaVm: CategoriaViewModel,
+    aoClicarCategoria: (Categoria) -> Unit,
+    aoLancarAvulso: () -> Unit,
+    aocriarCategoria: () -> Unit
+) {
+    val categoriasCustom by categoriaVm.categorias.collectAsState()
+
+    val customGanhos = categoriasCustom.filter { it.ehEntrada }
+    val customGastos = categoriasCustom.filter { !it.ehEntrada }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // ── Botões de ação rápida ──────────────────────────────
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            BotaoAcaoRapida(
+                modifier   = Modifier.weight(1f),
+                icone      = Icons.Default.FlashOn,
+                texto      = "Lançar Avulso",
+                cor        = GojoPurple,
+                aoClicar   = aoLancarAvulso
+            )
+            BotaoAcaoRapida(
+                modifier   = Modifier.weight(1f),
+                icone      = Icons.Default.AddBox,
+                texto      = "Nova Categoria",
+                cor        = MoneyGreen,
+                aoClicar   = aocriarCategoria
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // ── Ganhos ────────────────────────────────────────────
         TituloSecao(icone = Icons.Default.Add, texto = "GANHOS E FREELANCE", cor = GojoPurple)
 
         Row(
@@ -255,29 +509,33 @@ private fun AbaLancar(aoClicarCategoria: (Categoria) -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             CATEGORIAS_GANHOS.forEach { cat ->
-                CardGanho(
-                    modifier = Modifier.weight(1f),
-                    categoria = cat,
-                    aoClicar = { aoClicarCategoria(cat) }
-                )
+                CardGanho(modifier = Modifier.weight(1f), categoria = cat, aoClicar = { aoClicarCategoria(cat) })
+            }
+        }
+
+        // Categorias de ganho criadas pelo usuário
+        if (customGanhos.isNotEmpty()) {
+            val todasGanhos = customGanhos.map { it.paraCategoriaUi() }
+            todasGanhos.chunked(3).forEach { linha ->
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    linha.forEach { cat ->
+                        CardGanho(modifier = Modifier.weight(1f), categoria = cat, aoClicar = { aoClicarCategoria(cat) })
+                    }
+                    repeat(3 - linha.size) { Spacer(Modifier.weight(1f)) }
+                }
             }
         }
 
         Spacer(Modifier.height(4.dp))
 
+        // ── Dívidas ───────────────────────────────────────────
         TituloSecao(icone = Icons.Default.Warning, texto = "DÍVIDAS E GASTOS", cor = DebtRed)
 
-        CATEGORIAS_DIVIDAS.chunked(2).forEach { linha ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+        val todasDividas = CATEGORIAS_DIVIDAS + customGastos.map { it.paraCategoriaUi() }
+        todasDividas.chunked(2).forEach { linha ->
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 linha.forEach { cat ->
-                    CardDivida(
-                        modifier = Modifier.weight(1f),
-                        categoria = cat,
-                        aoClicar = { aoClicarCategoria(cat) }
-                    )
+                    CardDivida(modifier = Modifier.weight(1f), categoria = cat, aoClicar = { aoClicarCategoria(cat) })
                 }
                 if (linha.size == 1) Spacer(Modifier.weight(1f))
             }
@@ -310,7 +568,6 @@ private fun AbaRecorrente(
             CardTemplate(categoria = cat, aoClicar = { aoClicarCategoria(cat) })
         }
 
-        // Lista de lançamentos recorrentes já salvos
         if (recorrentes.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
             TituloSecao(icone = Icons.Default.List, texto = "SALVOS COMO RECORRENTE", cor = GojoPurple)
@@ -326,41 +583,213 @@ private fun AbaRecorrente(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = transacao.descricao,
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = transacao.banco,
-                            color = GrayText,
-                            fontSize = 11.sp
-                        )
+                        Text(transacao.descricao, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(transacao.banco, color = GrayText, fontSize = 11.sp)
                     }
                     Text(
-                        text = "${if (ehEntrada) "+" else "-"}${formatarValor(transacao.valor)}",
-                        color = if (ehEntrada) MoneyGreen else DebtRed,
-                        fontSize = 14.sp,
+                        text       = "${if (ehEntrada) "+" else "-"}${formatarValor(transacao.valor)}",
+                        color      = if (ehEntrada) MoneyGreen else DebtRed,
+                        fontSize   = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.width(8.dp))
-                    IconButton(
-                        onClick = { viewModel.deletar(transacao.id) },
-                        modifier = Modifier.size(28.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.DeleteOutline,
-                            contentDescription = "Remover",
-                            tint = GrayText,
-                            modifier = Modifier.size(17.dp)
-                        )
+                    IconButton(onClick = { viewModel.deletar(transacao.id) }, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.DeleteOutline, contentDescription = "Remover", tint = GrayText, modifier = Modifier.size(17.dp))
                     }
                 }
             }
         }
 
         Spacer(Modifier.height(80.dp))
+    }
+}
+
+// ─────────────────────────────────────────────
+// ABA: AGENDADO (lançamentos futuros)
+// ─────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AbaAgendado(
+    viewModel: TransacaoViewModel,
+    aoCriarAgendamento: () -> Unit
+) {
+    val agendadas by viewModel.agendadas.collectAsState()
+    val fmtData = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale("pt", "BR")) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        BotaoAcaoRapida(
+            modifier = Modifier.fillMaxWidth(),
+            icone = Icons.Default.Schedule,
+            texto = "Novo Lançamento Agendado",
+            cor = GojoPurple,
+            aoClicar = aoCriarAgendamento
+        )
+
+        TituloSecao(icone = Icons.Default.Event, texto = "AGENDADOS", cor = GojoPurple)
+
+        if (agendadas.isEmpty()) {
+            Text(
+                "Nenhum valor agendado. Use o botão acima para criar um lançamento futuro.",
+                color = GrayText,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            agendadas.forEach { transacao ->
+                val ehEntrada = transacao.ehEntrada()
+                val cor = if (ehEntrada) MoneyGreen else DebtRed
+                val data = transacao.dataAgendada?.let { fmtData.format(java.util.Date(it)) } ?: "—"
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(CardBg)
+                        .border(1.dp, cor.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(transacao.descricao, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Para $data", color = GojoPurple, fontSize = 11.sp)
+                    }
+                    Text(
+                        text = "${if (ehEntrada) "+" else "-"}${formatarValor(transacao.valor)}",
+                        color = cor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(onClick = { viewModel.efetivar(transacao) }, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = "Efetivar", tint = MoneyGreen, modifier = Modifier.size(20.dp))
+                    }
+                    IconButton(onClick = { viewModel.deletar(transacao.id) }, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.DeleteOutline, contentDescription = "Remover", tint = GrayText, modifier = Modifier.size(17.dp))
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(80.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DialogLancamentoAgendado(
+    aoConfirmar: (valor: Double, descricao: String, tipo: TipoTransacao, dataMs: Long) -> Unit,
+    aoCancelar: () -> Unit
+) {
+    var valorTexto by remember { mutableStateOf("") }
+    var descricao  by remember { mutableStateOf("") }
+    var ehEntrada  by remember { mutableStateOf(false) }
+    var erroValor  by remember { mutableStateOf(false) }
+    var mostrarPicker by remember { mutableStateOf(false) }
+    val pickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
+
+    val dataSelecionada = pickerState.selectedDateMillis
+    val fmtData = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale("pt", "BR")) }
+    val corAcento = if (ehEntrada) MoneyGreen else DebtRed
+    val tipoSelecionado = if (ehEntrada) TipoTransacao.DEPOSITO else TipoTransacao.COMPRA_DEBITO
+
+    AlertDialog(
+        onDismissRequest = aoCancelar,
+        containerColor = CardBg,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.Default.Schedule, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(24.dp))
+                Text("Agendar Lançamento", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                // Toggle Entrada / Saída
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(CardBg)
+                        .border(1.dp, GojoPurple.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                        .padding(4.dp)
+                ) {
+                    listOf("Saída" to false, "Entrada" to true).forEach { (label, valor) ->
+                        val ativo = ehEntrada == valor
+                        val cor = if (valor) MoneyGreen else DebtRed
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (ativo) cor.copy(alpha = 0.18f) else Color.Transparent)
+                                .clickable { ehEntrada = valor }
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(label, color = if (ativo) cor else GrayText, fontSize = 13.sp,
+                                fontWeight = if (ativo) FontWeight.Bold else FontWeight.Normal)
+                        }
+                    }
+                }
+
+                CampoValor(valorTexto, corAcento, erroValor,
+                    onChange = { valorTexto = it; erroValor = false })
+                CampoDescricao(descricao, onChange = { descricao = it },
+                    placeholder = "Ex: IPTU de janeiro")
+
+                // Seletor de data
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(DarkBg)
+                        .clickable { mostrarPicker = true }
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = GojoPurple)
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = dataSelecionada?.let { "Data: ${fmtData.format(java.util.Date(it))}" } ?: "Escolher data",
+                        color = Color.White,
+                        fontSize = 13.sp
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val valor = parsearValorBrasileiro(valorTexto)
+                    val data = dataSelecionada
+                    when {
+                        valor == null || valor <= 0.0 -> erroValor = true
+                        data == null -> mostrarPicker = true
+                        else -> aoConfirmar(valor, descricao.ifBlank { if (ehEntrada) "Entrada agendada" else "Saída agendada" }, tipoSelecionado, data)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = corAcento)
+            ) { Text("Agendar", color = Color.White, fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = {
+            TextButton(onClick = aoCancelar) { Text("Cancelar", color = GrayText) }
+        }
+    )
+
+    if (mostrarPicker) {
+        DatePickerDialog(
+            onDismissRequest = { mostrarPicker = false },
+            confirmButton = {
+                TextButton(onClick = { mostrarPicker = false }) {
+                    Text("OK", color = GojoPurple)
+                }
+            }
+        ) {
+            DatePicker(state = pickerState)
+        }
     }
 }
 
@@ -403,6 +832,29 @@ private fun AbaNotificacao() {
 // ─────────────────────────────────────────────
 
 @Composable
+private fun BotaoAcaoRapida(
+    modifier: Modifier,
+    icone: ImageVector,
+    texto: String,
+    cor: Color,
+    aoClicar: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(cor.copy(alpha = 0.12f))
+            .border(1.dp, cor.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+            .clickable(onClick = aoClicar)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(20.dp))
+        Text(texto, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
 private fun BarraAbas(abas: List<String>, selecionada: Int, aoSelecionar: (Int) -> Unit) {
     Row(
         modifier = Modifier
@@ -425,10 +877,10 @@ private fun BarraAbas(abas: List<String>, selecionada: Int, aoSelecionar: (Int) 
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = titulo.uppercase(),
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
+                    text        = titulo.uppercase(),
+                    color       = Color.White,
+                    fontSize    = 10.sp,
+                    fontWeight  = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
             }
@@ -438,10 +890,7 @@ private fun BarraAbas(abas: List<String>, selecionada: Int, aoSelecionar: (Int) 
 
 @Composable
 private fun TituloSecao(icone: ImageVector, texto: String, cor: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(16.dp))
         Text(texto, color = cor, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
     }
@@ -457,13 +906,13 @@ private fun CardGanho(modifier: Modifier, categoria: Categoria, aoClicar: () -> 
             .border(1.dp, GojoPurple.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
             .clickable(onClick = aoClicar)
             .padding(10.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement   = Arrangement.Center,
+        horizontalAlignment   = Alignment.CenterHorizontally
     ) {
         Icon(categoria.icone, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(28.dp))
         Spacer(Modifier.height(8.dp))
-        Text(categoria.label,    color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-        Text(categoria.sublabel, color = GrayText,    fontSize = 10.sp)
+        Text(categoria.label,    color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Text(categoria.sublabel, color = GrayText,    fontSize = 10.sp, textAlign = TextAlign.Center)
     }
 }
 
@@ -477,13 +926,13 @@ private fun CardDivida(modifier: Modifier, categoria: Categoria, aoClicar: () ->
             .border(1.dp, DebtRed.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
             .clickable(onClick = aoClicar)
             .padding(10.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement   = Arrangement.Center,
+        horizontalAlignment   = Alignment.CenterHorizontally
     ) {
         Icon(categoria.icone, contentDescription = null, tint = DebtRed, modifier = Modifier.size(22.dp))
         Spacer(Modifier.height(6.dp))
-        Text(categoria.label,    color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-        Text(categoria.sublabel, color = GrayText,    fontSize = 9.sp)
+        Text(categoria.label,    color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Text(categoria.sublabel, color = GrayText,    fontSize = 9.sp, textAlign = TextAlign.Center)
     }
 }
 
@@ -498,7 +947,7 @@ private fun CardTemplate(categoria: Categoria, aoClicar: () -> Unit) {
             .border(1.dp, cor.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
             .clickable(onClick = aoClicar)
             .padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Icon(categoria.icone, contentDescription = null, tint = cor, modifier = Modifier.size(26.dp))
@@ -520,7 +969,7 @@ private fun CardSimples(icone: ImageVector, label: String, sublabel: String, cor
             .border(1.dp, cor.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
             .clickable { }
             .padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(26.dp))
@@ -532,30 +981,80 @@ private fun CardSimples(icone: ImageVector, label: String, sublabel: String, cor
 }
 
 // ─────────────────────────────────────────────
+// CAMPOS COMPARTILHADOS
+// ─────────────────────────────────────────────
+
+@Composable
+private fun CampoValor(
+    valor: String,
+    corAcento: Color,
+    isError: Boolean,
+    onChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value          = valor,
+        onValueChange  = { onChange(it.filter { c -> c.isDigit() || c == ',' || c == '.' }) },
+        label          = { Text("Valor (R$)", color = GrayText) },
+        placeholder    = { Text("Ex: 1.500,00", color = GrayText.copy(alpha = 0.5f)) },
+        isError        = isError,
+        supportingText = if (isError) {
+            { Text("Informe um valor válido maior que zero", color = DebtRed, fontSize = 11.sp) }
+        } else null,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        singleLine     = true,
+        colors         = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor   = corAcento,
+            unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
+            focusedTextColor     = Color.White,
+            unfocusedTextColor   = Color.White,
+            cursorColor          = corAcento,
+            errorBorderColor     = DebtRed,
+            errorTextColor       = Color.White,
+        ),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun CampoDescricao(
+    valor: String,
+    onChange: (String) -> Unit,
+    placeholder: String = "Ex: Salário de abril"
+) {
+    OutlinedTextField(
+        value         = valor,
+        onValueChange = onChange,
+        label         = { Text("Descrição", color = GrayText) },
+        placeholder   = { Text(placeholder, color = GrayText.copy(alpha = 0.5f)) },
+        singleLine    = true,
+        colors        = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor   = GojoPurple,
+            unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
+            focusedTextColor     = Color.White,
+            unfocusedTextColor   = Color.White,
+            cursorColor          = GojoPurple,
+        ),
+        modifier      = Modifier.fillMaxWidth()
+    )
+}
+
+// ─────────────────────────────────────────────
 // UTILITÁRIOS
 // ─────────────────────────────────────────────
 
-// Converte "1.500,00" (padrão BR) ou "1500.50" (padrão internacional) para Double
 private fun parsearValorBrasileiro(texto: String): Double? {
     if (texto.isBlank()) return null
     return try {
-        val normalizado = if (texto.contains(",")) {
-            // Formato BR: remove separador de milhar (ponto) e troca vírgula por ponto decimal
+        val normalizado = if (texto.contains(","))
             texto.replace(".", "").replace(",", ".")
-        } else {
-            texto
-        }
+        else texto
         normalizado.toDouble().takeIf { it > 0 }
-    } catch (_: NumberFormatException) {
-        null
-    }
+    } catch (_: NumberFormatException) { null }
 }
 
-// Formata Double para o padrão monetário brasileiro: R$ 1.500,00
 private fun formatarValor(valor: Double): String =
     "R$ %,.2f".format(valor).replace(",", "X").replace(".", ",").replace("X", ".")
 
-// Verifica se a transação é de entrada com base nos mesmos critérios do DAO
 private fun TransacaoBancaria.ehEntrada(): Boolean = tipo in listOf(
     TipoTransacao.PIX_RECEBIDO,
     TipoTransacao.TRANSFERENCIA_RECEBIDA,

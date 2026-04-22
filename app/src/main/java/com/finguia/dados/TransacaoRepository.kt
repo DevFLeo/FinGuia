@@ -21,7 +21,11 @@ class TransacaoRepository(context: Context) {
 
     fun listarRecorrentes(): Flow<List<TransacaoBancaria>> = dao.listarRecorrentes()
 
+    fun listarAgendadas(): Flow<List<TransacaoBancaria>> = dao.listarAgendadas()
+
     suspend fun atualizar(transacao: TransacaoBancaria) = dao.atualizar(transacao)
 
     suspend fun deletar(id: Long) = dao.deletar(id)
+
+    suspend fun buscar(query: String): List<TransacaoBancaria> = dao.buscar(query)
 }
