@@ -502,27 +502,15 @@ private fun AbaLancar(
         Spacer(Modifier.height(4.dp))
 
         // ── Ganhos ────────────────────────────────────────────
-        TituloSecao(icone = Icons.Default.Add, texto = "GANHOS E FREELANCE", cor = GojoPurple)
+        TituloSecao(icone = Icons.Default.Add, texto = "GANHOS E FREELANCE", cor = MoneyGreen)
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            CATEGORIAS_GANHOS.forEach { cat ->
-                CardGanho(modifier = Modifier.weight(1f), categoria = cat, aoClicar = { aoClicarCategoria(cat) })
-            }
-        }
-
-        // Categorias de ganho criadas pelo usuário
-        if (customGanhos.isNotEmpty()) {
-            val todasGanhos = customGanhos.map { it.paraCategoriaUi() }
-            todasGanhos.chunked(3).forEach { linha ->
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    linha.forEach { cat ->
-                        CardGanho(modifier = Modifier.weight(1f), categoria = cat, aoClicar = { aoClicarCategoria(cat) })
-                    }
-                    repeat(3 - linha.size) { Spacer(Modifier.weight(1f)) }
+        val todosGanhos = CATEGORIAS_GANHOS + customGanhos.map { it.paraCategoriaUi() }
+        todosGanhos.chunked(2).forEach { linha ->
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                linha.forEach { cat ->
+                    CardGanho(modifier = Modifier.weight(1f), categoria = cat, aoClicar = { aoClicarCategoria(cat) })
                 }
+                if (linha.size == 1) Spacer(Modifier.weight(1f))
             }
         }
 
@@ -841,16 +829,17 @@ private fun BotaoAcaoRapida(
 ) {
     Row(
         modifier = modifier
+            .height(56.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(cor.copy(alpha = 0.12f))
             .border(1.dp, cor.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
             .clickable(onClick = aoClicar)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(20.dp))
-        Text(texto, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Text(texto, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }
 
@@ -900,19 +889,19 @@ private fun TituloSecao(icone: ImageVector, texto: String, cor: Color) {
 private fun CardGanho(modifier: Modifier, categoria: Categoria, aoClicar: () -> Unit) {
     Column(
         modifier = modifier
-            .height(120.dp)
+            .height(90.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(GojoPurple.copy(alpha = 0.12f))
-            .border(1.dp, GojoPurple.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+            .background(MoneyGreen.copy(alpha = 0.08f))
+            .border(1.dp, MoneyGreen.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
             .clickable(onClick = aoClicar)
             .padding(10.dp),
         verticalArrangement   = Arrangement.Center,
         horizontalAlignment   = Alignment.CenterHorizontally
     ) {
-        Icon(categoria.icone, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(28.dp))
-        Spacer(Modifier.height(8.dp))
-        Text(categoria.label,    color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-        Text(categoria.sublabel, color = GrayText,    fontSize = 10.sp, textAlign = TextAlign.Center)
+        Icon(categoria.icone, contentDescription = null, tint = MoneyGreen, modifier = Modifier.size(22.dp))
+        Spacer(Modifier.height(6.dp))
+        Text(categoria.label,    color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Text(categoria.sublabel, color = GrayText,    fontSize = 9.sp, textAlign = TextAlign.Center)
     }
 }
 
