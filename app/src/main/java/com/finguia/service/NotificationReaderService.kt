@@ -28,10 +28,16 @@ class NotificationReaderService : NotificationListenerService() {
 
     private val TAG = "FinGuia-Notif"
 
-    // Escopo de coroutine vinculado ao ciclo de vida do serviço
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private lateinit var repository: TransacaoRepository
+
+    // Cache de hashes recentes para suprimir re-postagens do mesmo evento.
+    // Bancos frequentemente re-postam a notificação (expandindo, atualizando
+    // contador etc.) e cada re-post dispara onNotificationPosted novamente.
+    private val hashesRecentes = ArrayDeque<Pair<Int, Long>>()
+    private val JANELA_DEDUPE_MS = 60_000L
+    private val MAX_HASHES = 50
 
     override fun onCreate() {
         super.onCreate()
@@ -55,31 +61,73 @@ class NotificationReaderService : NotificationListenerService() {
         sbn ?: return
 
         val pacote = sbn.packageName
-
-        // Filtra apenas notificações de bancos e apps financeiros conhecidos
         if (!BancoConfig.ehBancoConhecido(pacote)) return
 
         val banco = BancoConfig.nomeBanco(pacote) ?: return
-        val extras = sbn.notification.extras
-        val titulo = extras.getString(Notification.EXTRA_TITLE)
-        val texto = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+        val notificacao = sbn.notification ?: return
 
-        Log.d(TAG, "[$banco] Notificação capturada | Título: $titulo | Texto: $texto")
+        // Ignora resumos de grupo — trazem apenas "3 novas movimentações"
+        // sem valor nem contexto, sujando o banco com lixo.
+        if ((notificacao.flags and Notification.FLAG_GROUP_SUMMARY) != 0) {
+            Log.d(TAG, "[$banco] Ignorada — resumo de grupo.")
+            return
+        }
 
+        val extras = notificacao.extras
+        val titulo = extras.getString(Notification.EXTRA_TITLE).orEmpty()
+        val texto = extrairTextoCompleto(extras)
+
+        if (titulo.isBlank() && texto.isBlank()) return
+
+        // Dedupe: bancos re-postam a mesma notificação várias vezes. Usamos um
+        // hash de (pacote, título, texto) e uma janela temporal curta.
+        val hash = (pacote + "|" + titulo + "|" + texto).hashCode()
+        if (jaProcessadoRecentemente(hash)) {
+            Log.d(TAG, "[$banco] Ignorada — duplicata recente.")
+            return
+        }
+
+        Log.d(TAG, "[$banco] Capturada | Título: $titulo | Texto: $texto")
         processarNotificacao(banco, pacote, titulo, texto)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
-        // Ignoramos remoções — a transação já foi salva ao chegar
     }
 
     /**
-     * Analisa e persiste a notificação bancária capturada.
-     * Notificações sem valor monetário identificável são descartadas,
-     * exceto para tipos de transação como COBRANÇA e DESCONHECIDO com banco válido.
+     * Concatena todos os campos textuais relevantes da notificação.
+     * Bancos costumam colocar o valor em EXTRA_BIG_TEXT enquanto EXTRA_TEXT
+     * contém só o teaser — ignorar BIG_TEXT perde justamente o valor.
      */
+    private fun extrairTextoCompleto(extras: android.os.Bundle): String {
+        val partes = mutableListOf<String>()
+
+        extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.let { partes += it }
+        extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.let { partes += it }
+        extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.let { partes += it }
+        extras.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString()?.let { partes += it }
+        extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()?.let { partes += it }
+
+        // EXTRA_TEXT_LINES: listagem de linhas (usada por InboxStyle).
+        val linhas = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+        linhas?.forEach { it?.toString()?.let { s -> partes += s } }
+
+        return partes.distinct().joinToString(" ").trim()
+    }
+
+    private fun jaProcessadoRecentemente(hash: Int): Boolean {
+        val agora = System.currentTimeMillis()
+        // Remove entradas fora da janela
+        while (hashesRecentes.isNotEmpty() && agora - hashesRecentes.first().second > JANELA_DEDUPE_MS) {
+            hashesRecentes.removeFirst()
+        }
+        if (hashesRecentes.any { it.first == hash }) return true
+        hashesRecentes.addLast(hash to agora)
+        while (hashesRecentes.size > MAX_HASHES) hashesRecentes.removeFirst()
+        return false
+    }
+
     private fun processarNotificacao(
         banco: String,
         pacote: String,
@@ -90,10 +138,11 @@ class NotificationReaderService : NotificationListenerService() {
             val tipo = AnalisadorNotificacao.identificarTipo(titulo, texto)
             val valor = AnalisadorNotificacao.extrairValor(titulo, texto)
 
-            // Descarta notificações sem valor e sem tipo reconhecido
-            // (ex: promoções, avisos genéricos sem contexto financeiro)
             if (tipo == TipoTransacao.DESCONHECIDO && valor == 0.0) {
-                Log.d(TAG, "[$banco] Notificação descartada — sem tipo nem valor reconhecido.")
+                Log.w(
+                    TAG,
+                    "[$banco] Descartada — sem tipo/valor. Título='$titulo' Texto='$texto'"
+                )
                 return@launch
             }
 
@@ -112,9 +161,9 @@ class NotificationReaderService : NotificationListenerService() {
             val id = repository.salvar(transacao)
             Log.i(TAG, "[$banco] Transação salva (id=$id): $descricao")
 
-            // Envia broadcast para a UI atualizar em tempo real
             sendBroadcast(
                 Intent(ACTION_NOVA_TRANSACAO).apply {
+                    setPackage(packageName)
                     putExtra(EXTRA_BANCO, banco)
                     putExtra(EXTRA_DESCRICAO, descricao)
                     putExtra(EXTRA_VALOR, valor)
