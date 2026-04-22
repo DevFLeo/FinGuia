@@ -56,5 +56,6 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
     implementation(libs.splashscreen)
+    implementation(libs.coil)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
