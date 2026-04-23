@@ -34,7 +34,11 @@ object AnalisadorNotificacao {
             "pix de entrada",
             // Mercado Pago, PicPay, PagBank frequentemente omitem "pix"
             "você recebeu", "dinheiro recebido", "transferiu para você",
-            "enviou dinheiro para você", "você tem um novo pix"
+            "enviou dinheiro para você", "você tem um novo pix",
+            // Mercado Pago: "Você depositou R$ X via Pix" = Pix recebido
+            // (do ponto de vista deles o usuário "depositou" na conta MP).
+            "depositou via pix", "depositou r$", "seu dinheiro já está disponível",
+            "dinheiro na sua conta", "caiu na sua conta", "entrou na sua conta"
         ),
         TipoTransacao.COBRANCA to listOf(
             "fatura vencendo", "fatura disponível", "fatura fechada",
