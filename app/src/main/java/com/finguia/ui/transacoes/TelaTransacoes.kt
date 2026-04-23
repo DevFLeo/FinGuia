@@ -60,8 +60,8 @@ private fun rememberMetrics(maxWidthDp: Dp): TelaMetrics {
             isCompact -> TelaMetrics(
                 paddingH = 12.dp, spacerSm = 10.dp, spacerMd = 12.dp,
                 cardPadding = 10.dp, iconBoxSize = 34.dp, iconSm = 16.dp,
-                iconMd = 20.dp, iconLg = 52.dp, deleteButtonSize = 28.dp,
-                deleteIconSize = 14.dp, fontTitle = 18.sp, fontSubtitle = 11.sp,
+                iconMd = 20.dp, iconLg = 52.dp, deleteButtonSize = 40.dp,
+                deleteIconSize = 22.dp, fontTitle = 18.sp, fontSubtitle = 11.sp,
                 fontLabel = 10.sp, fontValue = 14.sp, fontBankName = 13.sp,
                 fontDesc = 11.sp, fontDate = 9.sp, fontEmpty = 13.sp,
                 fontEmptySub = 11.sp, cardGap = 6.dp, resumoGap = 8.dp,
@@ -70,8 +70,8 @@ private fun rememberMetrics(maxWidthDp: Dp): TelaMetrics {
             isMedium -> TelaMetrics(
                 paddingH = 16.dp, spacerSm = 12.dp, spacerMd = 16.dp,
                 cardPadding = 14.dp, iconBoxSize = 40.dp, iconSm = 20.dp,
-                iconMd = 24.dp, iconLg = 64.dp, deleteButtonSize = 32.dp,
-                deleteIconSize = 16.dp, fontTitle = 22.sp, fontSubtitle = 12.sp,
+                iconMd = 24.dp, iconLg = 64.dp, deleteButtonSize = 44.dp,
+                deleteIconSize = 24.dp, fontTitle = 22.sp, fontSubtitle = 12.sp,
                 fontLabel = 11.sp, fontValue = 16.sp, fontBankName = 14.sp,
                 fontDesc = 12.sp, fontDate = 10.sp, fontEmpty = 15.sp,
                 fontEmptySub = 12.sp, cardGap = 8.dp, resumoGap = 12.dp,
@@ -80,8 +80,8 @@ private fun rememberMetrics(maxWidthDp: Dp): TelaMetrics {
             else -> TelaMetrics(
                 paddingH = 24.dp, spacerSm = 14.dp, spacerMd = 20.dp,
                 cardPadding = 18.dp, iconBoxSize = 48.dp, iconSm = 24.dp,
-                iconMd = 28.dp, iconLg = 80.dp, deleteButtonSize = 36.dp,
-                deleteIconSize = 18.dp, fontTitle = 26.sp, fontSubtitle = 14.sp,
+                iconMd = 28.dp, iconLg = 80.dp, deleteButtonSize = 48.dp,
+                deleteIconSize = 26.dp, fontTitle = 26.sp, fontSubtitle = 14.sp,
                 fontLabel = 13.sp, fontValue = 18.sp, fontBankName = 16.sp,
                 fontDesc = 14.sp, fontDate = 12.sp, fontEmpty = 17.sp,
                 fontEmptySub = 14.sp, cardGap = 10.dp, resumoGap = 16.dp,
