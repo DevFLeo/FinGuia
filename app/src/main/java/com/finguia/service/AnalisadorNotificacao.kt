@@ -31,7 +31,10 @@ object AnalisadorNotificacao {
         TipoTransacao.PIX_RECEBIDO to listOf(
             "você recebeu um pix", "transferência pix recebida", "pix recebido",
             "recebeu via pix", "recebeu pix", "chegou um pix", "pix creditado",
-            "pix de entrada"
+            "pix de entrada",
+            // Mercado Pago, PicPay, PagBank frequentemente omitem "pix"
+            "você recebeu", "dinheiro recebido", "transferiu para você",
+            "enviou dinheiro para você", "você tem um novo pix"
         ),
         TipoTransacao.COBRANCA to listOf(
             "fatura vencendo", "fatura disponível", "fatura fechada",
@@ -95,7 +98,26 @@ object AnalisadorNotificacao {
                 }
             }
         }
-        return melhorTipo
+        if (melhorTipo != TipoTransacao.DESCONHECIDO) return melhorTipo
+
+        // Fallback direcional: quando o texto não casa com nenhum padrão
+        // específico mas indica claramente direção, classifica como
+        // transferência genérica para não ficar fora dos totais.
+        val indicadoresEntrada = listOf(
+            "recebido", "recebeu", "creditado", "crédito", "entrou",
+            "depositado", "caiu na conta"
+        )
+        val indicadoresSaida = listOf(
+            "enviado", "enviou", "debitado", "débito", "pago", "pagou",
+            "comprou", "compra", "saiu", "sacado"
+        )
+        val temEntrada = indicadoresEntrada.any { conteudo.contains(it) }
+        val temSaida = indicadoresSaida.any { conteudo.contains(it) }
+        return when {
+            temEntrada && !temSaida -> TipoTransacao.TRANSFERENCIA_RECEBIDA
+            temSaida && !temEntrada -> TipoTransacao.TRANSFERENCIA_ENVIADA
+            else -> TipoTransacao.DESCONHECIDO
+        }
     }
 
     /**
