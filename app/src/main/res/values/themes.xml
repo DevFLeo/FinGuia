@@ -3,9 +3,9 @@
 
     <style name="Theme.FinGuia" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <style name="Theme.FinGuia.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#0D1B2A</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/fin_guia_modelo_4_2</item>
-        <item name="postSplashScreenTheme">@style/Theme.FinGuia</item>
+    <style name="Theme.FinGuia.Splash" parent="android:Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
     </style>
 </resources>
