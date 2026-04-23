@@ -66,10 +66,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
+import java.util.concurrent.TimeUnit
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.cos
@@ -101,8 +103,20 @@ private interface MoedasApi {
 
 private object MoedasRetrofit {
     val servico: MoedasApi by lazy {
+        val client = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .addInterceptor { chain ->
+                val req = chain.request().newBuilder()
+                    .header("User-Agent", "FinGuia-Android/1.0")
+                    .header("Accept", "application/json")
+                    .build()
+                chain.proceed(req)
+            }
+            .build()
         Retrofit.Builder()
             .baseUrl("https://economia.awesomeapi.com.br/")
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(MoedasApi::class.java)
@@ -140,18 +154,30 @@ class MoedasViewModel : ViewModel() {
             _erro.value = null
             try {
                 val resp = withContext(Dispatchers.IO) {
-                    MoedasRetrofit.servico.cotacoes(PARES_CAMBIO.joinToString(","))
+                    try {
+                        MoedasRetrofit.servico.cotacoes(PARES_CAMBIO.joinToString(","))
+                    } catch (primeira: Exception) {
+                        // Retry uma vez — AwesomeAPI costuma falhar pontualmente
+                        MoedasRetrofit.servico.cotacoes(PARES_CAMBIO.joinToString(","))
+                    }
                 }
-                _cotacoes.value = resp.values.map { c ->
+                val mapeado = resp.values.mapNotNull { c ->
+                    val valor = c.bid.toDoubleOrNull() ?: return@mapNotNull null
                     MoedaInfo(
                         codigo = c.code,
                         nome = c.name.substringBefore("/").trim(),
-                        valorEmReais = c.bid.toDoubleOrNull() ?: 0.0,
+                        valorEmReais = valor,
                         variacaoPct = c.pctChange?.toDoubleOrNull() ?: 0.0
                     )
                 }.sortedBy { it.codigo }
+                if (mapeado.isEmpty()) {
+                    _erro.value = "Nenhuma cotação recebida. Tente novamente em instantes."
+                } else {
+                    _cotacoes.value = mapeado
+                }
             } catch (e: Exception) {
-                _erro.value = "Falha ao buscar cotações. Verifique sua conexão."
+                val detalhe = e.message?.take(120) ?: e.javaClass.simpleName
+                _erro.value = "Falha ao buscar cotações: $detalhe"
             } finally {
                 _carregando.value = false
             }
