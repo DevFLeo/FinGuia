@@ -1,5 +1,8 @@
 package com.finguia.ui.investimentos
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,9 +19,11 @@ import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CurrencyBitcoin
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
@@ -34,8 +39,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.finguia.dados.CategoriaInvestimento
+import com.finguia.dados.CotacaoAtivo
 import com.finguia.dados.Investimento
+import kotlinx.coroutines.delay
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -46,6 +55,10 @@ import java.text.NumberFormat
 import java.util.Locale
 
 private val formatoReais = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+private val formatoDolar = NumberFormat.getCurrencyInstance(Locale.US)
+
+private fun formatarMoeda(v: Double, moeda: String?) =
+    if (moeda?.equals("BRL", true) != false) formatoReais.format(v) else formatoDolar.format(v)
 
 @Composable
 fun TelaInvestimentos(
@@ -54,12 +67,23 @@ fun TelaInvestimentos(
 ) {
     val investimentos by viewModel.investimentos.collectAsState()
     val totalInvestido by viewModel.totalInvestido.collectAsState()
+    val cotacoes by viewModel.cotacoes.collectAsState()
 
-    val totalAtual = investimentos.sumOf { it.valorAtual }
+    // Total atual com cotação live quando disponível, senão usa rentabilidadePct
+    val totalAtual = investimentos.sumOf { inv ->
+        val cot = cotacoes[inv.ticker]?.cotacao
+        if (cot != null && inv.quantidade != null) inv.valorAtualComCotacao(cot.preco) else inv.valorAtual
+    }
     val totalLucro = totalAtual - totalInvestido
 
     var sugestaoSelecionada by remember { mutableStateOf<SugestaoAtivo?>(null) }
+    var rendaFixaSelecionada by remember { mutableStateOf<SugestaoAtivo?>(null) }
+    var detalheTicker by remember { mutableStateOf<DetalheRequest?>(null) }
     var mostrarDialogNovo by remember { mutableStateOf(false) }
+    var queryBusca by remember { mutableStateOf("") }
+    val resultadosBusca = remember(queryBusca) {
+        if (queryBusca.length < 1) emptyList() else viewModel.buscarLocal(queryBusca)
+    }
 
     Box(
         modifier = modifier
@@ -75,15 +99,52 @@ fun TelaInvestimentos(
                 )
             }
 
-            if (investimentos.isNotEmpty()) {
+            item {
+                BarraBusca(
+                    query = queryBusca,
+                    onQueryChange = { queryBusca = it },
+                    onLimpar = { queryBusca = "" }
+                )
+            }
+
+            if (queryBusca.isNotEmpty()) {
+                if (resultadosBusca.isEmpty()) {
+                    item {
+                        Text("Nenhum ativo encontrado no catálogo.", color = GrayText, fontSize = 12.sp,
+                            modifier = Modifier.padding(16.dp))
+                    }
+                }
+                items(resultadosBusca) { sug ->
+                    ItemResultadoBusca(sug) {
+                        if (sug.temCotacaoLive) {
+                            detalheTicker = DetalheRequest(sug.ticker, sug.nome, sug.descricao)
+                        } else {
+                            rendaFixaSelecionada = sug
+                        }
+                        queryBusca = ""
+                    }
+                }
+            }
+
+            if (queryBusca.isBlank() && investimentos.isNotEmpty()) {
                 item { TituloSecao(texto = "Sua Carteira", icone = Icons.Default.Savings) }
                 items(investimentos) { inv ->
-                    CardCarteira(inv, aoRemover = { viewModel.remover(inv.id) })
+                    val estado = cotacoes[inv.ticker]
+                    CardCarteira(
+                        inv = inv,
+                        cotacao = estado?.cotacao,
+                        aoClicar = {
+                            if (inv.ticker.isNotBlank()) {
+                                detalheTicker = DetalheRequest(inv.ticker, inv.nome, "")
+                            }
+                        },
+                        aoRemover = { viewModel.remover(inv.id) }
+                    )
                 }
                 item { Spacer(Modifier.height(8.dp)) }
             }
 
-            CategoriaInvestimento.entries.forEach { categoria ->
+            if (queryBusca.isBlank()) CategoriaInvestimento.entries.forEach { categoria ->
                 val sugestoesDaCat = SUGESTOES_ATIVOS.filter { it.categoria == categoria }
                 if (sugestoesDaCat.isNotEmpty()) {
                     item {
@@ -98,7 +159,18 @@ fun TelaInvestimentos(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(sugestoesDaCat) { sug ->
-                                CardSugestao(sug, aoClicar = { sugestaoSelecionada = sug })
+                                CardSugestao(
+                                    sug = sug,
+                                    cotacao = cotacoes[sug.ticker]?.cotacao,
+                                    aoSolicitarCotacao = { viewModel.solicitarCotacao(sug.ticker) },
+                                    aoClicar = {
+                                        if (sug.temCotacaoLive) {
+                                            detalheTicker = DetalheRequest(sug.ticker, sug.nome, sug.descricao)
+                                        } else {
+                                            rendaFixaSelecionada = sug
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
@@ -115,19 +187,66 @@ fun TelaInvestimentos(
         ) {
             Icon(Icons.Default.Add, contentDescription = "Adicionar", tint = Color.White)
         }
+
+        // Detalhe overlay (slide in da direita) — ativos com cotação
+        AnimatedVisibility(
+            visible = detalheTicker != null,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it })
+        ) {
+            detalheTicker?.let { req ->
+                TelaDetalheAtivo(
+                    ticker = req.ticker,
+                    nomeAtivo = req.nome,
+                    descricao = req.descricao,
+                    aoVoltar = { detalheTicker = null },
+                    aoComprar = { cot ->
+                        sugestaoSelecionada = SUGESTOES_ATIVOS.firstOrNull { it.ticker == req.ticker }
+                            ?: SugestaoAtivo(req.nome, req.ticker, categoriaPorTicker(req.ticker), req.descricao, 0.0)
+                        detalheTicker = null
+                    },
+                    viewModel = viewModel
+                )
+            }
+        }
+
+        // Detalhe overlay — renda fixa
+        AnimatedVisibility(
+            visible = rendaFixaSelecionada != null,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it })
+        ) {
+            rendaFixaSelecionada?.let { sug ->
+                TelaDetalheRendaFixa(
+                    sugestao = sug,
+                    aoVoltar = { rendaFixaSelecionada = null },
+                    aoComprar = {
+                        sugestaoSelecionada = sug
+                        rendaFixaSelecionada = null
+                    },
+                    viewModel = viewModel
+                )
+            }
+        }
     }
 
     sugestaoSelecionada?.let { sug ->
+        val cotAtual = cotacoes[sug.ticker]?.cotacao
         DialogComprarSugestao(
             sugestao = sug,
+            cotacao = cotAtual,
             aoConfirmar = { valor ->
+                val qty = if (cotAtual != null && cotAtual.preco > 0) valor / cotAtual.preco else null
                 viewModel.adicionar(
                     Investimento(
                         nome = sug.nome,
                         categoria = sug.categoria.name,
                         valorInvestido = valor,
                         rentabilidadePct = 0.0,
-                        observacao = sug.ticker
+                        observacao = sug.ticker,
+                        ticker = if (sug.temCotacaoLive) sug.ticker else "",
+                        precoEntrada = cotAtual?.preco,
+                        quantidade = qty
                     )
                 )
                 sugestaoSelecionada = null
@@ -145,6 +264,16 @@ fun TelaInvestimentos(
             aoCancelar = { mostrarDialogNovo = false }
         )
     }
+}
+
+private data class DetalheRequest(val ticker: String, val nome: String, val descricao: String)
+
+private fun logoLocal(ticker: String): String? = com.finguia.dados.MercadoRepository.logoUrl(ticker)
+
+private fun categoriaPorTicker(ticker: String): CategoriaInvestimento = when {
+    ticker.endsWith("11") -> CategoriaInvestimento.IMOVEIS
+    ticker.any { it.isDigit() } -> CategoriaInvestimento.ACOES_BR
+    else -> CategoriaInvestimento.ACOES_INTER
 }
 
 @Composable
@@ -171,9 +300,9 @@ private fun CabecalhoInvestimentos(
                 fontWeight = FontWeight.ExtraBold
             )
             Text(
-                text = "Sua carteira e sugestões de ativos",
+                text = "Cotações em tempo real • toque para ver detalhes",
                 color = GrayText,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 modifier = Modifier.padding(top = 2.dp)
             )
 
@@ -215,44 +344,51 @@ private fun TituloSecao(texto: String, icone: ImageVector) {
 }
 
 @Composable
-private fun CardCarteira(inv: Investimento, aoRemover: () -> Unit) {
-    val lucro = inv.lucro
+private fun CardCarteira(
+    inv: Investimento,
+    cotacao: CotacaoAtivo?,
+    aoClicar: () -> Unit,
+    aoRemover: () -> Unit
+) {
+    val valorAtualReal = if (cotacao != null && inv.quantidade != null)
+        inv.valorAtualComCotacao(cotacao.preco) else inv.valorAtual
+    val lucro = valorAtualReal - inv.valorInvestido
+    val pct = if (inv.valorInvestido > 0) lucro / inv.valorInvestido * 100.0 else 0.0
     val corLucro = if (lucro >= 0) MoneyGreen else DebtRed
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable(onClick = aoClicar),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF16161E)),
         shape = RoundedCornerShape(16.dp)
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(GojoPurple.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    iconeCategoria(runCatching { CategoriaInvestimento.valueOf(inv.categoria) }.getOrDefault(CategoriaInvestimento.OUTROS)),
-                    contentDescription = null,
-                    tint = GojoPurple,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            LogoOuIcone(
+                logoUrl = cotacao?.logoUrl ?: logoLocal(inv.ticker),
+                ticker = inv.ticker.ifBlank { inv.nome },
+                fallback = iconeCategoria(runCatching { CategoriaInvestimento.valueOf(inv.categoria) }
+                    .getOrDefault(CategoriaInvestimento.OUTROS))
+            )
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(inv.nome, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text(
-                    "Investido: ${formatoReais.format(inv.valorInvestido)}",
-                    color = GrayText, fontSize = 11.sp
-                )
+                if (cotacao != null) {
+                    Text(
+                        "${inv.ticker} • ${formatarMoeda(cotacao.preco, cotacao.moeda)}",
+                        color = GrayText, fontSize = 11.sp
+                    )
+                } else {
+                    Text("Investido: ${formatoReais.format(inv.valorInvestido)}",
+                        color = GrayText, fontSize = 11.sp)
+                }
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(formatoReais.format(inv.valorAtual), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(formatoReais.format(valorAtualReal),
+                    color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    text = "${if (lucro >= 0) "+" else ""}${"%.2f".format(inv.rentabilidadePct)}%",
+                    text = "${if (lucro >= 0) "+" else ""}${"%.2f".format(pct)}%",
                     color = corLucro, fontSize = 11.sp, fontWeight = FontWeight.SemiBold
                 )
             }
@@ -264,60 +400,128 @@ private fun CardCarteira(inv: Investimento, aoRemover: () -> Unit) {
 }
 
 @Composable
-private fun CardSugestao(sug: SugestaoAtivo, aoClicar: () -> Unit) {
+private fun LogoOuIcone(logoUrl: String?, ticker: String, fallback: ImageVector, size: Int = 42) {
+    Box(
+        modifier = Modifier
+            .size(size.dp)
+            .clip(CircleShape)
+            .background(GojoPurple.copy(alpha = 0.25f)),
+        contentAlignment = Alignment.Center
+    ) {
+        // Fallback (atrás) — sempre visível enquanto imagem carrega ou se falhar
+        if (ticker.isNotBlank()) {
+            Text(
+                ticker.take(if (ticker.length >= 4) 4 else ticker.length),
+                color = Color.White,
+                fontSize = (size / 4).sp,
+                fontWeight = FontWeight.Black
+            )
+        } else {
+            Icon(fallback, contentDescription = null, tint = GojoPurple, modifier = Modifier.size((size / 2).dp))
+        }
+        if (!logoUrl.isNullOrBlank()) {
+            SubcomposeAsyncImage(
+                model = logoUrl,
+                contentDescription = null,
+                loading = { /* fallback continua atrás */ },
+                error = { /* fallback continua atrás */ },
+                success = { state ->
+                    Box(
+                        Modifier.fillMaxSize().clip(CircleShape).background(Color.White),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.foundation.Image(
+                            painter = state.painter,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(0.85f).clip(CircleShape)
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
+private fun CardSugestao(
+    sug: SugestaoAtivo,
+    cotacao: CotacaoAtivo?,
+    aoSolicitarCotacao: () -> Unit,
+    aoClicar: () -> Unit
+) {
+    LaunchedEffect(sug.ticker) {
+        if (sug.temCotacaoLive) aoSolicitarCotacao()
+    }
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E2E)),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .width(160.dp)
+            .width(170.dp)
             .border(1.dp, Color(0xFF2A2A3E), RoundedCornerShape(16.dp))
             .clickable(onClick = aoClicar)
     ) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(GojoPurple.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(iconeCategoria(sug.categoria), contentDescription = null, tint = GojoPurple, modifier = Modifier.size(18.dp))
-                }
+                LogoSugestao(logoUrl = cotacao?.logoUrl ?: logoLocal(sug.ticker),
+                    ticker = sug.ticker, fallback = iconeCategoria(sug.categoria))
                 Spacer(Modifier.width(8.dp))
-                Column {
-                    Text(sug.ticker, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Column(Modifier.weight(1f)) {
+                    Text(sug.ticker, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     Text(sug.nome, color = GrayText, fontSize = 10.sp, maxLines = 1)
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text(
-                sug.descricao,
-                color = GrayText,
-                fontSize = 10.sp,
-                maxLines = 2,
-                modifier = Modifier.height(28.dp)
-            )
-            Spacer(Modifier.height(6.dp))
-            Box(
-                modifier = Modifier
-                    .background(MoneyGreen.copy(alpha = 0.18f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 6.dp, vertical = 3.dp)
-            ) {
-                Text(
-                    text = "~${"%.1f".format(sug.rentabilidadeEstimadaPct)}% a.a.",
-                    color = MoneyGreen,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
+
+            if (sug.temCotacaoLive) {
+                if (cotacao == null) {
+                    Text("Carregando…", color = GrayText, fontSize = 10.sp)
+                    Text(sug.descricao, color = GrayText, fontSize = 10.sp, maxLines = 2,
+                        modifier = Modifier.height(28.dp))
+                } else {
+                    Text(
+                        formatarMoeda(cotacao.preco, cotacao.moeda),
+                        color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold
+                    )
+                    val pct = cotacao.variacaoPct ?: 0.0
+                    val cor = if (pct >= 0) MoneyGreen else DebtRed
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(if (pct >= 0) Icons.Default.TrendingUp else Icons.Default.TrendingDown,
+                            contentDescription = null, tint = cor, modifier = Modifier.size(12.dp))
+                        Spacer(Modifier.width(2.dp))
+                        Text("${if (pct >= 0) "+" else ""}${"%.2f".format(pct)}%",
+                            color = cor, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            } else {
+                Text(sug.descricao, color = GrayText, fontSize = 10.sp, maxLines = 2,
+                    modifier = Modifier.height(28.dp))
+                Spacer(Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .background(MoneyGreen.copy(alpha = 0.18f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 6.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = "~${"%.1f".format(sug.rentabilidadeEstimadaPct)}% a.a.",
+                        color = MoneyGreen,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
+private fun LogoSugestao(logoUrl: String?, ticker: String, fallback: ImageVector) =
+    LogoOuIcone(logoUrl = logoUrl, ticker = ticker, fallback = fallback, size = 36)
+
+@Composable
 private fun DialogComprarSugestao(
     sugestao: SugestaoAtivo,
+    cotacao: CotacaoAtivo?,
     aoConfirmar: (Double) -> Unit,
     aoCancelar: () -> Unit
 ) {
@@ -335,13 +539,12 @@ private fun DialogComprarSugestao(
         },
         text = {
             Column {
+                if (cotacao != null) {
+                    Text("Cotação atual: ${formatarMoeda(cotacao.preco, cotacao.moeda)}",
+                        color = MoneyGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(4.dp))
+                }
                 Text(sugestao.descricao, color = GrayText, fontSize = 12.sp)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Rentabilidade estimada: ${"%.1f".format(sugestao.rentabilidadeEstimadaPct)}% a.a.",
-                    color = MoneyGreen,
-                    fontSize = 11.sp
-                )
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     value = valor,
@@ -353,6 +556,15 @@ private fun DialogComprarSugestao(
                     colors = campoColors(),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (cotacao != null) {
+                    val v = valor.replace(".", "").replace(",", ".").toDoubleOrNull() ?: 0.0
+                    if (v > 0 && cotacao.preco > 0) {
+                        val qty = v / cotacao.preco
+                        Text("Aprox. ${"%.4f".format(qty)} unidades de ${sugestao.ticker}",
+                            color = GrayText, fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
             }
         },
         confirmButton = {
@@ -444,7 +656,12 @@ private fun DialogNovoInvestimento(
                             nome = nome.trim(),
                             categoria = categoria.name,
                             valorInvestido = v,
-                            rentabilidadePct = r
+                            rentabilidadePct = r,
+                            ticker = nome.trim().uppercase().takeIf {
+                                categoria == CategoriaInvestimento.ACOES_BR ||
+                                    categoria == CategoriaInvestimento.ACOES_INTER ||
+                                    categoria == CategoriaInvestimento.IMOVEIS
+                            } ?: ""
                         )
                     )
                 },
@@ -467,6 +684,56 @@ private fun campoColors() = OutlinedTextFieldDefaults.colors(
     unfocusedTextColor = Color.White,
     cursorColor = GojoPurple
 )
+
+@Composable
+private fun BarraBusca(query: String, onQueryChange: (String) -> Unit, onLimpar: () -> Unit) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = { Text("Buscar ativo (PETR4, AAPL, Vale...)", color = GrayText, fontSize = 13.sp) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = GrayText) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = onLimpar) {
+                    Icon(Icons.Default.Close, contentDescription = "Limpar", tint = GrayText)
+                }
+            }
+        },
+        singleLine = true,
+        colors = campoColors(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    )
+}
+
+@Composable
+private fun ItemResultadoBusca(sug: SugestaoAtivo, aoClicar: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 3.dp)
+            .clickable(onClick = aoClicar),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161E)),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(36.dp).clip(CircleShape).background(GojoPurple.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(sug.ticker.take(2), color = GojoPurple, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(sug.ticker, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(sug.nome, color = GrayText, fontSize = 11.sp, maxLines = 1)
+            }
+            Icon(iconeCategoria(sug.categoria), contentDescription = null,
+                tint = GrayText, modifier = Modifier.size(14.dp))
+        }
+    }
+}
 
 private fun nomeCategoria(cat: CategoriaInvestimento): String = when (cat) {
     CategoriaInvestimento.ACOES_BR -> "Ações Brasileiras"
