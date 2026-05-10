@@ -38,6 +38,8 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.0.1" }
 coil = { group = "io.coil-kt", name = "coil-compose", version = "2.7.0" }
+coil-svg = { group = "io.coil-kt", name = "coil-svg", version = "2.7.0" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version = "4.12.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

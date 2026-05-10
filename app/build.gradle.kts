@@ -1,9 +1,18 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
+
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(FileInputStream(f))
+}
+val gnewsApiKey: String = (localProps.getProperty("GNEWS_API_KEY") ?: "").trim()
 
 android {
     namespace = "com.finguia"
@@ -13,10 +22,12 @@ android {
         applicationId = "com.finguia"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "GNEWS_API_KEY", "\"$gnewsApiKey\"")
     }
 
     buildTypes {
@@ -34,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -57,5 +69,7 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.splashscreen)
     implementation(libs.coil)
+    implementation(libs.coil.svg)
+    implementation(libs.okhttp)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
