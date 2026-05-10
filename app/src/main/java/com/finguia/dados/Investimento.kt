@@ -32,10 +32,23 @@ data class Investimento(
     val valorInvestido: Double,
     val rentabilidadePct: Double, // rentabilidade acumulada estimada
     val dataCompraMs: Long = System.currentTimeMillis(),
-    val observacao: String = ""
+    val observacao: String = "",
+    /** Símbolo de mercado (PETR4, AAPL, MXRF11). Vazio para renda fixa/sem cotação. */
+    val ticker: String = "",
+    /** Preço unitário no momento da compra (na moeda do ativo). Null = sem cotação. */
+    val precoEntrada: Double? = null,
+    /** Quantidade de unidades adquiridas. Null = sem cotação. */
+    val quantidade: Double? = null
 ) {
+    /** Valor calculado pela rentabilidadePct (modo renda fixa / fallback). */
     val valorAtual: Double get() = valorInvestido * (1 + rentabilidadePct / 100.0)
     val lucro: Double get() = valorAtual - valorInvestido
+
+    /** Quando há cotação live, recalcula valor atual em BRL multiplicando preço x qty x câmbio. */
+    fun valorAtualComCotacao(precoAtual: Double, cambio: Double = 1.0): Double {
+        val qty = quantidade ?: return valorAtual
+        return precoAtual * qty * cambio
+    }
 }
 
 @Dao

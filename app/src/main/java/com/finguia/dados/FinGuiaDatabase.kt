@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [TransacaoBancaria::class, CategoriaCustom::class, Investimento::class], version = 4, exportSchema = false)
+@Database(entities = [TransacaoBancaria::class, CategoriaCustom::class, Investimento::class], version = 5, exportSchema = false)
 abstract class FinGuiaDatabase : RoomDatabase() {
 
     abstract fun transacaoDao(): TransacaoDao
@@ -65,6 +65,17 @@ abstract class FinGuiaDatabase : RoomDatabase() {
             }
         }
 
+        // Migração 4 → 5: cotação real-time (ticker, preço entrada, quantidade)
+        private val MIGRACAO_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE investimentos ADD COLUMN ticker TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE investimentos ADD COLUMN precoEntrada REAL")
+                database.execSQL("ALTER TABLE investimentos ADD COLUMN quantidade REAL")
+                // Backfill: usa observacao como ticker quando preenchido (fluxo antigo do CardSugestao)
+                database.execSQL("UPDATE investimentos SET ticker = observacao WHERE observacao != ''")
+            }
+        }
+
         fun obterInstancia(context: Context): FinGuiaDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -72,7 +83,7 @@ abstract class FinGuiaDatabase : RoomDatabase() {
                     FinGuiaDatabase::class.java,
                     "finguia_database"
                 )
-                    .addMigrations(MIGRACAO_1_2, MIGRACAO_2_3, MIGRACAO_3_4)
+                    .addMigrations(MIGRACAO_1_2, MIGRACAO_2_3, MIGRACAO_3_4, MIGRACAO_4_5)
                     .build()
                     .also { INSTANCE = it }
             }
