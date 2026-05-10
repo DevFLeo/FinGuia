@@ -329,7 +329,7 @@ private fun CardMeta(
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                text = "R$ %,.2f / R$ %,.2f (${(meta.progresso * 100).toInt()}%)".format(meta.valorAtual, meta.valorObjetivo),
+                text = "R$ %,.2f / R$ %,.2f (%d%%)".format(meta.valorAtual, meta.valorObjetivo, (meta.progresso * 100).toInt()),
                 color = GrayText,
                 fontSize = 11.sp
             )
