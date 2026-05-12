@@ -14,6 +14,11 @@ val localProps = Properties().apply {
 }
 val gnewsApiKey: String = (localProps.getProperty("GNEWS_API_KEY") ?: "").trim()
 
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) load(FileInputStream(f))
+}
+
 android {
     namespace = "com.finguia"
     compileSdk = 36
@@ -22,17 +27,30 @@ android {
         applicationId = "com.finguia"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "GNEWS_API_KEY", "\"$gnewsApiKey\"")
     }
 
+    signingConfigs {
+        create("release") {
+            val storeFileName = keystoreProps.getProperty("storeFile")
+            if (storeFileName != null) {
+                storeFile = rootProject.file(storeFileName)
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

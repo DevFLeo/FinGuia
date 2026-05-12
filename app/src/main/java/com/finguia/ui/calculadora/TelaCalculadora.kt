@@ -444,12 +444,23 @@ enum class AbaCalculadora(val rotulo: String) {
     CIENTIFICA("Científica"),
     INVESTIMENTOS("ROI"),
     PRECO_VENDA("Markup"),
-    ENDIVIDAMENTO("Dívidas")
+    ENDIVIDAMENTO("Dívidas"),
+    HISTORICO("Histórico")
 }
 
 @Composable
-fun TelaCalculadora(modifier: Modifier = Modifier) {
-    var aba by remember { mutableStateOf(AbaCalculadora.CONVERSAO) }
+fun TelaCalculadora(
+    modifier: Modifier = Modifier,
+    cacheVm: CalcCacheViewModel = viewModel()
+) {
+    val ocultas by cacheVm.ocultas.collectAsState()
+    val abasVisiveis = AbaCalculadora.entries.filter { it.name !in ocultas }
+    var aba by remember { mutableStateOf(abasVisiveis.firstOrNull() ?: AbaCalculadora.CONVERSAO) }
+
+    // Se aba ativa virou oculta, troca para primeira visível
+    LaunchedEffect(ocultas) {
+        if (aba.name in ocultas && abasVisiveis.isNotEmpty()) aba = abasVisiveis.first()
+    }
 
     Column(
         modifier = modifier
@@ -464,13 +475,21 @@ fun TelaCalculadora(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 8.dp)
         )
 
+        if (abasVisiveis.isEmpty()) {
+            Text("Todas as calculadoras estão ocultas. Ative em Configurações.",
+                color = GrayText, fontSize = 13.sp,
+                modifier = Modifier.padding(20.dp))
+            return@Column
+        }
+
+        val idx = abasVisiveis.indexOf(aba).coerceAtLeast(0)
         ScrollableTabRow(
-            selectedTabIndex = aba.ordinal,
+            selectedTabIndex = idx,
             containerColor = DarkBg,
             contentColor = Color.White,
             edgePadding = 0.dp
         ) {
-            AbaCalculadora.entries.forEach { a ->
+            abasVisiveis.forEach { a ->
                 Tab(
                     selected = a == aba,
                     onClick = { aba = a },
@@ -481,11 +500,12 @@ fun TelaCalculadora(modifier: Modifier = Modifier) {
 
         when (aba) {
             AbaCalculadora.CONVERSAO    -> BlocoConversao()
-            AbaCalculadora.FINANCEIRA   -> BlocoFinanceira()
-            AbaCalculadora.CIENTIFICA   -> BlocoCientifica()
-            AbaCalculadora.INVESTIMENTOS -> BlocoInvestimentos()
-            AbaCalculadora.PRECO_VENDA  -> BlocoPrecoVenda()
-            AbaCalculadora.ENDIVIDAMENTO -> BlocoEndividamento()
+            AbaCalculadora.FINANCEIRA   -> BlocoFinanceira(cacheVm)
+            AbaCalculadora.CIENTIFICA   -> BlocoCientifica(cacheVm)
+            AbaCalculadora.INVESTIMENTOS -> BlocoInvestimentos(cacheVm)
+            AbaCalculadora.PRECO_VENDA  -> BlocoPrecoVenda(cacheVm)
+            AbaCalculadora.ENDIVIDAMENTO -> BlocoEndividamento(cacheVm)
+            AbaCalculadora.HISTORICO    -> BlocoHistorico(cacheVm)
         }
     }
 }
@@ -633,7 +653,7 @@ private fun SeletorMoeda(
 // ============================================================
 
 @Composable
-private fun BlocoFinanceira() {
+private fun BlocoFinanceira(cacheVm: CalcCacheViewModel) {
     var inicial by remember { mutableStateOf("1000") }
     var aporte by remember { mutableStateOf("300") }
     var meses by remember { mutableStateOf("24") }
@@ -719,6 +739,17 @@ private fun BlocoFinanceira() {
             resultados.forEachIndexed { idx, r ->
                 CardResultadoAtivo(r, idx == 0)
             }
+            Spacer(Modifier.height(8.dp))
+            BotaoSalvarCalc {
+                val melhor = resultados.first()
+                val det = buildString {
+                    append("Total investido: ${formatarBrl(totalInv)}\n")
+                    resultados.forEach {
+                        append("${it.nome}: líquido ${formatarBrl(it.liquido)} (${"%.2f".format(it.rentLiquidaAA)}% a.a.)\n")
+                    }
+                }
+                cacheVm.salvar("Renda Fixa", "Melhor: ${melhor.nome}", det.trim())
+            }
         }
     }
 }
@@ -745,7 +776,7 @@ private fun CardResultadoAtivo(r: ResultadoAtivo, destaque: Boolean) {
 // ============================================================
 
 @Composable
-private fun BlocoCientifica() {
+private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
     var expressao by remember { mutableStateOf("") }
     var resultado by remember { mutableStateOf("0") }
 
@@ -772,6 +803,12 @@ private fun BlocoCientifica() {
             Column(Modifier.padding(12.dp)) {
                 Text(expressao.ifEmpty { " " }, color = GrayText, fontSize = 14.sp, maxLines = 2)
                 Text(resultado, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                if (expressao.isNotEmpty() && !resultado.startsWith("Erro") && resultado != "0") {
+                    Spacer(Modifier.height(6.dp))
+                    BotaoSalvarCalc {
+                        cacheVm.salvar("Científica", "$expressao = $resultado", "$expressao = $resultado")
+                    }
+                }
             }
         }
 
@@ -823,7 +860,7 @@ private fun BlocoCientifica() {
 // ============================================================
 
 @Composable
-private fun BlocoInvestimentos() {
+private fun BlocoInvestimentos(cacheVm: CalcCacheViewModel) {
     // Estados de entrada
     var investidoInicial by remember { mutableStateOf("1000") }
     var aporteMensal by remember { mutableStateOf("100") }
@@ -919,6 +956,20 @@ private fun BlocoInvestimentos() {
                 )
             }
         }
+        Spacer(Modifier.height(12.dp))
+        BotaoSalvarCalc {
+            val det = """
+                Aporte inicial: ${formatarBrl(p)}
+                Aporte mensal: ${formatarBrl(pmt)} por $n meses
+                Taxa: $taxaAnoNome% a.a. | Inflação: $inflacaoAno% a.a.
+                Total investido: ${formatarBrl(totalInvestido)}
+                Final líquido: ${formatarBrl(valorFinalLiquido)}
+                Lucro líquido: ${formatarBrl(lucroLiquido)}
+                IR estimado: ${formatarBrl(valorIR)}
+                ROI real: ${"%.2f".format(roiRealTotal)}%
+            """.trimIndent()
+            cacheVm.salvar("ROI", "Final líquido ${formatarBrl(valorFinalLiquido)}", det)
+        }
         Spacer(Modifier.height(80.dp))
     }
 }
@@ -935,7 +986,7 @@ private fun LinhaResultado(rotulo: String, valor: String, cor: Color = Color.Whi
 // ============================================================
 
 @Composable
-private fun BlocoPrecoVenda() {
+private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
     var custoBase by remember { mutableStateOf("100") }
     var despesasFixas by remember { mutableStateOf("10") }
     var despesasVariaveis by remember { mutableStateOf("15") }
@@ -1002,6 +1053,17 @@ private fun BlocoPrecoVenda() {
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
+        } else if (precoVenda > 0) {
+            BotaoSalvarCalc {
+                val det = """
+                    Custo: ${formatarBrl(c)}
+                    Custos fixos: $despesasFixas% | Impostos: $despesasVariaveis% | Margem: $margemLucro%
+                    Preço de venda: ${formatarBrl(precoVenda)}
+                    Lucro unitário: ${formatarBrl(lucroUnitario)}
+                    Multiplicador: ${"%.2f".format(multiplicadorMarkup)}x
+                """.trimIndent()
+                cacheVm.salvar("Markup", "Venda ${formatarBrl(precoVenda)}", det)
+            }
         }
 
         Spacer(Modifier.height(80.dp))
@@ -1041,7 +1103,7 @@ private fun simularAmortizacao(
 }
 
 @Composable
-private fun BlocoEndividamento() {
+private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
     var valorPrincipal by remember { mutableStateOf("5000") }
     var taxaMensal by remember { mutableStateOf("3.0") }
     var parcelaMensal by remember { mutableStateOf("300") }
@@ -1141,7 +1203,107 @@ private fun BlocoEndividamento() {
             )
         }
 
+        if (cenarioBase != null) {
+            BotaoSalvarCalc {
+                val (meses, totalPago, juros) = cenarioBase
+                val det = buildString {
+                    append("Dívida: ${formatarBrl(p)} | Taxa: $taxaMensal% a.m. | Parcela: ${formatarBrl(parcela)}\n")
+                    append("Quita em $meses meses\n")
+                    append("Total pago: ${formatarBrl(totalPago)}\n")
+                    append("Total em juros: ${formatarBrl(juros)}")
+                    if (extra > 0 && cenarioAcelerado != null) {
+                        val (mAc, totAc, jurAc) = cenarioAcelerado
+                        append("\nCom extra ${formatarBrl(extra)}/mês: $mAc meses, total ${formatarBrl(totAc)}, juros ${formatarBrl(jurAc)}")
+                    }
+                }
+                cacheVm.salvar("Dívidas", "Quita em ${cenarioBase.first} meses", det)
+            }
+        }
+
         Spacer(Modifier.height(80.dp))
+    }
+}
+
+// ============================================================
+// BLOCO HISTORICO
+// ============================================================
+
+@Composable
+private fun BlocoHistorico(cacheVm: CalcCacheViewModel) {
+    val entries by cacheVm.entries.collectAsState()
+    val fmt = remember { java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Cálculos salvos", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp,
+                modifier = Modifier.weight(1f))
+            if (entries.isNotEmpty()) {
+                Button(
+                    onClick = { cacheVm.limparTudo() },
+                    colors = ButtonDefaults.buttonColors(containerColor = DebtRed.copy(alpha = 0.7f))
+                ) { Text("Limpar tudo", fontSize = 11.sp) }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+
+        if (entries.isEmpty()) {
+            Box(Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
+                Text("Nenhum cálculo salvo ainda. Use o botão Salvar nas calculadoras.",
+                    color = GrayText, fontSize = 12.sp, textAlign = TextAlign.Center)
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 80.dp)
+            ) {
+                items(entries) { e ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = CardBg),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(e.tipo, color = GojoPurple, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text(e.titulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(fmt.format(java.util.Date(e.timestamp)), color = GrayText, fontSize = 10.sp)
+                                }
+                                androidx.compose.material3.TextButton(onClick = { cacheVm.remover(e.id) }) {
+                                    Text("Excluir", color = DebtRed, fontSize = 11.sp)
+                                }
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            Text(e.detalhes, color = GrayText, fontSize = 11.sp)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BotaoSalvarCalc(aoSalvar: () -> Unit) {
+    var salvo by remember { mutableStateOf(false) }
+    LaunchedEffect(salvo) {
+        if (salvo) {
+            kotlinx.coroutines.delay(1500)
+            salvo = false
+        }
+    }
+    Button(
+        onClick = { aoSalvar(); salvo = true },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (salvo) MoneyGreen else GojoPurple
+        ),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+    ) {
+        Text(if (salvo) "Salvo!" else "Salvar cálculo", color = Color.White, fontWeight = FontWeight.Bold)
     }
 }
 
