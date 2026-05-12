@@ -16,6 +16,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apartment
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CurrencyBitcoin
 import androidx.compose.material.icons.filled.Delete
@@ -235,14 +237,14 @@ fun TelaInvestimentos(
         DialogComprarSugestao(
             sugestao = sug,
             cotacao = cotAtual,
-            aoConfirmar = { valor ->
+            aoConfirmar = { valor, rentPct ->
                 val qty = if (cotAtual != null && cotAtual.preco > 0) valor / cotAtual.preco else null
                 viewModel.adicionar(
                     Investimento(
                         nome = sug.nome,
                         categoria = sug.categoria.name,
                         valorInvestido = valor,
-                        rentabilidadePct = 0.0,
+                        rentabilidadePct = rentPct,
                         observacao = sug.ticker,
                         ticker = if (sug.temCotacaoLive) sug.ticker else "",
                         precoEntrada = cotAtual?.preco,
@@ -522,11 +524,14 @@ private fun LogoSugestao(logoUrl: String?, ticker: String, fallback: ImageVector
 private fun DialogComprarSugestao(
     sugestao: SugestaoAtivo,
     cotacao: CotacaoAtivo?,
-    aoConfirmar: (Double) -> Unit,
+    aoConfirmar: (Double, Double) -> Unit,
     aoCancelar: () -> Unit
 ) {
     var valor by remember { mutableStateOf("") }
+    var rent by remember { mutableStateOf("%.2f".format(Locale.US, sugestao.rentabilidadeEstimadaPct)) }
+    var configAberta by remember { mutableStateOf(false) }
     var erro by remember { mutableStateOf(false) }
+    val isRendaFixa = cotacao == null
 
     AlertDialog(
         onDismissRequest = aoCancelar,
@@ -541,6 +546,10 @@ private fun DialogComprarSugestao(
             Column {
                 if (cotacao != null) {
                     Text("Cotação atual: ${formatarMoeda(cotacao.preco, cotacao.moeda)}",
+                        color = MoneyGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(4.dp))
+                } else {
+                    Text("Rentabilidade estimada: ${"%.2f".format(rent.replace(",", ".").toDoubleOrNull() ?: sugestao.rentabilidadeEstimadaPct)}% a.a.",
                         color = MoneyGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(4.dp))
                 }
@@ -565,13 +574,46 @@ private fun DialogComprarSugestao(
                             modifier = Modifier.padding(top = 4.dp))
                     }
                 }
+                if (isRendaFixa) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { configAberta = !configAberta }
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Configuração adicional", color = GojoPurple, fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        Icon(
+                            if (configAberta) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null, tint = GojoPurple
+                        )
+                    }
+                    if (configAberta) {
+                        OutlinedTextField(
+                            value = rent,
+                            onValueChange = { rent = it },
+                            label = { Text("Rentabilidade a.a. (%)") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            colors = campoColors(),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Text("Personalize o rendimento estimado conforme oferta real.",
+                            color = GrayText, fontSize = 10.sp,
+                            modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
                     val v = valor.replace(".", "").replace(",", ".").toDoubleOrNull()
-                    if (v == null || v <= 0) erro = true else aoConfirmar(v)
+                    val r = rent.replace(",", ".").toDoubleOrNull() ?: sugestao.rentabilidadeEstimadaPct
+                    if (v == null || v <= 0) erro = true else aoConfirmar(v, r)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
             ) { Text("Adicionar", color = Color.White) }
