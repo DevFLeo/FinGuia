@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.finguia.ui.calculadora.AbaCalculadora
+import com.finguia.ui.calculadora.CalcCacheViewModel
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.GojoPurple
@@ -35,9 +37,11 @@ import com.finguia.ui.theme.GrayText
 @Composable
 fun TelaConfiguracoes(
     modifier: Modifier = Modifier,
-    configViewModel: ConfiguracoesViewModel = viewModel()
+    configViewModel: ConfiguracoesViewModel = viewModel(),
+    cacheVm: CalcCacheViewModel = viewModel()
 ) {
     val ocultarSaldo by configViewModel.ocultarSaldo.collectAsState()
+    val abasOcultas by cacheVm.ocultas.collectAsState()
     val scrollState = rememberScrollState()
 
     Column(
@@ -63,6 +67,20 @@ fun TelaConfiguracoes(
                 ativado = ocultarSaldo,
                 aoMudar = configViewModel::toggleOcultarSaldo
             )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SecaoConfiguracoes(titulo = "Calculadoras visíveis") {
+            AbaCalculadora.entries.forEach { aba ->
+                val visivel = aba.name !in abasOcultas
+                ItemSwitch(
+                    rotulo = aba.rotulo,
+                    subRotulo = if (visivel) "Visível na aba calculadora" else "Oculta",
+                    ativado = visivel,
+                    aoMudar = { ativo -> cacheVm.toggleAba(aba.name, oculta = !ativo) }
+                )
+            }
         }
     }
 }
