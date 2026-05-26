@@ -119,10 +119,10 @@ object MercadoRepository {
         var r = 1.0; repeat(exp) { r *= this }; return r
     }
 
-    /** Logo via Clearbit + mapa expandido. Null = fallback ícone material. */
+    /** Logo via Google Favicon API + mapa expandido. Null = fallback ícone material. */
     fun logoUrl(ticker: String): String? {
         val dominio = LOGOS[ticker.uppercase()] ?: return null
-        return "https://logo.clearbit.com/$dominio"
+        return "https://www.google.com/s2/favicons?domain=$dominio&sz=128"
     }
 
     private val LOGOS = mapOf(
@@ -187,10 +187,16 @@ object MercadoRepository {
         "BABA" to "alibaba.com",
         // Criptomoedas
         "BTC-BRL" to "bitcoin.org",
+        "BTC-USD" to "bitcoin.org",
         "ETH-BRL" to "ethereum.org",
+        "ETH-USD" to "ethereum.org",
         "SOL-BRL" to "solana.com",
+        "SOL-USD" to "solana.com",
         "BNB-BRL" to "binance.com",
+        "BNB-USD" to "binance.com",
         "ADA-BRL" to "cardano.org",
+        "ADA-USD" to "cardano.org",
         "DOGE-BRL" to "dogecoin.com",
+        "DOGE-USD" to "dogecoin.com",
     )
 }
