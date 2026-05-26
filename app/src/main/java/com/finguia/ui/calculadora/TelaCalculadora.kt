@@ -444,9 +444,9 @@ enum class AbaCalculadora(val rotulo: String) {
     CONVERSAO("Câmbio"),
     FINANCEIRA("Renda Fixa"),
     CIENTIFICA("Científica"),
-    INVESTIMENTOS("Projetos"),
+    INVESTIMENTOS("ROI"),
     PRECO_VENDA("Markup"),
-    ENDIVIDAMENTO("Amortização"),
+    ENDIVIDAMENTO("Dívidas"),
     HISTORICO("Histórico")
 }
 
