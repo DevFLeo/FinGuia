@@ -37,6 +37,8 @@ import com.finguia.ui.theme.DebtRed
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -51,7 +53,9 @@ data class Noticia(
     val descricao: String,
     val link: String,
     val dataPublicacao: String,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val fonte: String,
+    val timestamp: Long
 )
 
 enum class CategoriaNoticia(val label: String, val palavrasChave: List<String>) {
@@ -106,8 +110,25 @@ class NoticiasViewModel : ViewModel() {
             _erro.value = null
             try {
                 val fetchedNoticias = withContext(Dispatchers.IO) {
-                    val xml = URL("https://www.infomoney.com.br/feed/").readText()
-                    parseRss(xml).take(200)
+                    val urls = (1..15).map { page ->
+                        "https://www.infomoney.com.br/feed/?paged=$page" to "InfoMoney"
+                    }
+                    
+                    val deferreds = urls.map { (url, fonte) ->
+                        async {
+                            try {
+                                val xml = URL(url).readText()
+                                parseRss(xml, fonte)
+                            } catch (e: Exception) {
+                                emptyList<Noticia>()
+                            }
+                        }
+                    }
+                    
+                    val allNoticias = mutableListOf<Noticia>()
+                    deferreds.awaitAll().forEach { allNoticias.addAll(it) }
+                    
+                    allNoticias.sortedByDescending { it.timestamp }.take(200)
                 }
                 _noticias.value = fetchedNoticias
             } catch (e: Exception) {
@@ -123,7 +144,7 @@ class NoticiasViewModel : ViewModel() {
  * Parse RSS 2.0 simples via regex. Aceita <item>...</item> com título, link,
  * descrição e pubDate. CDATA é desembrulhado.
  */
-private fun parseRss(xml: String): List<Noticia> {
+private fun parseRss(xml: String, fonte: String): List<Noticia> {
     val itemRegex = Regex("<item>([\\s\\S]*?)</item>", RegexOption.IGNORE_CASE)
     val tituloRegex = Regex("<title>([\\s\\S]*?)</title>", RegexOption.IGNORE_CASE)
     val linkRegex = Regex("<link>([\\s\\S]*?)</link>", RegexOption.IGNORE_CASE)
@@ -141,28 +162,32 @@ private fun parseRss(xml: String): List<Noticia> {
         .replace("&nbsp;", " ")
         .trim()
 
-    fun formatarData(raw: String): String = try {
+    fun parseData(raw: String): Pair<String, Long> = try {
         val entrada = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH).parse(raw.trim())
         val saida = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR"))
-        if (entrada != null) saida.format(entrada) else raw.trim()
-    } catch (e: Exception) { raw.trim() }
+        if (entrada != null) Pair(saida.format(entrada), entrada.time) else Pair(raw.trim(), 0L)
+    } catch (e: Exception) { Pair(raw.trim(), 0L) }
 
-    return itemRegex.findAll(xml).map { m ->
+    return itemRegex.findAll(xml).mapNotNull { m ->
         val bloco = m.groupValues[1]
+        val titulo = limpar(tituloRegex.find(bloco)?.groupValues?.get(1) ?: "")
+        if (titulo.isBlank()) return@mapNotNull null
+        
         val descRaw = descRegex.find(bloco)?.groupValues?.get(1) ?: ""
         val imgMatch = imgRegex.find(descRaw)?.groupValues?.get(1)
-        val finalImgUrl = if (imgMatch != null) {
-            imgMatch.replace("&amp;", "&")
-        } else {
-            null
-        }
+        val finalImgUrl = imgMatch?.replace("&amp;", "&")
+
+        val rawDate = dataRegex.find(bloco)?.groupValues?.get(1) ?: ""
+        val (dataFormatada, time) = parseData(rawDate)
 
         Noticia(
-            titulo = limpar(tituloRegex.find(bloco)?.groupValues?.get(1) ?: ""),
+            titulo = titulo,
             descricao = limpar(descRaw),
             link = limpar(linkRegex.find(bloco)?.groupValues?.get(1) ?: ""),
-            dataPublicacao = formatarData(dataRegex.find(bloco)?.groupValues?.get(1) ?: ""),
-            imageUrl = finalImgUrl
+            dataPublicacao = dataFormatada,
+            imageUrl = finalImgUrl,
+            fonte = fonte,
+            timestamp = time
         )
     }.toList()
 }
@@ -366,7 +391,7 @@ fun TelaNoticias(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        text = "InfoMoney",
+                                        text = n.fonte,
                                         color = GojoPurple,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
