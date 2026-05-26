@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -81,7 +80,6 @@ fun TelaInvestimentos(
     var sugestaoSelecionada by remember { mutableStateOf<SugestaoAtivo?>(null) }
     var rendaFixaSelecionada by remember { mutableStateOf<SugestaoAtivo?>(null) }
     var detalheTicker by remember { mutableStateOf<DetalheRequest?>(null) }
-    var mostrarDialogNovo by remember { mutableStateOf(false) }
     var queryBusca by remember { mutableStateOf("") }
     val resultadosBusca = remember(queryBusca) {
         if (queryBusca.length < 1) emptyList() else viewModel.buscarLocal(queryBusca)
@@ -180,16 +178,6 @@ fun TelaInvestimentos(
             }
         }
 
-        FloatingActionButton(
-            onClick = { mostrarDialogNovo = true },
-            containerColor = GojoPurple,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(20.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Adicionar", tint = Color.White)
-        }
-
         // Detalhe overlay (slide in da direita) — ativos com cotação
         AnimatedVisibility(
             visible = detalheTicker != null,
@@ -257,15 +245,7 @@ fun TelaInvestimentos(
         )
     }
 
-    if (mostrarDialogNovo) {
-        DialogNovoInvestimento(
-            aoConfirmar = { inv ->
-                viewModel.adicionar(inv)
-                mostrarDialogNovo = false
-            },
-            aoCancelar = { mostrarDialogNovo = false }
-        )
-    }
+
 }
 
 private data class DetalheRequest(val ticker: String, val nome: String, val descricao: String)
@@ -624,97 +604,7 @@ private fun DialogComprarSugestao(
     )
 }
 
-@Composable
-private fun DialogNovoInvestimento(
-    aoConfirmar: (Investimento) -> Unit,
-    aoCancelar: () -> Unit
-) {
-    var nome by remember { mutableStateOf("") }
-    var valor by remember { mutableStateOf("") }
-    var rentabilidade by remember { mutableStateOf("0") }
-    var categoria by remember { mutableStateOf(CategoriaInvestimento.ACOES_BR) }
-    var erro by remember { mutableStateOf(false) }
 
-    AlertDialog(
-        onDismissRequest = aoCancelar,
-        containerColor = CardBg,
-        title = { Text("Novo Investimento", color = Color.White, fontWeight = FontWeight.Bold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
-                    value = nome, onValueChange = { nome = it; erro = false },
-                    label = { Text("Nome / Ticker") }, singleLine = true,
-                    isError = erro, colors = campoColors(),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = valor, onValueChange = { valor = it; erro = false },
-                    label = { Text("Valor investido (R$)") }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    isError = erro, colors = campoColors(),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = rentabilidade, onValueChange = { rentabilidade = it },
-                    label = { Text("Rentabilidade acumulada (%)") }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    colors = campoColors(),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text("Categoria", color = GrayText, fontSize = 12.sp)
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    CategoriaInvestimento.entries.forEach { cat ->
-                        val ativo = categoria == cat
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (ativo) GojoPurple.copy(alpha = 0.2f) else Color.Transparent)
-                                .clickable { categoria = cat }
-                                .padding(horizontal = 10.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(iconeCategoria(cat), contentDescription = null,
-                                tint = if (ativo) GojoPurple else GrayText,
-                                modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(nomeCategoria(cat),
-                                color = if (ativo) Color.White else GrayText,
-                                fontSize = 12.sp)
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val v = valor.replace(".", "").replace(",", ".").toDoubleOrNull()
-                    val r = rentabilidade.replace(",", ".").toDoubleOrNull() ?: 0.0
-                    if (nome.isBlank() || v == null || v <= 0) erro = true
-                    else aoConfirmar(
-                        Investimento(
-                            nome = nome.trim(),
-                            categoria = categoria.name,
-                            valorInvestido = v,
-                            rentabilidadePct = r,
-                            ticker = nome.trim().uppercase().takeIf {
-                                categoria == CategoriaInvestimento.ACOES_BR ||
-                                    categoria == CategoriaInvestimento.ACOES_INTER ||
-                                    categoria == CategoriaInvestimento.IMOVEIS
-                            } ?: ""
-                        )
-                    )
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
-            ) { Text("Criar", color = Color.White) }
-        },
-        dismissButton = {
-            TextButton(onClick = aoCancelar) { Text("Cancelar", color = GrayText) }
-        }
-    )
-}
 
 @Composable
 private fun campoColors() = OutlinedTextFieldDefaults.colors(
