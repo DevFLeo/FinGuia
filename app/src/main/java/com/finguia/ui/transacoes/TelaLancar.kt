@@ -83,7 +83,7 @@ fun TelaLancar(
     categoriaVm: CategoriaViewModel = viewModel()
 ) {
     var abaSelecionada by remember { mutableStateOf(0) }
-    val abas = listOf("Lançar", "Recorrente", "Agendado", "Notif")
+    val abas = listOf("Lançar", "Recorrente", "Agendado")
 
     var categoriaSelecionada by remember { mutableStateOf<Categoria?>(null) }
     var mostrarDialogAvulso   by remember { mutableStateOf(false) }
@@ -111,7 +111,6 @@ fun TelaLancar(
             )
             1 -> AbaRecorrente(viewModel = viewModel, aoClicarCategoria = { categoriaSelecionada = it })
             2 -> AbaAgendado(viewModel = viewModel, aoCriarAgendamento = { mostrarDialogAgendar = true })
-            3 -> AbaNotificacao()
         }
     }
 
@@ -781,39 +780,7 @@ private fun DialogLancamentoAgendado(
     }
 }
 
-// ─────────────────────────────────────────────
-// ABA: NOTIFICAÇÃO
-// ─────────────────────────────────────────────
 
-@Composable
-private fun AbaNotificacao() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        TituloSecao(icone = Icons.Default.Notifications, texto = "GESTÃO DE ALERTAS", cor = GojoPurple)
-
-        CardSimples(Icons.Default.AddAlert, "Nova Notificação", "Criar alerta personalizado", GojoPurple)
-
-        Spacer(Modifier.height(8.dp))
-
-        TituloSecao(icone = Icons.Default.Edit, texto = "EDITAR PALAVRAS", cor = GojoPurple)
-
-        listOf("Deletar", "Arquivar", "Desarquivar").forEach { opcao ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(CardBg)
-                    .border(width = 3.dp, color = GojoPurple, shape = RoundedCornerShape(8.dp))
-                    .clickable { }
-                    .padding(horizontal = 14.dp, vertical = 12.dp)
-            ) {
-                Text(opcao, color = Color.White, fontSize = 13.sp)
-            }
-        }
-    }
-}
 
 // ─────────────────────────────────────────────
 // COMPONENTES REUTILIZÁVEIS
@@ -954,26 +921,6 @@ private fun CardTemplate(categoria: Categoria, aoClicar: () -> Unit) {
     }
 }
 
-@Composable
-private fun CardSimples(icone: ImageVector, label: String, sublabel: String, cor: Color) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(cor.copy(alpha = 0.10f))
-            .border(1.dp, cor.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
-            .clickable { }
-            .padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(26.dp))
-        Column {
-            Text(label,    color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text(sublabel, color = GrayText,    fontSize = 12.sp)
-        }
-    }
-}
 
 // ─────────────────────────────────────────────
 // CAMPOS COMPARTILHADOS
