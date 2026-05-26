@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -53,28 +54,28 @@ data class Noticia(
     val imageUrl: String? = null
 )
 
-enum class CategoriaNoticia(val label: String, val emoji: String, val palavrasChave: List<String>) {
-    TODAS("Todas", "🌐", emptyList()),
-    POLITICA("Política", "🏛️", listOf(
+enum class CategoriaNoticia(val label: String, val palavrasChave: List<String>) {
+    TODAS("Todas", emptyList()),
+    POLITICA("Política", listOf(
         "política", "político", "governo", "lula", "bolsonaro", "stf", "congresso", "senado", 
         "câmara", "ministro", "eleições", "eleição", "projeto de lei", "pl", "pec", "partido", 
         "parlamentar", "tse", "haddad", "biden", "trump", "democracia", "voto"
     )),
-    CRIPTO("Cripto", "🪙", listOf(
+    CRIPTO("Cripto", listOf(
         "bitcoin", "cripto", "ethereum", "blockchain", "btc", "eth", "criptomoeda", "solana", 
         "token", "coinbase", "binance", "criptoativos", "halving", "web3", "satoshi"
     )),
-    INVESTIMENTOS("Investimentos", "📈", listOf(
+    INVESTIMENTOS("Investimentos", listOf(
         "bolsa", "ações", "dividendos", "fiis", "ibovespa", "investimento", "investir", 
         "renda fixa", "tesouro", "fundos", "ações", "cdi", "selic", "fii", "dividendos", 
         "proventos", "b3", "nasdaq", "nyse", "investidor", "carteira", "fundo"
     )),
-    ECONOMIA("Economia", "📊", listOf(
+    ECONOMIA("Economia", listOf(
         "inflação", "pib", "juros", "copom", "banco central", "bc", "dólar", "cambio", "câmbio",
         "imposto", "receita", "tributária", "emprego", "desemprego", "mercado", "inflacionário", 
         "deflação", "recessão", "fomc", "fed"
     )),
-    EMPRESAS("Empresas", "🏢", listOf(
+    EMPRESAS("Empresas", listOf(
         "lucro", "balanço", "receita", "faturamento", "fusão", "aquisição", "empresa", 
         "corporativo", "startup", "vendas", "petrobras", "vale", "itaú", "bradesco", 
         "magazine luiza", "magalu", "nubank", "apple", "microsoft", "google", "amazon", "tesla"
@@ -104,10 +105,11 @@ class NoticiasViewModel : ViewModel() {
             _carregando.value = true
             _erro.value = null
             try {
-                val xml = withContext(Dispatchers.IO) {
-                    URL("https://www.infomoney.com.br/feed/").readText()
+                val fetchedNoticias = withContext(Dispatchers.IO) {
+                    val xml = URL("https://www.infomoney.com.br/feed/").readText()
+                    parseRss(xml).take(200)
                 }
-                _noticias.value = parseRss(xml).take(30)
+                _noticias.value = fetchedNoticias
             } catch (e: Exception) {
                 _erro.value = "Falha ao carregar notícias. Verifique a conexão."
             } finally {
@@ -240,9 +242,9 @@ fun TelaNoticias(
                 val selecionado = categoriaSelecionada == categoria
                 val contagem = contagemCategorias[categoria] ?: 0
                 val label = if (noticias.isEmpty()) {
-                    "${categoria.emoji} ${categoria.label}"
+                    categoria.label
                 } else {
-                    "${categoria.emoji} ${categoria.label} ($contagem)"
+                    "${categoria.label} ($contagem)"
                 }
 
                 Box(
@@ -284,10 +286,13 @@ fun TelaNoticias(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = categoriaSelecionada.emoji,
-                        fontSize = 48.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = GrayText,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(bottom = 16.dp)
                     )
                     Text(
                         text = "Nenhuma notícia encontrada",
