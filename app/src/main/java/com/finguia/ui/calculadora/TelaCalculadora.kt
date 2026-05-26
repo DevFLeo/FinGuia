@@ -39,10 +39,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -455,11 +457,28 @@ fun TelaCalculadora(
 ) {
     val ocultas by cacheVm.ocultas.collectAsState()
     val abasVisiveis = AbaCalculadora.entries.filter { it.name !in ocultas }
-    var aba by remember { mutableStateOf(abasVisiveis.firstOrNull() ?: AbaCalculadora.CONVERSAO) }
+    val abaInicial = abasVisiveis.firstOrNull() ?: AbaCalculadora.CONVERSAO
+    var aba by remember { mutableStateOf(abaInicial) }
+    
+    val historicoAbas = remember { mutableStateListOf<AbaCalculadora>() }
+
+    BackHandler(enabled = historicoAbas.isNotEmpty()) {
+        val abaAnterior = historicoAbas.removeLast()
+        if (abaAnterior in abasVisiveis) {
+            aba = abaAnterior
+        } else {
+            // Se a aba anterior estiver oculta, volta pra primeira visível e limpa o histórico
+            aba = abasVisiveis.firstOrNull() ?: AbaCalculadora.CONVERSAO
+            historicoAbas.clear()
+        }
+    }
 
     // Se aba ativa virou oculta, troca para primeira visível
     LaunchedEffect(ocultas) {
-        if (aba.name in ocultas && abasVisiveis.isNotEmpty()) aba = abasVisiveis.first()
+        if (aba.name in ocultas && abasVisiveis.isNotEmpty()) {
+            aba = abasVisiveis.first()
+            historicoAbas.clear()
+        }
     }
 
     Column(
@@ -492,7 +511,12 @@ fun TelaCalculadora(
             abasVisiveis.forEach { a ->
                 Tab(
                     selected = a == aba,
-                    onClick = { aba = a },
+                    onClick = { 
+                        if (aba != a) {
+                            historicoAbas.add(aba)
+                            aba = a 
+                        }
+                    },
                     text = { Text(a.rotulo, fontSize = 13.sp, maxLines = 1) }
                 )
             }

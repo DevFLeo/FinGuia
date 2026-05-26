@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,6 +69,12 @@ fun FinGuiaApp() {
     val configViewModel: ConfiguracoesViewModel = viewModel()
     val categoriaViewModel: CategoriaViewModel = viewModel()
     val ocultarSaldo by configViewModel.ocultarSaldo.collectAsState()
+
+    if (transacaoDetalhe != null) {
+        BackHandler { transacaoDetalhe = null }
+    } else if (destinoAtual != DestinosApp.INICIO) {
+        BackHandler { destinoAtual = DestinosApp.INICIO }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
