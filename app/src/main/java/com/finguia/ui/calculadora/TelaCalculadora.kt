@@ -442,9 +442,9 @@ enum class AbaCalculadora(val rotulo: String) {
     CONVERSAO("Câmbio"),
     FINANCEIRA("Renda Fixa"),
     CIENTIFICA("Científica"),
-    INVESTIMENTOS("ROI"),
+    INVESTIMENTOS("Projetos"),
     PRECO_VENDA("Markup"),
-    ENDIVIDAMENTO("Dívidas"),
+    ENDIVIDAMENTO("Amortização"),
     HISTORICO("Histórico")
 }
 
@@ -779,14 +779,16 @@ private fun CardResultadoAtivo(r: ResultadoAtivo, destaque: Boolean) {
 private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
     var expressao by remember { mutableStateOf("") }
     var resultado by remember { mutableStateOf("0") }
+    var memoria by remember { mutableStateOf(0.0) }
 
     val teclas = listOf(
+        listOf("MC", "MR", "M+", "M-", "C"),
         listOf("sin(", "cos(", "tan(", "ln(", "log("),
         listOf("sqrt(", "^", "pi", "e", "!"),
         listOf("7", "8", "9", "/", "("),
         listOf("4", "5", "6", "*", ")"),
-        listOf("1", "2", "3", "-", "C"),
-        listOf("0", ".", "=", "+", "<-")
+        listOf("1", "2", "3", "-", "<-"),
+        listOf("0", ".", "=", "+", "abs(")
     )
 
     Column(
@@ -798,11 +800,16 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = CardBg),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, if (memoria != 0.0) MoneyGreen.copy(alpha = 0.5f) else Color.Transparent)
         ) {
             Column(Modifier.padding(12.dp)) {
-                Text(expressao.ifEmpty { " " }, color = GrayText, fontSize = 14.sp, maxLines = 2)
-                Text(resultado, color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(if (memoria != 0.0) "M = ${if (memoria == memoria.toLong().toDouble()) memoria.toLong().toString() else memoria}" else " ", color = MoneyGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(expressao.ifEmpty { " " }, color = GrayText, fontSize = 14.sp, maxLines = 2, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                }
+                Text(resultado, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+                
                 if (expressao.isNotEmpty() && !resultado.startsWith("Erro") && resultado != "0") {
                     Spacer(Modifier.height(6.dp))
                     BotaoSalvarCalc {
@@ -823,6 +830,16 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
                                 "=" -> resultado = avaliarCientifica(expressao)
                                 "C" -> { expressao = ""; resultado = "0" }
                                 "<-" -> if (expressao.isNotEmpty()) expressao = expressao.dropLast(1)
+                                "MC" -> memoria = 0.0
+                                "MR" -> expressao += if (memoria == memoria.toLong().toDouble()) memoria.toLong().toString() else memoria.toString()
+                                "M+" -> {
+                                    val r = resultado.replace(",", ".").toDoubleOrNull()
+                                    if (r != null) memoria += r
+                                }
+                                "M-" -> {
+                                    val r = resultado.replace(",", ".").toDoubleOrNull()
+                                    if (r != null) memoria -= r
+                                }
                                 "!" -> {
                                     val n = expressao.takeLastWhile { it.isDigit() }.toIntOrNull()
                                     if (n != null && n in 0..20) {
@@ -836,17 +853,18 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
                         colors = ButtonDefaults.buttonColors(
                             containerColor = when (tecla) {
                                 "=" -> MoneyGreen
-                                "C", "<-" -> DebtRed
+                                "C", "<-", "MC" -> DebtRed
+                                "MR", "M+", "M-" -> GojoPurple.copy(alpha = 0.8f)
                                 in listOf("+", "-", "*", "/", "^") -> GojoPurple
                                 else -> CardBg
                             }
                         ),
                         shape = RoundedCornerShape(10.dp),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(2.dp),
-                        modifier = Modifier.weight(1f).height(48.dp)
+                        modifier = Modifier.weight(1f).height(52.dp)
                     ) {
                         if (tecla == "<-") Icon(Icons.Default.Backspace, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                        else Text(tecla, color = Color.White, fontSize = 12.sp)
+                        else Text(tecla, color = Color.White, fontSize = 13.sp, fontWeight = if (tecla in listOf("=", "M+", "M-", "MR", "MC")) FontWeight.Bold else FontWeight.Normal)
                     }
                 }
             }
@@ -861,114 +879,113 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
 
 @Composable
 private fun BlocoInvestimentos(cacheVm: CalcCacheViewModel) {
-    // Estados de entrada
-    var investidoInicial by remember { mutableStateOf("1000") }
-    var aporteMensal by remember { mutableStateOf("100") }
-    var meses by remember { mutableStateOf("12") }
-    var taxaAnoNome by remember { mutableStateOf("12.0") }
-    var inflacaoAno by remember { mutableStateOf("4.5") }
+    var investidoInicial by remember { mutableStateOf("10000.00") }
+    var fluxoAnual1 by remember { mutableStateOf("3000.00") }
+    var fluxoAnual2 by remember { mutableStateOf("4000.00") }
+    var fluxoAnual3 by remember { mutableStateOf("5000.00") }
+    var taxaDesconto by remember { mutableStateOf("10.0") }
 
-    // Conversões e Cálculos
     val p = investidoInicial.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val pmt = aporteMensal.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val n = meses.toIntOrNull() ?: 0
-    val iAno = (taxaAnoNome.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val infAno = (inflacaoAno.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val f1 = fluxoAnual1.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val f2 = fluxoAnual2.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val f3 = fluxoAnual3.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val taxaD = (taxaDesconto.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
 
-    // Taxas mensais equivalentes
-    val iMes = (1.0 + iAno).pow(1.0 / 12.0) - 1.0
-    val infMes = (1.0 + infAno).pow(1.0 / 12.0) - 1.0
-
-    val totalInvestido = p + pmt * n
-    val valorFinalBruto = simularMensal(p, pmt, n, iMes)
-    val lucroBruto = (valorFinalBruto - totalInvestido).coerceAtLeast(0.0)
-
-    // Estimativa de Imposto de Renda
-    val aliquotaIR = when {
-        n <= 6 -> 0.225
-        n <= 12 -> 0.20
-        n <= 24 -> 0.175
-        else -> 0.15
+    val fluxos = listOf(-p, f1, f2, f3)
+    
+    // Cálculo VPL
+    var vpl = 0.0
+    fluxos.forEachIndexed { t, fluxo ->
+        vpl += fluxo / (1.0 + taxaD).pow(t.toDouble())
     }
-    val valorIR = lucroBruto * aliquotaIR
-    val valorFinalLiquido = valorFinalBruto - valorIR
-    val lucroLiquido = valorFinalLiquido - totalInvestido
 
-    // ROI Real: Ajustando o valor final pela inflação acumulada
-    val valorFinalDeflacionado = valorFinalLiquido / (1.0 + infMes).pow(n.toDouble())
-    val roiRealTotal = if (totalInvestido > 0) ((valorFinalDeflacionado / totalInvestido) - 1) * 100 else 0.0
+    // Cálculo TIR (aproximação simples de Newton-Raphson)
+    var tir = 0.10
+    var iter = 0
+    var foundTir = false
+    while (iter < 100) {
+        var vplTir = 0.0
+        var derivVplTir = 0.0
+        for (t in fluxos.indices) {
+            vplTir += fluxos[t] / (1.0 + tir).pow(t.toDouble())
+            if (t > 0) derivVplTir -= t * fluxos[t] / (1.0 + tir).pow(t + 1.0)
+        }
+        if (kotlin.math.abs(vplTir) < 1e-5) { foundTir = true; break }
+        if (derivVplTir == 0.0) break
+        tir -= vplTir / derivVplTir
+        iter++
+    }
+
+    // Payback Simples
+    var saldoPB = -p
+    var payback = 0.0
+    for (t in 1..3) {
+        saldoPB += fluxos[t]
+        if (saldoPB >= 0) {
+            payback = t - (saldoPB / fluxos[t])
+            break
+        }
+    }
+    
+    val roiBruto = if (p > 0) ((f1+f2+f3) - p) / p * 100 else 0.0
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Expansão de Patrimônio (ROI)", color = GojoPurple, fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Spacer(Modifier.height(12.dp))
+        Text("Análise de Viabilidade (VPL, TIR, ROI)", color = MoneyGreen, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text("Avalie projetos de investimento e negócios analisando seus fluxos de caixa futuros.", color = GrayText, fontSize = 12.sp)
 
-        CampoNumerico("Aporte Inicial (R$)", investidoInicial) { investidoInicial = it }
-        CampoNumerico("Aporte Mensal (R$)", aporteMensal) { aporteMensal = it }
-        CampoNumerico("Tempo (Meses)", meses) { meses = it }
-        CampoNumerico("Rentabilidade Anual (%)", taxaAnoNome) { taxaAnoNome = it }
-        CampoNumerico("Inflação Estimada Anual (%)", inflacaoAno) { inflacaoAno = it }
-
-        Spacer(Modifier.height(20.dp))
-
-        // Card Principal
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CardBg),
-            shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(Modifier.padding(20.dp)) {
-                Text("RESULTADO FINAL LÍQUIDO", color = GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text(formatarBrl(valorFinalLiquido), color = MoneyGreen, fontSize = 28.sp, fontWeight = FontWeight.Black)
-
-                Divider(Modifier.padding(vertical = 12.dp), color = GrayText.copy(alpha = 0.2f))
-
-                LinhaResultado("Total Investido", formatarBrl(totalInvestido))
-                LinhaResultado("Lucro Limpo (Pós-IR)", formatarBrl(lucroLiquido), cor = MoneyGreen)
-                LinhaResultado("Imposto (Est. ${"%.1f".format(aliquotaIR*100)}%)", "- ${formatarBrl(valorIR)}", cor = DebtRed)
+        Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("INVESTIMENTO E CUSTO DE CAPITAL", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                CampoNumerico("Investimento Inicial (R$)", investidoInicial) { investidoInicial = it }
+                CampoNumerico("Taxa de Desconto / TMA (% a.a.)", taxaDesconto) { taxaDesconto = it }
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("FLUXOS DE CAIXA ESTIMADOS (R$)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                CampoNumerico("Ano 1", fluxoAnual1) { fluxoAnual1 = it }
+                CampoNumerico("Ano 2", fluxoAnual2) { fluxoAnual2 = it }
+                CampoNumerico("Ano 3", fluxoAnual3) { fluxoAnual3 = it }
+            }
+        }
 
-        // Card de ROI Real
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = GojoPurple.copy(alpha = 0.1f)),
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, GojoPurple.copy(alpha = 0.3f))
-        ) {
-            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("ROI REAL (Ajustado pela Inflação)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Text("Este é poder de compra real.", color = GrayText, fontSize = 11.sp)
+        if (p > 0) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MoneyGreen.copy(alpha = 0.15f)),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MoneyGreen.copy(alpha = 0.5f))
+            ) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("VALOR PRESENTE LÍQUIDO (VPL)", color = GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(formatarBrl(vpl), color = if (vpl >= 0) MoneyGreen else DebtRed, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                    Text(if (vpl >= 0) "Projeto Economicamente Viável" else "Projeto Inviável na TMA definida", color = GrayText, fontSize = 12.sp)
+
+                    Divider(color = GrayText.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp))
+
+                    LinhaResultado("Taxa Interna de Retorno (TIR)", if (foundTir && tir > -1) "${"%.2f".format(tir * 100)}% a.a." else "N/A", cor = if (tir > taxaD) MoneyGreen else DebtRed)
+                    LinhaResultado("Retorno Simples (ROI)", "${"%.2f".format(roiBruto)}%")
+                    LinhaResultado("Payback Simples", if (payback > 0) "${"%.1f".format(payback)} anos" else "Não se paga no período")
                 }
-                Text(
-                    text = "${"%.2f".format(roiRealTotal)}%",
-                    color = if (roiRealTotal >= 0) MoneyGreen else DebtRed,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
             }
-        }
-        Spacer(Modifier.height(12.dp))
-        BotaoSalvarCalc {
-            val det = """
-                Aporte inicial: ${formatarBrl(p)}
-                Aporte mensal: ${formatarBrl(pmt)} por $n meses
-                Taxa: $taxaAnoNome% a.a. | Inflação: $inflacaoAno% a.a.
-                Total investido: ${formatarBrl(totalInvestido)}
-                Final líquido: ${formatarBrl(valorFinalLiquido)}
-                Lucro líquido: ${formatarBrl(lucroLiquido)}
-                IR estimado: ${formatarBrl(valorIR)}
-                ROI real: ${"%.2f".format(roiRealTotal)}%
-            """.trimIndent()
-            cacheVm.salvar("ROI", "Final líquido ${formatarBrl(valorFinalLiquido)}", det)
+
+            BotaoSalvarCalc {
+                val det = """
+                    Investimento: ${formatarBrl(p)}
+                    Fluxos: ${formatarBrl(f1)}, ${formatarBrl(f2)}, ${formatarBrl(f3)}
+                    TMA: $taxaDesconto% a.a.
+                    VPL: ${formatarBrl(vpl)}
+                    TIR: ${if (foundTir) "${"%.2f".format(tir * 100)}%" else "N/A"}
+                    Payback: ${"%.1f".format(payback)} anos
+                """.trimIndent()
+                cacheVm.salvar("Análise Projeto", "VPL: ${formatarBrl(vpl)}", det)
+            }
         }
         Spacer(Modifier.height(80.dp))
     }
@@ -987,85 +1004,124 @@ private fun LinhaResultado(rotulo: String, valor: String, cor: Color = Color.Whi
 
 @Composable
 private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
-    var custoBase by remember { mutableStateOf("100") }
-    var despesasFixas by remember { mutableStateOf("10") }
-    var despesasVariaveis by remember { mutableStateOf("15") }
-    var margemLucro by remember { mutableStateOf("20") }
+    var custoAquisicao by remember { mutableStateOf("100.00") }
+    var freteSeguro by remember { mutableStateOf("5.00") }
+    var impostosPerc by remember { mutableStateOf("18.00") }
+    var comissoesPerc by remember { mutableStateOf("5.00") }
+    var taxasCartaoPerc by remember { mutableStateOf("2.50") }
+    var despesasFixasPerc by remember { mutableStateOf("12.00") }
+    var margemLucroPerc by remember { mutableStateOf("20.00") }
 
-    // Processamento dos valores de entrada
-    val c = custoBase.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val df = (despesasFixas.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val dv = (despesasVariaveis.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val ml = (margemLucro.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val c = custoAquisicao.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val f = freteSeguro.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val imp = (impostosPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val com = (comissoesPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val cart = (taxasCartaoPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val df = (despesasFixasPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val ml = (margemLucroPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
 
-    // Cálculo do Markup Divisor
-    // O divisor representa a fração do preço que resta após deduzir todas as porcentagens
-    val totalIndices = df + dv + ml
-    val divisor = 1.0 - totalIndices
+    val custoBase = c + f
+    val deducoesVenda = imp + com + cart
+    val totalIndices = deducoesVenda + df + ml
+    val markupDivisor = 1.0 - totalIndices
+    val markupMultiplicador = if (markupDivisor > 0) 1.0 / markupDivisor else 0.0
 
-    val precoVenda = if (divisor > 0) c / divisor else 0.0
-    val lucroUnitario = if (precoVenda > 0) precoVenda * ml else 0.0
-    val multiplicadorMarkup = if (c > 0) precoVenda / c else 0.0
+    val precoVenda = if (markupDivisor > 0) custoBase / markupDivisor else 0.0
+    val valorLucro = precoVenda * ml
+    
+    val margemContribuicao = precoVenda - custoBase - (precoVenda * deducoesVenda)
+    val qtdBreakEven = if (margemContribuicao > 0) (precoVenda * df) / margemContribuicao else 0.0
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Calculadora de Markup", color = GojoPurple, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text("Formação de Preço Corporativa", color = GojoPurple, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text("Análise detalhada de composição de preço, margem de contribuição e ponto de equilíbrio.", color = GrayText, fontSize = 12.sp)
 
-        CampoNumerico("Custo Direto (R$)", custoBase) { custoBase = it }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(Modifier.weight(1f)) {
-                CampoNumerico("Custos Fixos (%)", despesasFixas) { despesasFixas = it }
-            }
-            Box(Modifier.weight(1f)) {
-                CampoNumerico("Impostos/Taxas (%)", despesasVariaveis) { despesasVariaveis = it }
-            }
-        }
-
-        CampoNumerico("Margem Líquida Desejada (%)", margemLucro) { margemLucro = it }
-
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBg),
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, GojoPurple.copy(alpha = 0.5f))
-        ) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("VALOR DE VENDA", color = GrayText, fontSize = 12.sp)
-                Text(formatarBrl(precoVenda), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black)
-
-                Divider(color = GrayText.copy(alpha = 0.1f))
-
-                LinhaResultado("Lucro Real", formatarBrl(lucroUnitario), cor = MoneyGreen)
-                LinhaResultado("Índice Multiplicador", "${"%.2f".format(multiplicadorMarkup)}x")
+        Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("CUSTOS DIRETOS (R$)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.weight(1f)) { CampoNumerico("Produto/Serviço", custoAquisicao) { custoAquisicao = it } }
+                    Box(Modifier.weight(1f)) { CampoNumerico("Frete/Outros", freteSeguro) { freteSeguro = it } }
+                }
             }
         }
 
-        if (divisor <= 0) {
-            Text(
-                "Erro: A soma das taxas excede 100%. Verifique os parâmetros.",
-                color = DebtRed,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+        Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("DEDUÇÕES E DESPESAS (%)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.weight(1f)) { CampoNumerico("Impostos", impostosPerc) { impostosPerc = it } }
+                    Box(Modifier.weight(1f)) { CampoNumerico("Comissões", comissoesPerc) { comissoesPerc = it } }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.weight(1f)) { CampoNumerico("Taxa Cartão", taxasCartaoPerc) { taxasCartaoPerc = it } }
+                    Box(Modifier.weight(1f)) { CampoNumerico("Despesas Fixas", despesasFixasPerc) { despesasFixasPerc = it } }
+                }
+            }
+        }
+
+        Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
+            Column(Modifier.padding(16.dp)) {
+                Text("MARGEM DESEJADA (%)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                CampoNumerico("Margem de Lucro Líquida", margemLucroPerc) { margemLucroPerc = it }
+            }
+        }
+
+        if (markupDivisor <= 0) {
+            Text("ERRO: A soma dos percentuais (${"%.2f".format(totalIndices * 100)}%) excede ou iguala 100%. Impossível precificar.", color = DebtRed, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         } else if (precoVenda > 0) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = GojoPurple.copy(alpha = 0.15f)),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, GojoPurple.copy(alpha = 0.5f))
+            ) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("PREÇO DE VENDA SUGERIDO", color = GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(formatarBrl(precoVenda), color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black)
+
+                    Divider(color = GrayText.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp))
+
+                    LinhaResultado("Lucro Líquido Unitário", formatarBrl(valorLucro), cor = MoneyGreen)
+                    LinhaResultado("Margem de Contribuição", formatarBrl(margemContribuicao))
+                    LinhaResultado("Markup Multiplicador", "${"%.4f".format(markupMultiplicador)}x")
+                    LinhaResultado("Markup Divisor", "${"%.4f".format(markupDivisor)}")
+                    LinhaResultado("Ponto de Equilíbrio", "${kotlin.math.ceil(qtdBreakEven).toInt()} un / mês", cor = GojoPurple)
+                }
+            }
+
+            Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Text("Composição do Preço", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                Row(Modifier.fillMaxWidth().height(24.dp).clip(RoundedCornerShape(12.dp))) {
+                    Box(Modifier.weight((custoBase/precoVenda).toFloat()).fillMaxSize().background(Color(0xFF4A90E2)))
+                    if (deducoesVenda > 0) Box(Modifier.weight(deducoesVenda.toFloat()).fillMaxSize().background(Color(0xFFE2A04A)))
+                    if (df > 0) Box(Modifier.weight(df.toFloat()).fillMaxSize().background(Color(0xFFE24A4A)))
+                    if (ml > 0) Box(Modifier.weight(ml.toFloat()).fillMaxSize().background(MoneyGreen))
+                }
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Custo", color = Color(0xFF4A90E2), fontSize = 10.sp)
+                    Text("Vendas", color = Color(0xFFE2A04A), fontSize = 10.sp)
+                    Text("Fixo", color = Color(0xFFE24A4A), fontSize = 10.sp)
+                    Text("Lucro", color = MoneyGreen, fontSize = 10.sp)
+                }
+            }
+
             BotaoSalvarCalc {
                 val det = """
-                    Custo: ${formatarBrl(c)}
-                    Custos fixos: $despesasFixas% | Impostos: $despesasVariaveis% | Margem: $margemLucro%
-                    Preço de venda: ${formatarBrl(precoVenda)}
-                    Lucro unitário: ${formatarBrl(lucroUnitario)}
-                    Multiplicador: ${"%.2f".format(multiplicadorMarkup)}x
+                    Custo Total: ${formatarBrl(custoBase)}
+                    Margem Líquida: ${"%.2f".format(ml * 100)}%
+                    Preço de Venda: ${formatarBrl(precoVenda)}
+                    Lucro Unitário: ${formatarBrl(valorLucro)}
+                    Markup Mult: ${"%.3f".format(markupMultiplicador)}x
                 """.trimIndent()
                 cacheVm.salvar("Markup", "Venda ${formatarBrl(precoVenda)}", det)
             }
         }
-
         Spacer(Modifier.height(80.dp))
     }
 }
@@ -1074,149 +1130,117 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
 // ABA 5 - SIMULADOR ENDIVIDAMENTO E DIVIDA
 // ============================================================
 
-/**
- * Simula amortização mês a mês. Retorna meses até quitar e total pago em juros.
- * Se parcela não cobre os juros, retorna null (dívida infinita).
- */
-private fun simularAmortizacao(
-    principal: Double,
-    taxaMensal: Double,
-    parcela: Double,
-    maxMeses: Int = 1200
-): Triple<Int, Double, Double>? {
-    if (parcela <= 0 || principal <= 0) return null
-    var saldo = principal
-    var totalPago = 0.0
-    var totalJuros = 0.0
-    var meses = 0
-    while (saldo > 0.01 && meses < maxMeses) {
-        val juros = saldo * taxaMensal
-        if (parcela <= juros) return null
-        val amortizado = parcela - juros
-        saldo -= amortizado
-        totalJuros += juros
-        totalPago += if (saldo < 0) parcela + saldo else parcela
-        if (saldo < 0) saldo = 0.0
-        meses++
-    }
-    return Triple(meses, totalPago, totalJuros)
-}
+enum class SistemaAmortizacao { PRICE, SAC }
 
 @Composable
 private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
-    var valorPrincipal by remember { mutableStateOf("5000") }
-    var taxaMensal by remember { mutableStateOf("3.0") }
-    var parcelaMensal by remember { mutableStateOf("300") }
-    var aporteExtra by remember { mutableStateOf("100") }
+    var valorPrincipal by remember { mutableStateOf("150000.00") }
+    var taxaAnual by remember { mutableStateOf("11.5") }
+    var prazoMeses by remember { mutableStateOf("120") }
+    var sistema by remember { mutableStateOf(SistemaAmortizacao.SAC) }
 
     val p = valorPrincipal.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val i = (taxaMensal.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val parcela = parcelaMensal.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val extra = aporteExtra.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val iAno = (taxaAnual.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val n = prazoMeses.toIntOrNull() ?: 0
 
-    val cenarioBase = simularAmortizacao(p, i, parcela)
-    val cenarioAcelerado = simularAmortizacao(p, i, parcela + extra)
+    val iMes = (1.0 + iAno).pow(1.0 / 12.0) - 1.0
+
+    var totalPago = 0.0
+    var totalJuros = 0.0
+    var primeiraParcela = 0.0
+    var ultimaParcela = 0.0
+
+    if (p > 0 && n > 0 && iMes > 0) {
+        var saldo = p
+        when (sistema) {
+            SistemaAmortizacao.SAC -> {
+                val amortizacao = p / n
+                for (mes in 1..n) {
+                    val juros = saldo * iMes
+                    val parcela = amortizacao + juros
+                    saldo -= amortizacao
+                    totalJuros += juros
+                    totalPago += parcela
+                    if (mes == 1) primeiraParcela = parcela
+                    if (mes == n) ultimaParcela = parcela
+                }
+            }
+            SistemaAmortizacao.PRICE -> {
+                val parcelaPrice = p * (iMes * (1 + iMes).pow(n.toDouble())) / ((1 + iMes).pow(n.toDouble()) - 1)
+                primeiraParcela = parcelaPrice
+                ultimaParcela = parcelaPrice
+                for (mes in 1..n) {
+                    val juros = saldo * iMes
+                    val amortizacao = parcelaPrice - juros
+                    saldo -= amortizacao
+                    totalJuros += juros
+                    totalPago += parcelaPrice
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Simulador de Endividamento", color = DebtRed, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        Text("Quanto tempo até quitar e quanto custa em juros", color = GrayText, fontSize = 12.sp)
+        Text("Amortização Profissional (Financiamentos)", color = DebtRed, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text("Compare parcelas, juros acumulados e saldo devedor nos sistemas SAC e Tabela Price.", color = GrayText, fontSize = 12.sp)
 
-        CampoNumerico("Valor da Dívida (R$)", valorPrincipal) { valorPrincipal = it }
-        CampoNumerico("Taxa de Juros Mensal (%)", taxaMensal) { taxaMensal = it }
-        CampoNumerico("Parcela Mensal Atual (R$)", parcelaMensal) { parcelaMensal = it }
-        CampoNumerico("Aporte Extra por Mês (R$)", aporteExtra) { aporteExtra = it }
-
-        // Cenário base
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CardBg),
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, DebtRed.copy(alpha = 0.5f))
-        ) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("CENÁRIO ATUAL", color = GrayText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                if (cenarioBase == null) {
-                    Text("Dívida nunca será quitada", color = DebtRed, fontSize = 20.sp, fontWeight = FontWeight.Black)
-                    Text(
-                        "A parcela não cobre os juros mensais. Aumente o valor da parcela ou negocie a taxa.",
-                        color = GrayText, fontSize = 12.sp
-                    )
-                } else {
-                    val (meses, totalPago, juros) = cenarioBase
-                    Text("Quita em $meses meses", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
-                    Text("(${meses / 12} anos e ${meses % 12} meses)", color = GrayText, fontSize = 12.sp)
-                    Divider(color = GrayText.copy(alpha = 0.1f))
-                    LinhaResultado("Total pago", formatarBrl(totalPago))
-                    LinhaResultado("Total em juros", formatarBrl(juros), cor = DebtRed)
+        Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CampoNumerico("Valor Financiado (R$)", valorPrincipal) { valorPrincipal = it }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.weight(1f)) { CampoNumerico("Taxa de Juros (a.a. %)", taxaAnual) { taxaAnual = it } }
+                    Box(Modifier.weight(1f)) { CampoNumerico("Prazo (Meses)", prazoMeses) { prazoMeses = it } }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    Button(
+                        onClick = { sistema = SistemaAmortizacao.SAC },
+                        colors = ButtonDefaults.buttonColors(containerColor = if (sistema == SistemaAmortizacao.SAC) DebtRed else DarkBg),
+                        shape = RoundedCornerShape(8.dp)
+                    ) { Text("SAC", color = Color.White) }
+                    Button(
+                        onClick = { sistema = SistemaAmortizacao.PRICE },
+                        colors = ButtonDefaults.buttonColors(containerColor = if (sistema == SistemaAmortizacao.PRICE) DebtRed else DarkBg),
+                        shape = RoundedCornerShape(8.dp)
+                    ) { Text("PRICE", color = Color.White) }
                 }
             }
         }
 
-        // Cenário acelerado
-        if (extra > 0 && cenarioAcelerado != null) {
-            val (mesesAc, totalAc, jurosAc) = cenarioAcelerado
-            val mesesEconomizados = (cenarioBase?.first ?: 0) - mesesAc
-            val jurosEconomizados = (cenarioBase?.third ?: 0.0) - jurosAc
-
+        if (p > 0 && n > 0 && iMes > 0) {
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MoneyGreen.copy(alpha = 0.1f)),
+                colors = CardDefaults.cardColors(containerColor = DebtRed.copy(alpha = 0.15f)),
                 shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MoneyGreen.copy(alpha = 0.5f))
+                border = androidx.compose.foundation.BorderStroke(1.dp, DebtRed.copy(alpha = 0.5f))
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("COM APORTE EXTRA DE ${formatarBrl(extra)}/mês", color = MoneyGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    Text("Quita em $mesesAc meses", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
-                    Divider(color = GrayText.copy(alpha = 0.1f))
-                    LinhaResultado("Total pago", formatarBrl(totalAc))
-                    LinhaResultado("Total em juros", formatarBrl(jurosAc))
-                    if (mesesEconomizados > 0) {
-                        LinhaResultado("Tempo economizado", "$mesesEconomizados meses", cor = MoneyGreen)
-                        LinhaResultado("Juros economizados", formatarBrl(jurosEconomizados), cor = MoneyGreen)
-                    }
+                    Text("RESUMO DA DÍVIDA", color = GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("Total a Pagar: ${formatarBrl(totalPago)}", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+
+                    Divider(color = GrayText.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp))
+
+                    LinhaResultado("Custo Efetivo em Juros", formatarBrl(totalJuros), cor = DebtRed)
+                    LinhaResultado("Primeira Parcela", formatarBrl(primeiraParcela))
+                    LinhaResultado("Última Parcela", formatarBrl(ultimaParcela))
+                    LinhaResultado("Proporção Juros/Principal", "${"%.1f".format((totalJuros/p)*100)}%")
                 }
             }
-        }
-
-        // Análise Crítica
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(DebtRed.copy(alpha = 0.1f))
-                .padding(12.dp)
-        ) {
-            val taxaAnual = ((1+i).pow(12)-1)*100
-            Text(
-                text = "Taxa mensal de ${taxaMensal}% equivale a ${"%.2f".format(taxaAnual)}% ao ano. " +
-                       if (cenarioBase == null) "Parcela insuficiente — dívida cresce para sempre."
-                       else "Sem pagamentos, a dívida dobraria em ${"%.1f".format(72/(taxaMensal.toDoubleOrNull() ?: 1.0))} meses.",
-                color = GrayText,
-                fontSize = 11.sp,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        if (cenarioBase != null) {
+            
             BotaoSalvarCalc {
-                val (meses, totalPago, juros) = cenarioBase
-                val det = buildString {
-                    append("Dívida: ${formatarBrl(p)} | Taxa: $taxaMensal% a.m. | Parcela: ${formatarBrl(parcela)}\n")
-                    append("Quita em $meses meses\n")
-                    append("Total pago: ${formatarBrl(totalPago)}\n")
-                    append("Total em juros: ${formatarBrl(juros)}")
-                    if (extra > 0 && cenarioAcelerado != null) {
-                        val (mAc, totAc, jurAc) = cenarioAcelerado
-                        append("\nCom extra ${formatarBrl(extra)}/mês: $mAc meses, total ${formatarBrl(totAc)}, juros ${formatarBrl(jurAc)}")
-                    }
-                }
-                cacheVm.salvar("Dívidas", "Quita em ${cenarioBase.first} meses", det)
+                val det = """
+                    Sistema: ${sistema.name} | Valor: ${formatarBrl(p)}
+                    Prazo: $n meses | Taxa: $taxaAnual% a.a.
+                    1ª Parcela: ${formatarBrl(primeiraParcela)} | Última: ${formatarBrl(ultimaParcela)}
+                    Total em Juros: ${formatarBrl(totalJuros)}
+                    Custo Total: ${formatarBrl(totalPago)}
+                """.trimIndent()
+                cacheVm.salvar("Financiamento", "${sistema.name}: ${formatarBrl(totalPago)}", det)
             }
         }
 
