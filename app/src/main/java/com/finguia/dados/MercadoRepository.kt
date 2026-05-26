@@ -185,5 +185,12 @@ object MercadoRepository {
         "PYPL" to "paypal.com",
         "UBER" to "uber.com",
         "BABA" to "alibaba.com",
+        // Criptomoedas
+        "BTC-BRL" to "bitcoin.org",
+        "ETH-BRL" to "ethereum.org",
+        "SOL-BRL" to "solana.com",
+        "BNB-BRL" to "binance.com",
+        "ADA-BRL" to "cardano.org",
+        "DOGE-BRL" to "dogecoin.com",
     )
 }

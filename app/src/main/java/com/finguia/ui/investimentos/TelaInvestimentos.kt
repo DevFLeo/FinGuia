@@ -392,8 +392,9 @@ private fun LogoOuIcone(logoUrl: String?, ticker: String, fallback: ImageVector,
     ) {
         // Fallback (atrás) — sempre visível enquanto imagem carrega ou se falhar
         if (ticker.isNotBlank()) {
+            val ex = ticker.split("-").first()
             Text(
-                ticker.take(if (ticker.length >= 4) 4 else ticker.length),
+                ex.take(if (ex.length >= 4) 4 else ex.length),
                 color = Color.White,
                 fontSize = (size / 4).sp,
                 fontWeight = FontWeight.Black

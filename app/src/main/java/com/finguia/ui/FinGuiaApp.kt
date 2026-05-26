@@ -44,7 +44,6 @@ import com.finguia.ui.busca.TelaBusca
 import com.finguia.ui.calculadora.TelaCalculadora
 import com.finguia.ui.configuracoes.ConfiguracoesViewModel
 import com.finguia.ui.configuracoes.TelaConfiguracoes
-import com.finguia.ui.cripto.TelaCripto
 import com.finguia.ui.home.TelaHomeDash
 import com.finguia.ui.home.telaHome
 import com.finguia.ui.investimentos.TelaInvestimentos
@@ -105,7 +104,6 @@ fun FinGuiaApp() {
                     aoClicarLancar = { destinoAtual = DestinosApp.LANCAR },
                     aoClicarExtrato = { destinoAtual = DestinosApp.EXTRATO },
                     aoClicarCalculadora = { destinoAtual = DestinosApp.CALCULADORA },
-                    aoClicarCriptos = { destinoAtual = DestinosApp.CRIPTOMOEDAS },
                     aoClicarTema = { destinoAtual = DestinosApp.CONFIGURACOES },
                     aoClicarBusca = { destinoAtual = DestinosApp.BUSCA },
                     aoClicarNoticias = { destinoAtual = DestinosApp.NOTICIAS },
@@ -125,7 +123,6 @@ fun FinGuiaApp() {
                 )
                 DestinosApp.DASHBOARD      -> TelaHomeDash(modifier = modifier, viewModel = transacaoViewModel)
                 DestinosApp.INVESTIMENTOS  -> TelaInvestimentos(modifier = modifier)
-                DestinosApp.CRIPTOMOEDAS   -> TelaCripto(modifier = modifier)
                 DestinosApp.LANCAR         -> TelaLancar(modifier = modifier, viewModel = transacaoViewModel)
                 DestinosApp.EXTRATO        -> TelaTransacoes(viewModel = transacaoViewModel)
                 DestinosApp.CALCULADORA    -> TelaCalculadora(modifier = modifier)
@@ -221,7 +218,6 @@ enum class DestinosApp(
     LANCAR("Lançar", R.drawable.ic_favorite),
     EXTRATO("Extratos", R.drawable.ic_extrato),
     INVESTIMENTOS("Invest", R.drawable.ic_dashboard, exibirNaBarra = false),
-    CRIPTOMOEDAS("Criptos", R.drawable.ic_cripto, exibirNaBarra = false),
     CALCULADORA("Calc", R.drawable.ic_calculadora, exibirNaBarra = false),
     CONFIGURACOES("Config", R.drawable.ic_home, exibirNaBarra = false),
     BUSCA("Busca", R.drawable.ic_home, exibirNaBarra = false),

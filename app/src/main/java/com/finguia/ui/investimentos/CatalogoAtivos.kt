@@ -135,6 +135,14 @@ val CATALOGO_ATIVOS: List<SugestaoAtivo> = listOf(
     sug("BRCO11", "Bresco Logística", CategoriaInvestimento.IMOVEIS, "FII de galpões alto padrão"),
     sug("ALZR11", "Alianza Trust Renda", CategoriaInvestimento.IMOVEIS, "FII de tijolo diversificado"),
     sug("HGBS11", "CSHG Brasil Shopping", CategoriaInvestimento.IMOVEIS, "FII de shopping centers"),
+
+    // ============== CRIPTOMOEDAS ==============
+    sug("BTC-BRL", "Bitcoin", CategoriaInvestimento.CRIPTO, "A primeira e maior criptomoeda descentralizada"),
+    sug("ETH-BRL", "Ethereum", CategoriaInvestimento.CRIPTO, "Plataforma de contratos inteligentes e DApps"),
+    sug("SOL-BRL", "Solana", CategoriaInvestimento.CRIPTO, "Blockchain de alto desempenho para DApps"),
+    sug("BNB-BRL", "BNB", CategoriaInvestimento.CRIPTO, "Moeda nativa do ecossistema Binance"),
+    sug("ADA-BRL", "Cardano", CategoriaInvestimento.CRIPTO, "Blockchain focada em segurança e pesquisa científica"),
+    sug("DOGE-BRL", "Dogecoin", CategoriaInvestimento.CRIPTO, "Criptomoeda baseada em meme com comunidade global ativa"),
 )
 
 private fun sug(ticker: String, nome: String, cat: CategoriaInvestimento, desc: String) =

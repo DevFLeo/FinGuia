@@ -66,7 +66,6 @@ fun telaHome(
     aoClicarLancar: () -> Unit = {},
     aoClicarExtrato: () -> Unit = {},
     aoClicarCalculadora: () -> Unit = {},
-    aoClicarCriptos: () -> Unit = {},
     aoClicarTema: () -> Unit = {},
     aoClicarBusca: () -> Unit = {},
     aoClicarNoticias: () -> Unit = {},
@@ -173,12 +172,6 @@ fun telaHome(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                BotaoAcaoRes(
-                    modifier = Modifier.weight(1f),
-                    iconeRes = com.finguia.R.drawable.ic_cripto,
-                    rotulo = "Criptos",
-                    aoClicar = aoClicarCriptos
-                )
                 BotaoAcao(
                     modifier = Modifier.weight(1f),
                     icone = Icons.Default.PieChart,

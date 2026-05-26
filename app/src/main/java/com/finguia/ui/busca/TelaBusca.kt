@@ -51,7 +51,6 @@ private val AREAS_APP = listOf(
     ResultadoArea("Extratos", "Histórico de transações bancárias", Icons.Default.Receipt, "EXTRATO"),
     ResultadoArea("Lançar", "Registrar nova transação", Icons.Default.AddCircle, "LANCAR"),
     ResultadoArea("Calculadora", "Calculadora financeira", Icons.Default.Calculate, "CALCULADORA"),
-    ResultadoArea("Criptos", "Acompanhar criptomoedas", Icons.Default.TrendingUp, "CRIPTOMOEDAS"),
     ResultadoArea("Configurações", "Preferências do app", Icons.Default.Settings, "CONFIGURACOES"),
 )
 

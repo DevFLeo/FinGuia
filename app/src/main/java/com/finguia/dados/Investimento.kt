@@ -19,7 +19,7 @@ enum class CategoriaInvestimento {
     ACOES_INTER,      // ações internacionais
     IMOVEIS,          // FIIs, imóveis físicos
     RENDA_FIXA,       // CDB, Tesouro, LCI/LCA
-    CRIPTO,           // manual (cotação automática fica na aba Criptos)
+    CRIPTO,           // cotação automática via Yahoo Finance integrado
     OUTROS
 }
 
