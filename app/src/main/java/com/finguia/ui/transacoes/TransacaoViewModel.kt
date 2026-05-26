@@ -65,4 +65,18 @@ class TransacaoViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     suspend fun buscar(query: String): List<TransacaoBancaria> = repository.buscar(query)
+
+    fun gerarCsv(transacoes: List<TransacaoBancaria>): String {
+        val builder = java.lang.StringBuilder()
+        builder.append("ID;Banco;Tipo;Valor;Descricao;Data;Recorrente;Efetivado\n")
+        val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale("pt", "BR"))
+        transacoes.forEach { t ->
+            val dataStr = dateFormat.format(java.util.Date(t.timestampMs))
+            val valorFormatado = String.format(java.util.Locale("pt", "BR"), "%.2f", t.valor)
+            // Replace newlines in description to avoid breaking CSV
+            val desc = t.descricao.replace("\n", " ").replace(";", ",")
+            builder.append("${t.id};${t.banco};${t.tipo.name};$valorFormatado;$desc;$dataStr;${t.recorrente};${t.efetivado}\n")
+        }
+        return builder.toString()
+    }
 }

@@ -25,6 +25,11 @@ import com.finguia.ui.gerenciamento.ModalEditarTransacao
 import com.finguia.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import java.io.OutputStreamWriter
 
 private data class TelaMetrics(
     val paddingH: Dp,
@@ -97,6 +102,31 @@ fun TelaTransacoes(viewModel: TransacaoViewModel = viewModel()) {
     val totalReceitas by viewModel.totalReceitas.collectAsState()
     val totalDespesas by viewModel.totalDespesas.collectAsState()
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    
+    val exportarCsvLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                try {
+                    context.contentResolver.openOutputStream(it)?.use { os ->
+                        // UTF-8 BOM
+                        os.write(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()))
+                        val writer = OutputStreamWriter(os, "UTF-8")
+                        writer.write(viewModel.gerarCsv(transacoes))
+                        writer.flush()
+                    }
+                    android.widget.Toast.makeText(context, "Planilha exportada com sucesso!", android.widget.Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    android.widget.Toast.makeText(context, "Erro ao exportar planilha", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -112,18 +142,34 @@ fun TelaTransacoes(viewModel: TransacaoViewModel = viewModel()) {
         ) {
             Spacer(Modifier.height(m.spacerMd))
 
-            Text(
-                text = "Extratos Bancários",
-                color = Color.White,
-                fontSize = m.fontTitle,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = "Capturado automaticamente via notificações",
-                color = GrayText,
-                fontSize = m.fontSubtitle
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Extratos Bancários",
+                        color = Color.White,
+                        fontSize = m.fontTitle,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Capturado automaticamente via notificações",
+                        color = GrayText,
+                        fontSize = m.fontSubtitle
+                    )
+                }
+                
+                IconButton(onClick = { exportarCsvLauncher.launch("extratos_finguia.csv") }) {
+                    Icon(
+                        Icons.Default.Download, 
+                        contentDescription = "Exportar Planilha", 
+                        tint = GojoPurple,
+                        modifier = Modifier.size(m.iconMd)
+                    )
+                }
+            }
 
             Spacer(Modifier.height(m.spacerMd))
 

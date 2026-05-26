@@ -30,3 +30,12 @@ replay_pid*.log
 
 # Scripts locais de deploy
 deploy_device.bat
+
+# Backups e arquivos temporários locais
+backup_app_data/
+finguia_backup.ab
+Teste de nome
+
+# Configurações de assinatura (contendo senhas)
+keystore.properties
+
