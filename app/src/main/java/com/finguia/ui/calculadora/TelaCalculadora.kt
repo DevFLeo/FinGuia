@@ -1239,18 +1239,37 @@ private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
                     Box(Modifier.weight(1f)) { CampoNumerico("Prazo (Meses)", prazoMeses) { prazoMeses = it } }
                 }
                 Spacer(Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = { sistema = SistemaAmortizacao.SAC },
                         colors = ButtonDefaults.buttonColors(containerColor = if (sistema == SistemaAmortizacao.SAC) DebtRed else DarkBg),
-                        shape = RoundedCornerShape(8.dp)
-                    ) { Text("SAC", color = Color.White) }
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Decrescente", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
                     Button(
                         onClick = { sistema = SistemaAmortizacao.PRICE },
                         colors = ButtonDefaults.buttonColors(containerColor = if (sistema == SistemaAmortizacao.PRICE) DebtRed else DarkBg),
-                        shape = RoundedCornerShape(8.dp)
-                    ) { Text("PRICE", color = Color.White) }
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Fixa", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = if (sistema == SistemaAmortizacao.SAC) {
+                        " Parcela Decrescente: As parcelas começam mais caras e diminuem a cada mês. Você paga menos juros no total."
+                    } else {
+                        " Parcela Fixa: Todas as parcelas têm exatamente o mesmo valor do início ao fim. Facilita o planejamento mensal."
+                    },
+                    color = GrayText,
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp
+                )
             }
         }
 
@@ -1274,14 +1293,15 @@ private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
             }
             
             BotaoSalvarCalc {
+                val nomeAmortizacao = if (sistema == SistemaAmortizacao.SAC) "Decrescente (SAC)" else "Fixa (Price)"
                 val det = """
-                    Sistema: ${sistema.name} | Valor: ${formatarBrl(p)}
+                    Sistema: $nomeAmortizacao | Valor: ${formatarBrl(p)}
                     Prazo: $n meses | Taxa: $taxaAnual% a.a.
                     1ª Parcela: ${formatarBrl(primeiraParcela)} | Última: ${formatarBrl(ultimaParcela)}
                     Total em Juros: ${formatarBrl(totalJuros)}
                     Custo Total: ${formatarBrl(totalPago)}
                 """.trimIndent()
-                cacheVm.salvar("Financiamento", "${sistema.name}: ${formatarBrl(totalPago)}", det)
+                cacheVm.salvar("Financiamento", "$nomeAmortizacao: ${formatarBrl(totalPago)}", det)
             }
         }
 
