@@ -82,12 +82,13 @@ public final class LeitorOfx {
             instituicao = InstituicoesBR.nome(campo(ofx, "BANKID"));
         }
         String conta = campo(ofx, "ACCTID");
+        boolean cartao = ofx.toUpperCase(Locale.ROOT).contains("<CCSTMTRS>");
 
         List<LancamentoExterno> lancamentos = new ArrayList<>();
         int ignorados = 0;
         Matcher blocos = BLOCO_TRANSACAO.matcher(ofx);
         while (blocos.find()) {
-            LancamentoExterno l = lerTransacao(blocos.group(1), conta, instituicao);
+            LancamentoExterno l = lerTransacao(blocos.group(1), conta, instituicao, cartao);
             if (l == null) {
                 ignorados++;
             } else {
@@ -97,7 +98,8 @@ public final class LeitorOfx {
         return new Resultado(lancamentos, instituicao, ignorados);
     }
 
-    private static LancamentoExterno lerTransacao(String bloco, String conta, String instituicao) {
+    private static LancamentoExterno lerTransacao(String bloco, String conta, String instituicao,
+                                                  boolean cartao) {
         Double valor = lerValor(campo(bloco, "TRNAMT"));
         Long data = lerData(campo(bloco, "DTPOSTED"));
         if (valor == null || data == null || valor == 0.0) {
@@ -118,7 +120,7 @@ public final class LeitorOfx {
         String id = "ofx:" + (conta != null ? conta + ":" : "") + fitid;
 
         return new LancamentoExterno(id, data, valor, descricao, campo(bloco, "TRNTYPE"),
-                contraparte, instituicao, true);
+                contraparte, instituicao, true, cartao);
     }
 
     /**

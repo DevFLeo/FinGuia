@@ -18,10 +18,17 @@ public final class LancamentoExterno {
     private final String contraparte;
     private final String instituicao;
     private final boolean efetivado;
+    private final boolean cartaoCredito;
 
     public LancamentoExterno(String idExterno, long dataMs, double valor, String descricao,
                              String categoria, String contraparte, String instituicao,
                              boolean efetivado) {
+        this(idExterno, dataMs, valor, descricao, categoria, contraparte, instituicao, efetivado, false);
+    }
+
+    public LancamentoExterno(String idExterno, long dataMs, double valor, String descricao,
+                             String categoria, String contraparte, String instituicao,
+                             boolean efetivado, boolean cartaoCredito) {
         if (idExterno == null || idExterno.isEmpty()) {
             throw new IllegalArgumentException("idExterno obrigatorio");
         }
@@ -33,6 +40,7 @@ public final class LancamentoExterno {
         this.contraparte = vazioParaNull(contraparte);
         this.instituicao = vazioParaNull(instituicao);
         this.efetivado = efetivado;
+        this.cartaoCredito = cartaoCredito;
     }
 
     /** Identificador na origem, ja com prefixo: "ofx:..." ou "openfinance:...". */
@@ -75,6 +83,14 @@ public final class LancamentoExterno {
     /** false = lancamento futuro (agendado), fora dos totais ate efetivar. */
     public boolean isEfetivado() {
         return efetivado;
+    }
+
+    /**
+     * Veio de fatura de cartao de credito. Muda a leitura do sinal: la, o
+     * lancamento positivo costuma ser o pagamento da fatura, nao uma receita.
+     */
+    public boolean isCartaoCredito() {
+        return cartaoCredito;
     }
 
     private static String vazioParaNull(String s) {

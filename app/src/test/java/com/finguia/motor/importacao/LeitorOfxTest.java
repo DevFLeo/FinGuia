@@ -76,6 +76,7 @@ public class LeitorOfxTest {
         assertEquals(1500.0, l.get(1).getValor(), D);
         assertTrue(l.get(1).ehEntrada());
         assertEquals("EMPRESA EXEMPLO LTDA", l.get(1).getContraparte());
+        assertFalse("extrato de conta corrente", l.get(0).isCartaoCredito());
     }
 
     @Test
@@ -104,6 +105,7 @@ public class LeitorOfxTest {
         assertEquals(1, r.getLancamentos().size());
         assertEquals("Loja & Cia", r.getLancamentos().get(0).getDescricao());
         assertEquals(-89.9, r.getLancamentos().get(0).getValor(), D);
+        assertTrue("fatura de cartao (CCSTMTRS)", r.getLancamentos().get(0).isCartaoCredito());
     }
 
     @Test
