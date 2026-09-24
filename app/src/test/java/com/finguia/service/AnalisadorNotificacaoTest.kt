@@ -74,6 +74,16 @@ class AnalisadorNotificacaoTest {
     }
 
     @Test
+    fun compraAprovadaNoDebito_naoViraCredito() {
+        // "compra aprovada" e frase do credito; sem a frase especifica do
+        // debito, compras no debito eram registradas como credito
+        val t = transacao("BANCO", "Compra aprovada no debito de R$ 45,60 em PADARIA CENTRAL")
+        assertEquals(TipoTransacao.COMPRA_DEBITO, t.tipo)
+        assertEquals(45.6, t.valor, 0.001)
+        assertEquals("PADARIA CENTRAL", t.contraparte)
+    }
+
+    @Test
     fun debitoAutomaticoPago_ehBoletoPagoNaoCobranca() {
         val t = transacao("Débito automático", "Débito automático: pagamento efetuado de R$ 89,90")
         assertEquals(TipoTransacao.BOLETO_PAGO, t.tipo)

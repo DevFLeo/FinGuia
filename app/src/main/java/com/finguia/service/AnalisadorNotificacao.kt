@@ -80,6 +80,9 @@ object AnalisadorNotificacao {
             "compra realizada no débito", "compra efetuada no débito",
             "transação no débito", "compra no débito", "compra débito",
             "débito aprovado", "débito autorizado",
+            // mais longas que "compra aprovada" (credito), senao o debito virava credito
+            "compra aprovada no débito", "compra autorizada no débito",
+            "transação aprovada no débito",
             // "Você pagou LOJA" + "Debitamos R$ X da sua conta"
             "você pagou", "debitamos"
         ),
@@ -220,7 +223,7 @@ object AnalisadorNotificacao {
                 TipoTransacao.PIX_RECEBIDO           -> "Pix recebido de $contraparte"
                 TipoTransacao.PIX_ENVIADO            -> "Pix enviado para $contraparte"
                 TipoTransacao.COMPRA_CREDITO         -> "Compra no crédito em $contraparte"
-                TipoTransacao.COMPRA_DEBITO          -> "Pagamento para $contraparte"
+                TipoTransacao.COMPRA_DEBITO          -> "Compra no débito em $contraparte"
                 TipoTransacao.BOLETO_PAGO            -> "Boleto pago para $contraparte"
                 TipoTransacao.TRANSFERENCIA_RECEBIDA -> "Transferência recebida de $contraparte"
                 TipoTransacao.TRANSFERENCIA_ENVIADA  -> "Transferência enviada para $contraparte"
