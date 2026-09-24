@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.*
 
 @Composable
@@ -68,7 +69,7 @@ fun ModalEditarTransacao(
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val novoValor = valorTexto.replace(",", ".").toDoubleOrNull() ?: transacao.valor
+                            val novoValor = valorTexto.lerNumeroBR() ?: transacao.valor
                             onConfirmar(transacao.copy(banco = banco.trim(), descricao = descricao.trim(), valor = novoValor))
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)

@@ -126,6 +126,20 @@ public class NumeroBRTest {
     }
 
     @Test
+    public void calculadoraCientifica_resultadoExibidoVoltaIgualNoMMais() {
+        // A calculadora exibe com formatarFlexivel(r, 0, 8) e o M+ le o texto
+        // exibido com ler(). Antes o resultado saia em Locale.US: 1,234 era
+        // exibido "1.234" e voltaria como mil duzentos e trinta e quatro.
+        double[] resultados = {1.234, 1500.0, 1234567.0, 0.5, 0.00001234, -42.75, 12.345};
+        for (double r : resultados) {
+            String exibido = NumeroBR.formatarFlexivel(r, 0, 8);
+            assertEquals("ida e volta de " + r + " via \"" + exibido + "\"", r, NumeroBR.ler(exibido), D);
+        }
+        assertEquals("1,234", NumeroBR.formatarFlexivel(1.234, 0, 8));
+        assertEquals("1.500", NumeroBR.formatarFlexivel(1500.0, 0, 8));
+    }
+
+    @Test
     public void idaEVolta() {
         double[] valores = {0.01, 9.99, 1234.56, 1_000_000.0, 98765.43};
         for (double v : valores) {

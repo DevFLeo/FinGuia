@@ -36,6 +36,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -348,7 +349,7 @@ private fun CardMeta(
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val novo = valorTemp.replace(",", ".").toDoubleOrNull() ?: meta.valorAtual
+                            val novo = valorTemp.lerNumeroBR() ?: meta.valorAtual
                             aoAtualizar(novo)
                             editando = false
                         },
@@ -399,7 +400,7 @@ private fun DialogoNovaMeta(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val valor = objetivo.replace(",", ".").toDoubleOrNull() ?: 0.0
+                    val valor = objetivo.lerNumeroBR() ?: 0.0
                     if (descricao.isNotBlank() && valor > 0) aoConfirmar(descricao, valor)
                 }
             ) { Text("Criar", color = GojoPurple) }

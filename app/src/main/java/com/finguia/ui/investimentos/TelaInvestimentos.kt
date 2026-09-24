@@ -45,6 +45,7 @@ import coil.compose.SubcomposeAsyncImage
 import com.finguia.dados.CategoriaInvestimento
 import com.finguia.dados.CotacaoAtivo
 import com.finguia.dados.Investimento
+import com.finguia.ui.formato.lerNumeroBR
 import kotlinx.coroutines.delay
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
@@ -530,7 +531,7 @@ private fun DialogComprarSugestao(
                         color = MoneyGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(4.dp))
                 } else {
-                    Text("Rentabilidade estimada: ${"%.2f".format(rent.replace(",", ".").toDoubleOrNull() ?: sugestao.rentabilidadeEstimadaPct)}% a.a.",
+                    Text("Rentabilidade estimada: ${"%.2f".format(rent.lerNumeroBR() ?: sugestao.rentabilidadeEstimadaPct)}% a.a.",
                         color = MoneyGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(4.dp))
                 }
@@ -547,7 +548,7 @@ private fun DialogComprarSugestao(
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (cotacao != null) {
-                    val v = valor.replace(".", "").replace(",", ".").toDoubleOrNull() ?: 0.0
+                    val v = valor.lerNumeroBR() ?: 0.0
                     if (v > 0 && cotacao.preco > 0) {
                         val qty = v / cotacao.preco
                         Text("Aprox. ${"%.4f".format(qty)} unidades de ${sugestao.ticker}",
@@ -592,8 +593,8 @@ private fun DialogComprarSugestao(
         confirmButton = {
             Button(
                 onClick = {
-                    val v = valor.replace(".", "").replace(",", ".").toDoubleOrNull()
-                    val r = rent.replace(",", ".").toDoubleOrNull() ?: sugestao.rentabilidadeEstimadaPct
+                    val v = valor.lerNumeroBR()
+                    val r = rent.lerNumeroBR() ?: sugestao.rentabilidadeEstimadaPct
                     if (v == null || v <= 0) erro = true else aoConfirmar(v, r)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)

@@ -57,6 +57,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.finguia.motor.NumeroBR
+import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -305,8 +307,8 @@ private fun avaliarCientifica(expressao: String): String {
             .replace("÷", "/")
             .replace("π", "pi")
         val r = Avaliador(limpa).avaliar()
-        if (r == r.toLong().toDouble() && kotlin.math.abs(r) < 1e15) r.toLong().toString()
-        else "%.8f".format(Locale.US, r).trimEnd('0').trimEnd('.')
+        // Padrao BR: ate 8 casas, sem zeros sobrando (1.234,5 / 0,00001234)
+        NumeroBR.formatarFlexivel(r, 0, 8)
     } catch (e: Exception) {
         "Erro: ${e.message}"
     }
@@ -599,7 +601,7 @@ private fun BlocoConversao(vm: MoedasViewModel = viewModel()) {
                 SeletorMoeda(destinoCodigo, moedas, menuDestino, { menuDestino = it }) { destinoCodigo = it }
 
                 Spacer(Modifier.height(12.dp))
-                val v = valor.replace(",", ".").toDoubleOrNull() ?: 0.0
+                val v = valor.lerNumeroBR() ?: 0.0
                 val resultado = converter(v, origemCodigo, destinoCodigo, lista)
                 Text(
                     text = "Resultado: ${formatarNumero(resultado)} $destinoCodigo",
@@ -733,21 +735,21 @@ private fun BlocoFinanceira(cacheVm: CalcCacheViewModel) {
             onClick = {
                 val m = meses.toIntOrNull() ?: 0
                 val p = ParametrosInvestimento(
-                    inicial = inicial.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    aporteMensal = aporte.replace(",", ".").toDoubleOrNull() ?: 0.0,
+                    inicial = inicial.lerNumeroBR() ?: 0.0,
+                    aporteMensal = aporte.lerNumeroBR() ?: 0.0,
                     meses = m,
-                    selicAA = selic.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    cdiAA = cdi.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    ipcaAA = ipca.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    trAM = tr.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    tesouroPreAA = tesPre.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    custodiaB3AA = custodia.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    tesouroIpcaAA = tesIpca.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    admFundoDiAA = admFdi.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    rentCdbPctCdi = rentCdb.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    rentFundoDiPctCdi = rentFdi.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    rentLciLcaPctCdi = rentLci.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    taxaPoupancaAM = poup.replace(",", ".").toDoubleOrNull() ?: 0.0
+                    selicAA = selic.lerNumeroBR() ?: 0.0,
+                    cdiAA = cdi.lerNumeroBR() ?: 0.0,
+                    ipcaAA = ipca.lerNumeroBR() ?: 0.0,
+                    trAM = tr.lerNumeroBR() ?: 0.0,
+                    tesouroPreAA = tesPre.lerNumeroBR() ?: 0.0,
+                    custodiaB3AA = custodia.lerNumeroBR() ?: 0.0,
+                    tesouroIpcaAA = tesIpca.lerNumeroBR() ?: 0.0,
+                    admFundoDiAA = admFdi.lerNumeroBR() ?: 0.0,
+                    rentCdbPctCdi = rentCdb.lerNumeroBR() ?: 0.0,
+                    rentFundoDiPctCdi = rentFdi.lerNumeroBR() ?: 0.0,
+                    rentLciLcaPctCdi = rentLci.lerNumeroBR() ?: 0.0,
+                    taxaPoupancaAM = poup.lerNumeroBR() ?: 0.0
                 )
                 resultados = calcularInvestimentos(p)
                 totalInv = p.inicial + p.aporteMensal * m
@@ -812,7 +814,7 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
         listOf("7", "8", "9", "/", "("),
         listOf("4", "5", "6", "*", ")"),
         listOf("1", "2", "3", "-", "<-"),
-        listOf("0", ".", "=", "+", "abs(")
+        listOf("0", ",", "=", "+", "abs(")
     )
 
     Column(
@@ -829,7 +831,7 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
         ) {
             Column(Modifier.padding(12.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(if (memoria != 0.0) "M = ${if (memoria == memoria.toLong().toDouble()) memoria.toLong().toString() else memoria}" else " ", color = MoneyGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(if (memoria != 0.0) "M = ${NumeroBR.formatarFlexivel(memoria, 0, 8)}" else " ", color = MoneyGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Text(expressao.ifEmpty { " " }, color = GrayText, fontSize = 14.sp, maxLines = 2, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
                 }
                 Text(resultado, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
@@ -855,13 +857,13 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
                                 "C" -> { expressao = ""; resultado = "0" }
                                 "<-" -> if (expressao.isNotEmpty()) expressao = expressao.dropLast(1)
                                 "MC" -> memoria = 0.0
-                                "MR" -> expressao += if (memoria == memoria.toLong().toDouble()) memoria.toLong().toString() else memoria.toString()
+                                "MR" -> expressao += NumeroBR.formatarFlexivel(memoria, 0, 8).replace(".", "")
                                 "M+" -> {
-                                    val r = resultado.replace(",", ".").toDoubleOrNull()
+                                    val r = resultado.lerNumeroBR()
                                     if (r != null) memoria += r
                                 }
                                 "M-" -> {
-                                    val r = resultado.replace(",", ".").toDoubleOrNull()
+                                    val r = resultado.lerNumeroBR()
                                     if (r != null) memoria -= r
                                 }
                                 "!" -> {
@@ -909,11 +911,11 @@ private fun BlocoInvestimentos(cacheVm: CalcCacheViewModel) {
     var fluxoAnual3 by remember { mutableStateOf("5000.00") }
     var taxaDesconto by remember { mutableStateOf("10.0") }
 
-    val p = investidoInicial.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val f1 = fluxoAnual1.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val f2 = fluxoAnual2.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val f3 = fluxoAnual3.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val taxaD = (taxaDesconto.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val p = investidoInicial.lerNumeroBR() ?: 0.0
+    val f1 = fluxoAnual1.lerNumeroBR() ?: 0.0
+    val f2 = fluxoAnual2.lerNumeroBR() ?: 0.0
+    val f3 = fluxoAnual3.lerNumeroBR() ?: 0.0
+    val taxaD = (taxaDesconto.lerNumeroBR() ?: 0.0) / 100.0
 
     val fluxos = listOf(-p, f1, f2, f3)
     
@@ -1037,14 +1039,14 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
     var margemLucroPerc by remember { mutableStateOf("10.00") }
     var descontoPerc by remember { mutableStateOf("10.00") }
 
-    val c = custoAquisicao.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val f = freteSeguro.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val imp = (impostosPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val com = (comissoesPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val cart = (taxasCartaoPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val df = (despesasFixasPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val ml = (margemLucroPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
-    val desc = (descontoPerc.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val c = custoAquisicao.lerNumeroBR() ?: 0.0
+    val f = freteSeguro.lerNumeroBR() ?: 0.0
+    val imp = (impostosPerc.lerNumeroBR() ?: 0.0) / 100.0
+    val com = (comissoesPerc.lerNumeroBR() ?: 0.0) / 100.0
+    val cart = (taxasCartaoPerc.lerNumeroBR() ?: 0.0) / 100.0
+    val df = (despesasFixasPerc.lerNumeroBR() ?: 0.0) / 100.0
+    val ml = (margemLucroPerc.lerNumeroBR() ?: 0.0) / 100.0
+    val desc = (descontoPerc.lerNumeroBR() ?: 0.0) / 100.0
 
     val custoBase = c + f
     val deducoesVenda = imp + com + cart
@@ -1180,8 +1182,8 @@ private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
     var prazoMeses by remember { mutableStateOf("120") }
     var sistema by remember { mutableStateOf(SistemaAmortizacao.SAC) }
 
-    val p = valorPrincipal.replace(",", ".").toDoubleOrNull() ?: 0.0
-    val iAno = (taxaAnual.replace(",", ".").toDoubleOrNull() ?: 0.0) / 100.0
+    val p = valorPrincipal.lerNumeroBR() ?: 0.0
+    val iAno = (taxaAnual.lerNumeroBR() ?: 0.0) / 100.0
     val n = prazoMeses.toIntOrNull() ?: 0
 
     val iMes = (1.0 + iAno).pow(1.0 / 12.0) - 1.0

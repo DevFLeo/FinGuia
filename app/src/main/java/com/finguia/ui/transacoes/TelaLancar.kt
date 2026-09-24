@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.dados.CategoriaCustom
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.*
 
 // ─────────────────────────────────────────────
@@ -984,15 +985,8 @@ private fun CampoDescricao(
 // UTILITÁRIOS
 // ─────────────────────────────────────────────
 
-private fun parsearValorBrasileiro(texto: String): Double? {
-    if (texto.isBlank()) return null
-    return try {
-        val normalizado = if (texto.contains(","))
-            texto.replace(".", "").replace(",", ".")
-        else texto
-        normalizado.toDouble().takeIf { it > 0 }
-    } catch (_: NumberFormatException) { null }
-}
+private fun parsearValorBrasileiro(texto: String): Double? =
+    texto.lerNumeroBR()?.takeIf { it > 0 }
 
 private fun formatarValor(valor: Double): String =
     "R$ %,.2f".format(valor).replace(",", "X").replace(".", ",").replace("X", ".")
