@@ -17,6 +17,7 @@ import com.finguia.motor.MascaraMoeda
 import com.finguia.ui.formato.MascaraMoedaBR
 import com.finguia.ui.formato.digitosMoeda
 import com.finguia.ui.theme.*
+import com.finguia.ui.theme.TextoForte
 
 @Composable
 fun ModalEditarTransacao(
@@ -34,7 +35,7 @@ fun ModalEditarTransacao(
             colors = CardDefaults.cardColors(containerColor = CardBg)
         ) {
             Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Editar Transação", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Editar Transação", color = TextoForte, fontSize = 18.sp, fontWeight = FontWeight.Bold)
 
                 OutlinedTextField(
                     value = banco,
@@ -91,7 +92,7 @@ fun ModalEditarTransacao(
 private fun outlinedFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = GojoPurple,
     unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
+    focusedTextColor = TextoForte,
+    unfocusedTextColor = TextoForte,
     cursorColor = GojoPurple
 )

@@ -32,6 +32,8 @@ import com.finguia.ui.theme.DebtRed
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import com.finguia.ui.theme.MoneyGreen
+import com.finguia.ui.theme.TextoForte
+import com.finguia.ui.theme.TrilhoProgresso
 import com.finguia.ui.transacoes.TransacaoViewModel
 
 @Composable
@@ -48,7 +50,7 @@ fun TelaHomeDash(
     ) {
         Text(
             text = "PAINEL FINANCEIRO",
-            color = Color.White,
+            color = TextoForte,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 2.sp
@@ -90,7 +92,7 @@ fun SecoesPainel(viewModel: TransacaoViewModel) {
             Spacer(Modifier.height(4.dp))
             Text(
                 text = formatarMoedaPainel(saldoTotal),
-                color = if (saldoTotal >= 0) Color.White else DebtRed,
+                color = if (saldoTotal >= 0) TextoForte else DebtRed,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -111,7 +113,7 @@ fun SecoesPainel(viewModel: TransacaoViewModel) {
                     proporcaoGastos < 0.9f -> Color(0xFFFFB300)
                     else                   -> DebtRed
                 },
-                trackColor = Color(0xFF222222),
+                trackColor = TrilhoProgresso,
             )
         }
     }
@@ -290,7 +292,7 @@ private fun BarraCategoria(nome: String, valor: Double, proporcao: Float) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(nome, color = Color.White, fontSize = 12.sp)
+            Text(nome, color = TextoForte, fontSize = 12.sp)
             Text(formatarMoedaPainel(valor), color = DebtRed, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(4.dp))
@@ -300,7 +302,7 @@ private fun BarraCategoria(nome: String, valor: Double, proporcao: Float) {
                 .fillMaxWidth()
                 .height(6.dp),
             color = DebtRed.copy(alpha = 0.7f + 0.3f * proporcao),
-            trackColor = Color(0xFF222222),
+            trackColor = TrilhoProgresso,
         )
     }
 }
@@ -346,7 +348,7 @@ private fun GraficoRosquinhaCategorias(gastos: Map<String, Double>) {
                 Text("Total", color = GrayText, fontSize = 11.sp)
                 Text(
                     text = formatarMoedaPainel(total),
-                    color = Color.White,
+                    color = TextoForte,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -370,7 +372,7 @@ private fun GraficoRosquinhaCategorias(gastos: Map<String, Double>) {
                     Spacer(Modifier.width(8.dp))
                     Text(
                         text = nome,
-                        color = Color.White,
+                        color = TextoForte,
                         fontSize = 11.sp,
                         modifier = Modifier.weight(1f),
                         maxLines = 1

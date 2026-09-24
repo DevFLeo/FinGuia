@@ -29,10 +29,13 @@ import com.finguia.dados.GNewsArtigo
 import com.finguia.dados.TaxasBcb
 import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.theme.CardBg
+import com.finguia.ui.theme.CardElevado
 import com.finguia.ui.theme.DarkBg
+import com.finguia.ui.theme.DestaqueTopo
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import com.finguia.ui.theme.MoneyGreen
+import com.finguia.ui.theme.TextoForte
 
 @Composable
 fun TelaDetalheRendaFixa(
@@ -66,13 +69,13 @@ fun TelaDetalheRendaFixa(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Color(0xFF1A1040), DarkBg)))
+                    .background(Brush.verticalGradient(listOf(DestaqueTopo, DarkBg)))
                     .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = aoVoltar) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = TextoForte)
                         }
                         Spacer(Modifier.width(4.dp))
                         Box(
@@ -83,7 +86,7 @@ fun TelaDetalheRendaFixa(
                         }
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(sugestao.nome, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                            Text(sugestao.nome, color = TextoForte, fontSize = 18.sp, fontWeight = FontWeight.Black)
                             Text("Renda Fixa", color = GrayText, fontSize = 11.sp)
                         }
                     }
@@ -179,7 +182,7 @@ private fun CardSecaoRf(titulo: String, content: @Composable ColumnScope.() -> U
         shape = RoundedCornerShape(14.dp)
     ) {
         Column(Modifier.padding(14.dp)) {
-            Text(titulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+            Text(titulo, color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 10.dp))
             content()
         }
@@ -190,7 +193,7 @@ private fun CardSecaoRf(titulo: String, content: @Composable ColumnScope.() -> U
 private fun LinhaTaxa(label: String, valor: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Text(label, color = GrayText, fontSize = 12.sp, modifier = Modifier.weight(1f))
-        Text(valor, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Text(valor, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -201,7 +204,7 @@ private fun ItemNoticiaRf(art: GNewsArtigo) {
     Row(
         Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF1A1A24))
+            .background(CardElevado)
             .clickable(enabled = !url.isNullOrBlank()) {
                 url?.let { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it))) }
             }
@@ -213,7 +216,7 @@ private fun ItemNoticiaRf(art: GNewsArtigo) {
             Spacer(Modifier.width(8.dp))
         }
         Column(Modifier.weight(1f)) {
-            Text(art.title ?: "(sem título)", color = Color.White, fontSize = 12.sp,
+            Text(art.title ?: "(sem título)", color = TextoForte, fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold, maxLines = 3)
             Spacer(Modifier.height(2.dp))
             Text(art.source?.name ?: "", color = GrayText, fontSize = 10.sp)

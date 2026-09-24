@@ -36,6 +36,7 @@ import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.ui.formato.emReais
 import com.finguia.ui.theme.*
+import com.finguia.ui.theme.TextoForte
 import com.finguia.ui.transacoes.CategoriaViewModel
 import com.finguia.ui.transacoes.TransacaoViewModel
 import kotlinx.coroutines.delay
@@ -124,7 +125,7 @@ fun TelaBusca(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IconButton(onClick = aoVoltar) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = TextoForte)
             }
 
             Box(
@@ -143,7 +144,7 @@ fun TelaBusca(
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
-                    textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                    textStyle = TextStyle(color = TextoForte, fontSize = 14.sp),
                     cursorBrush = SolidColor(GojoPurple),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -273,7 +274,7 @@ private fun ItemArea(area: ResultadoArea, aoClicar: () -> Unit) {
             Icon(area.icone, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(18.dp))
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(area.rotulo, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(area.rotulo, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             Text(area.descricao, color = GrayText, fontSize = 11.sp)
         }
         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = GrayText, modifier = Modifier.size(16.dp))
@@ -304,7 +305,7 @@ private fun ItemCategoria(categoria: CategoriaCustom, aoClicar: () -> Unit) {
             )
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(categoria.label, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(categoria.label, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             Text(categoria.sublabel, color = GrayText, fontSize = 11.sp)
         }
         Text(
@@ -342,7 +343,7 @@ private fun ItemTransacao(transacao: TransacaoBancaria, aoClicar: () -> Unit) {
             Icon(iconeParaTipo(transacao.tipo), contentDescription = null, tint = cor, modifier = Modifier.size(18.dp))
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(transacao.banco, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(transacao.banco, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             Text(transacao.descricao, color = GrayText, fontSize = 11.sp, maxLines = 1)
             Text(data, color = GrayText.copy(alpha = 0.6f), fontSize = 10.sp)
         }

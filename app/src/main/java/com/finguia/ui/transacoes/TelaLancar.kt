@@ -31,6 +31,7 @@ import com.finguia.ui.formato.MascaraMoedaBR
 import com.finguia.ui.formato.digitosMoeda
 import com.finguia.ui.formato.emReais
 import com.finguia.ui.theme.*
+import com.finguia.ui.theme.TextoForte
 
 // ─────────────────────────────────────────────
 // MODELO DE CATEGORIA DE LANÇAMENTO
@@ -223,7 +224,7 @@ private fun DialogLancamento(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(categoria.icone, contentDescription = null, tint = corAcento, modifier = Modifier.size(24.dp))
                 Column {
-                    Text(categoria.label, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    Text(categoria.label, color = TextoForte, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                     if (ehRecorrente)
                         Text("Lançamento recorrente", color = GojoPurple, fontSize = 11.sp)
                     else
@@ -277,7 +278,7 @@ private fun DialogLancamentoAvulso(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Default.AddCircleOutline, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(24.dp))
-                Text("Lançar Valor Avulso", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text("Lançar Valor Avulso", color = TextoForte, fontSize = 17.sp, fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -360,7 +361,7 @@ private fun DialogCriarCategoria(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Default.AddBox, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(24.dp))
-                Text("Nova Categoria", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text("Nova Categoria", color = TextoForte, fontSize = 17.sp, fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -411,11 +412,11 @@ private fun DialogCriarCategoria(
                     colors      = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = corAcento,
                         unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
-                        focusedTextColor     = Color.White,
-                        unfocusedTextColor   = Color.White,
+                        focusedTextColor     = TextoForte,
+                        unfocusedTextColor   = TextoForte,
                         cursorColor          = corAcento,
                         errorBorderColor     = DebtRed,
-                        errorTextColor       = Color.White,
+                        errorTextColor       = TextoForte,
                     ),
                     modifier    = Modifier.fillMaxWidth()
                 )
@@ -429,8 +430,8 @@ private fun DialogCriarCategoria(
                     colors      = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = GojoPurple,
                         unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
-                        focusedTextColor     = Color.White,
-                        unfocusedTextColor   = Color.White,
+                        focusedTextColor     = TextoForte,
+                        unfocusedTextColor   = TextoForte,
                         cursorColor          = GojoPurple,
                     ),
                     modifier    = Modifier.fillMaxWidth()
@@ -574,7 +575,7 @@ private fun AbaRecorrente(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(transacao.descricao, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(transacao.descricao, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         Text(transacao.banco, color = GrayText, fontSize = 11.sp)
                     }
                     Text(
@@ -646,7 +647,7 @@ private fun AbaAgendado(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(transacao.descricao, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(transacao.descricao, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         Text("Para $data", color = GojoPurple, fontSize = 11.sp)
                     }
                     Text(
@@ -694,7 +695,7 @@ private fun DialogLancamentoAgendado(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Default.Schedule, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(24.dp))
-                Text("Agendar Lançamento", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text("Agendar Lançamento", color = TextoForte, fontSize = 17.sp, fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -745,7 +746,7 @@ private fun DialogLancamentoAgendado(
                     Spacer(Modifier.width(10.dp))
                     Text(
                         text = dataSelecionada?.let { "Data: ${fmtData.format(java.util.Date(it))}" } ?: "Escolher data",
-                        color = Color.White,
+                        color = TextoForte,
                         fontSize = 13.sp
                     )
                 }
@@ -812,7 +813,7 @@ private fun BotaoAcaoRapida(
         Icon(icone, contentDescription = null, tint = cor, modifier = Modifier.size(18.dp))
         Text(
             texto,
-            color = Color.White,
+            color = TextoForte,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1
@@ -844,7 +845,7 @@ private fun BarraAbas(abas: List<String>, selecionada: Int, aoSelecionar: (Int) 
             ) {
                 Text(
                     text        = titulo.uppercase(),
-                    color       = Color.White,
+                    color       = if (ativa) Color.White else TextoForte,
                     fontSize    = 10.sp,
                     fontWeight  = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -877,7 +878,7 @@ private fun CardGanho(modifier: Modifier, categoria: Categoria, aoClicar: () -> 
     ) {
         Icon(categoria.icone, contentDescription = null, tint = MoneyGreen, modifier = Modifier.size(22.dp))
         Spacer(Modifier.height(6.dp))
-        Text(categoria.label,    color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Text(categoria.label,    color = TextoForte, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
         Text(categoria.sublabel, color = GrayText,    fontSize = 9.sp, textAlign = TextAlign.Center)
     }
 }
@@ -897,7 +898,7 @@ private fun CardDivida(modifier: Modifier, categoria: Categoria, aoClicar: () ->
     ) {
         Icon(categoria.icone, contentDescription = null, tint = DebtRed, modifier = Modifier.size(22.dp))
         Spacer(Modifier.height(6.dp))
-        Text(categoria.label,    color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Text(categoria.label,    color = TextoForte, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
         Text(categoria.sublabel, color = GrayText,    fontSize = 9.sp, textAlign = TextAlign.Center)
     }
 }
@@ -918,7 +919,7 @@ private fun CardTemplate(categoria: Categoria, aoClicar: () -> Unit) {
     ) {
         Icon(categoria.icone, contentDescription = null, tint = cor, modifier = Modifier.size(26.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(categoria.label,    color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text(categoria.label,    color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             Text(categoria.sublabel, color = GrayText,    fontSize = 12.sp)
         }
         Icon(Icons.Default.Add, contentDescription = "Adicionar", tint = cor, modifier = Modifier.size(20.dp))
@@ -952,11 +953,11 @@ private fun CampoValor(
         colors         = OutlinedTextFieldDefaults.colors(
             focusedBorderColor   = corAcento,
             unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
-            focusedTextColor     = Color.White,
-            unfocusedTextColor   = Color.White,
+            focusedTextColor     = TextoForte,
+            unfocusedTextColor   = TextoForte,
             cursorColor          = corAcento,
             errorBorderColor     = DebtRed,
-            errorTextColor       = Color.White,
+            errorTextColor       = TextoForte,
         ),
         modifier = Modifier.fillMaxWidth()
     )
@@ -977,8 +978,8 @@ private fun CampoDescricao(
         colors        = OutlinedTextFieldDefaults.colors(
             focusedBorderColor   = GojoPurple,
             unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
-            focusedTextColor     = Color.White,
-            unfocusedTextColor   = Color.White,
+            focusedTextColor     = TextoForte,
+            unfocusedTextColor   = TextoForte,
             cursorColor          = GojoPurple,
         ),
         modifier      = Modifier.fillMaxWidth()

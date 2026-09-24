@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.ui.theme.*
+import com.finguia.ui.theme.TextoForte
 import com.finguia.ui.transacoes.TransacaoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +55,7 @@ fun TelaHistoricoEdicao(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = DarkBg,
-                    titleContentColor = Color.White
+                    titleContentColor = TextoForte
                 )
             )
         },
@@ -81,8 +82,8 @@ fun TelaHistoricoEdicao(
                     unfocusedBorderColor = CardBg,
                     focusedContainerColor = CardBg,
                     unfocusedContainerColor = CardBg,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
+                    focusedTextColor = TextoForte,
+                    unfocusedTextColor = TextoForte
                 )
             )
 
@@ -148,7 +149,7 @@ private fun CardTransacaoEditavel(
         Spacer(Modifier.width(16.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(transacao.descricao, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text(transacao.descricao, color = TextoForte, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             Text(transacao.banco, color = GrayText, fontSize = 12.sp)
         }
 

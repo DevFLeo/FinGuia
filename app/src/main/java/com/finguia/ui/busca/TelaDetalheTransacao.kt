@@ -20,6 +20,7 @@ import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.ui.formato.emReais
 import com.finguia.ui.theme.*
+import com.finguia.ui.theme.TextoForte
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -52,11 +53,11 @@ fun TelaDetalheTransacao(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = aoVoltar) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = TextoForte)
             }
             Text(
                 "Detalhes da transação",
-                color = Color.White,
+                color = TextoForte,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(start = 4.dp)
@@ -187,7 +188,7 @@ private fun LinhaDetalhe(rotulo: String, valor: String) {
     Column(modifier = Modifier.padding(vertical = 12.dp)) {
         Text(rotulo, color = GrayText, fontSize = 11.sp)
         Spacer(Modifier.height(2.dp))
-        Text(valor, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+        Text(valor, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.Medium)
     }
 }
 

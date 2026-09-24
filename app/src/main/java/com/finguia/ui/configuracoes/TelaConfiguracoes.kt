@@ -1,6 +1,7 @@
 package com.finguia.ui.configuracoes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -33,6 +36,8 @@ import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
+import com.finguia.ui.theme.TemaApp
+import com.finguia.ui.theme.TextoForte
 
 @Composable
 fun TelaConfiguracoes(
@@ -41,6 +46,7 @@ fun TelaConfiguracoes(
     cacheVm: CalcCacheViewModel = viewModel()
 ) {
     val ocultarSaldo by configViewModel.ocultarSaldo.collectAsState()
+    val tema by configViewModel.tema.collectAsState()
     val abasOcultas by cacheVm.ocultas.collectAsState()
     val scrollState = rememberScrollState()
 
@@ -53,10 +59,27 @@ fun TelaConfiguracoes(
     ) {
         Text(
             text = "Configurações",
-            color = Color.White,
+            color = TextoForte,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SecaoConfiguracoes(titulo = "Aparência") {
+            TemaApp.entries.forEach { opcao ->
+                ItemEscolha(
+                    rotulo = opcao.rotulo,
+                    subRotulo = when (opcao) {
+                        TemaApp.SISTEMA -> "Acompanha o modo claro/escuro do Android"
+                        TemaApp.ESCURO -> "Fundo escuro, padrão do FinGuia"
+                        TemaApp.CLARO -> "Fundo branco"
+                    },
+                    selecionado = tema == opcao,
+                    aoEscolher = { configViewModel.definirTema(opcao) }
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -106,6 +129,36 @@ private fun SecaoConfiguracoes(titulo: String, conteudo: @Composable () -> Unit)
     }
 }
 
+/** Linha de escolha unica (radio). A linha inteira responde ao toque. */
+@Composable
+private fun ItemEscolha(
+    rotulo: String,
+    subRotulo: String,
+    selecionado: Boolean,
+    aoEscolher: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = aoEscolher)
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = rotulo, color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(text = subRotulo, color = GrayText, fontSize = 12.sp)
+        }
+        RadioButton(
+            selected = selecionado,
+            onClick = aoEscolher,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = GojoPurple,
+                unselectedColor = GrayText
+            )
+        )
+    }
+}
+
 @Composable
 private fun ItemSwitch(
     rotulo: String,
@@ -121,7 +174,7 @@ private fun ItemSwitch(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = rotulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(text = rotulo, color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             Text(text = subRotulo, color = GrayText, fontSize = 12.sp)
         }
         Switch(

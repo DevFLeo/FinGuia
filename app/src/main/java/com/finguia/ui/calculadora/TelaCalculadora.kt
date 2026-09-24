@@ -66,6 +66,7 @@ import com.finguia.ui.theme.DebtRed
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import com.finguia.ui.theme.MoneyGreen
+import com.finguia.ui.theme.TextoForte
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -491,7 +492,7 @@ fun TelaCalculadora(
     ) {
         Text(
             text = "Calculadora",
-            color = Color.White,
+            color = TextoForte,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 8.dp)
@@ -508,7 +509,7 @@ fun TelaCalculadora(
         ScrollableTabRow(
             selectedTabIndex = idx,
             containerColor = DarkBg,
-            contentColor = Color.White,
+            contentColor = TextoForte,
             edgePadding = 0.dp
         ) {
             abasVisiveis.forEach { a ->
@@ -560,7 +561,7 @@ private fun BlocoConversao(vm: MoedasViewModel = viewModel()) {
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Cotações em tempo real", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text("Cotações em tempo real", color = TextoForte, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             Button(
                 onClick = { vm.atualizar() },
                 colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
@@ -624,11 +625,11 @@ private fun BlocoConversao(vm: MoedasViewModel = viewModel()) {
             ) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("${m.codigo}  -  ${m.nome}", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("${m.codigo}  -  ${m.nome}", color = TextoForte, fontWeight = FontWeight.Bold)
                         Text("Variação 24h: ${m.variacaoPct.emNumeroBR(2)}%",
                             color = if (m.variacaoPct >= 0) MoneyGreen else DebtRed, fontSize = 12.sp)
                     }
-                    Text("R$ ${m.valorEmReais.emNumeroBR(4)}", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("R$ ${m.valorEmReais.emNumeroBR(4)}", color = TextoForte, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -658,8 +659,8 @@ private fun SeletorMoeda(
             colors = ButtonDefaults.buttonColors(containerColor = DarkBg),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(selecionada, color = Color.White, modifier = Modifier.weight(1f))
-            Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.White)
+            Text(selecionada, color = TextoForte, modifier = Modifier.weight(1f))
+            Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = TextoForte)
         }
         DropdownMenu(
             expanded = aberto,
@@ -705,26 +706,26 @@ private fun BlocoFinanceira(cacheVm: CalcCacheViewModel) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Text("Parâmetros básicos", color = Color.White, fontWeight = FontWeight.Bold)
+        Text("Parâmetros básicos", color = TextoForte, fontWeight = FontWeight.Bold)
         CampoNumerico("Investimento inicial (R$)", inicial) { inicial = it }
         CampoNumerico("Aporte mensal (R$)", aporte) { aporte = it }
         CampoNumerico("Período (meses)", meses) { meses = it }
 
         Spacer(Modifier.height(8.dp))
-        Text("Índices de mercado", color = Color.White, fontWeight = FontWeight.Bold)
+        Text("Índices de mercado", color = TextoForte, fontWeight = FontWeight.Bold)
         CampoNumerico("Selic efetiva a.a. (%)", selic) { selic = it }
         CampoNumerico("CDI a.a. (%)", cdi) { cdi = it }
         CampoNumerico("IPCA a.a. (%)", ipca) { ipca = it }
         CampoNumerico("TR a.m. (%)", tr) { tr = it }
 
         Spacer(Modifier.height(8.dp))
-        Text("Tesouro Direto", color = Color.White, fontWeight = FontWeight.Bold)
+        Text("Tesouro Direto", color = TextoForte, fontWeight = FontWeight.Bold)
         CampoNumerico("Tesouro Prefixado a.a. (%)", tesPre) { tesPre = it }
         CampoNumerico("Taxa de custódia B3 a.a. (%)", custodia) { custodia = it }
         CampoNumerico("Tesouro IPCA+ a.a. (%)", tesIpca) { tesIpca = it }
 
         Spacer(Modifier.height(8.dp))
-        Text("Outros ativos", color = Color.White, fontWeight = FontWeight.Bold)
+        Text("Outros ativos", color = TextoForte, fontWeight = FontWeight.Bold)
         CampoNumerico("Taxa de administração Fundo DI a.a. (%)", admFdi) { admFdi = it }
         CampoNumerico("Rentabilidade CDB (% do CDI)", rentCdb) { rentCdb = it }
         CampoNumerico("Rentabilidade Fundo DI (% do CDI)", rentFdi) { rentFdi = it }
@@ -761,7 +762,7 @@ private fun BlocoFinanceira(cacheVm: CalcCacheViewModel) {
 
         Spacer(Modifier.height(16.dp))
         if (resultados.isNotEmpty()) {
-            Text("Total investido: ${formatarBrl(totalInv)}", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Total investido: ${formatarBrl(totalInv)}", color = TextoForte, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             resultados.forEachIndexed { idx, r ->
                 CardResultadoAtivo(r, idx == 0)
@@ -789,11 +790,11 @@ private fun CardResultadoAtivo(r: ResultadoAtivo, destaque: Boolean) {
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(Modifier.padding(12.dp)) {
-            Text(r.nome, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(r.nome, color = TextoForte, fontWeight = FontWeight.Bold)
             Text("Líquido: ${formatarBrl(r.liquido)}", color = MoneyGreen, fontWeight = FontWeight.Bold)
             Text("Bruto: ${formatarBrl(r.bruto)}", color = GrayText, fontSize = 12.sp)
             Text("Custos: ${formatarBrl(r.custos)}  |  IR: ${formatarBrl(r.ir)}", color = GrayText, fontSize = 12.sp)
-            Text("Rent. líquida: ${r.rentLiquidaAA.emNumeroBR(2)}% a.a.", color = Color.White, fontSize = 12.sp)
+            Text("Rent. líquida: ${r.rentLiquidaAA.emNumeroBR(2)}% a.a.", color = TextoForte, fontSize = 12.sp)
         }
     }
 }
@@ -835,7 +836,7 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
                     Text(if (memoria != 0.0) "M = ${NumeroBR.formatarFlexivel(memoria, 0, 8)}" else " ", color = MoneyGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Text(expressao.ifEmpty { " " }, color = GrayText, fontSize = 14.sp, maxLines = 2, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
                 }
-                Text(resultado, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+                Text(resultado, color = TextoForte, fontSize = 28.sp, fontWeight = FontWeight.Black, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
                 
                 if (expressao.isNotEmpty() && !resultado.startsWith("Erro") && resultado != "0") {
                     Spacer(Modifier.height(6.dp))
@@ -890,8 +891,8 @@ private fun BlocoCientifica(cacheVm: CalcCacheViewModel) {
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(2.dp),
                         modifier = Modifier.weight(1f).height(52.dp)
                     ) {
-                        if (tecla == "<-") Icon(Icons.Default.Backspace, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                        else Text(tecla, color = Color.White, fontSize = 13.sp, fontWeight = if (tecla in listOf("=", "M+", "M-", "MR", "MC")) FontWeight.Bold else FontWeight.Normal)
+                        if (tecla == "<-") Icon(Icons.Default.Backspace, contentDescription = null, tint = TextoForte, modifier = Modifier.size(18.dp))
+                        else Text(tecla, color = TextoForte, fontSize = 13.sp, fontWeight = if (tecla in listOf("=", "M+", "M-", "MR", "MC")) FontWeight.Bold else FontWeight.Normal)
                     }
                 }
             }
@@ -968,7 +969,7 @@ private fun BlocoInvestimentos(cacheVm: CalcCacheViewModel) {
 
         Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("DADOS DO PROJETO", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("DADOS DO PROJETO", color = TextoForte, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 CampoNumerico("Investimento Inicial (R$)", investidoInicial) { investidoInicial = it }
                 CampoNumerico("Rendimento Esperado (% a.a.)", taxaDesconto) { taxaDesconto = it }
             }
@@ -976,7 +977,7 @@ private fun BlocoInvestimentos(cacheVm: CalcCacheViewModel) {
 
         Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("LUCRO ESTIMADO POR ANO (R$)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("LUCRO ESTIMADO POR ANO (R$)", color = TextoForte, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 CampoNumerico("Ano 1", fluxoAnual1) { fluxoAnual1 = it }
                 CampoNumerico("Ano 2", fluxoAnual2) { fluxoAnual2 = it }
                 CampoNumerico("Ano 3", fluxoAnual3) { fluxoAnual3 = it }
@@ -1018,7 +1019,7 @@ private fun BlocoInvestimentos(cacheVm: CalcCacheViewModel) {
     }
 }
 @Composable
-private fun LinhaResultado(rotulo: String, valor: String, cor: Color = Color.White) {
+private fun LinhaResultado(rotulo: String, valor: String, cor: Color = TextoForte) {
     Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
         Text(rotulo, color = GrayText, fontSize = 13.sp, modifier = Modifier.weight(1f))
         Text(valor, color = cor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -1077,7 +1078,7 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
 
         Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("CUSTOS DIRETOS (R$)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("CUSTOS DIRETOS (R$)", color = TextoForte, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(Modifier.weight(1f)) { CampoNumerico("Produto/Serviço", custoAquisicao) { custoAquisicao = it } }
                     Box(Modifier.weight(1f)) { CampoNumerico("Frete/Outros", freteSeguro) { freteSeguro = it } }
@@ -1087,7 +1088,7 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
 
         Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("DEDUÇÕES E DESPESAS (%)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("DEDUÇÕES E DESPESAS (%)", color = TextoForte, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(Modifier.weight(1f)) { CampoNumerico("Impostos", impostosPerc) { impostosPerc = it } }
                     Box(Modifier.weight(1f)) { CampoNumerico("Comissões", comissoesPerc) { comissoesPerc = it } }
@@ -1101,7 +1102,7 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
 
         Card(colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("MARGEM E DESCONTO (%)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("MARGEM E DESCONTO (%)", color = TextoForte, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Box(Modifier.weight(1f)) { CampoNumerico("Margem Lucro", margemLucroPerc) { margemLucroPerc = it } }
                     Box(Modifier.weight(1f)) { CampoNumerico("Desconto na Venda", descontoPerc) { descontoPerc = it } }
@@ -1119,7 +1120,7 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("R$ VENDA S/ DESCONTO", color = GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(formatarBrl(precoVendaSemDesconto), color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black)
+                    Text(formatarBrl(precoVendaSemDesconto), color = TextoForte, fontSize = 32.sp, fontWeight = FontWeight.Black)
 
                     if (desc > 0) {
                         Spacer(Modifier.height(4.dp))
@@ -1138,7 +1139,7 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
             }
 
             Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                Text("Composição do Preço", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                Text("Composição do Preço", color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
                 Row(Modifier.fillMaxWidth().height(24.dp).clip(RoundedCornerShape(12.dp))) {
                     Box(Modifier.weight((custoBase/precoVendaSemDesconto).toFloat()).fillMaxSize().background(Color(0xFF4A90E2)))
                     if (deducoesVenda > 0) Box(Modifier.weight(deducoesVenda.toFloat()).fillMaxSize().background(Color(0xFFE2A04A)))
@@ -1249,7 +1250,7 @@ private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Decrescente", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Decrescente", color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                     Button(
                         onClick = { sistema = SistemaAmortizacao.PRICE },
@@ -1257,7 +1258,7 @@ private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Fixa", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Fixa", color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -1284,7 +1285,7 @@ private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("RESUMO", color = GrayText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text("Total a Pagar: ${formatarBrl(totalPago)}", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                    Text("Total a Pagar: ${formatarBrl(totalPago)}", color = TextoForte, fontSize = 24.sp, fontWeight = FontWeight.Black)
 
                     Divider(color = GrayText.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp))
 
@@ -1327,7 +1328,7 @@ private fun BlocoHistorico(cacheVm: CalcCacheViewModel) {
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Cálculos salvos", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp,
+            Text("Cálculos salvos", color = TextoForte, fontWeight = FontWeight.Bold, fontSize = 16.sp,
                 modifier = Modifier.weight(1f))
             if (entries.isNotEmpty()) {
                 Button(
@@ -1358,7 +1359,7 @@ private fun BlocoHistorico(cacheVm: CalcCacheViewModel) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f)) {
                                     Text(e.tipo, color = GojoPurple, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    Text(e.titulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(e.titulo, color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                                     Text(fmt.format(java.util.Date(e.timestamp)), color = GrayText, fontSize = 10.sp)
                                 }
                                 androidx.compose.material3.TextButton(onClick = { cacheVm.remover(e.id) }) {
@@ -1391,7 +1392,7 @@ private fun BotaoSalvarCalc(aoSalvar: () -> Unit) {
         ),
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
     ) {
-        Text(if (salvo) "Salvo!" else "Salvar cálculo", color = Color.White, fontWeight = FontWeight.Bold)
+        Text(if (salvo) "Salvo!" else "Salvar cálculo", color = TextoForte, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -1413,8 +1414,8 @@ private fun CampoNumerico(rotulo: String, valor: String, aoMudar: (String) -> Un
             unfocusedBorderColor = GrayText,
             focusedLabelColor = GojoPurple,
             unfocusedLabelColor = GrayText,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
+            focusedTextColor = TextoForte,
+            unfocusedTextColor = TextoForte,
             cursorColor = GojoPurple
         )
     )

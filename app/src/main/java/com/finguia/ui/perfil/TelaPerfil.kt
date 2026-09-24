@@ -44,6 +44,8 @@ import com.finguia.ui.theme.DebtRed
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import com.finguia.ui.theme.MoneyGreen
+import com.finguia.ui.theme.TextoForte
+import com.finguia.ui.theme.TrilhoProgresso
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
@@ -174,9 +176,9 @@ fun TelaPerfil(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = aoVoltar) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = TextoForte)
             }
-            Text("Perfil", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Perfil", color = TextoForte, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
 
         // ── Avatar e nome ─────────────────────────────────
@@ -234,7 +236,7 @@ fun TelaPerfil(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = nome.ifBlank { "Defina seu nome" },
-                        color = if (nome.isBlank()) GrayText else Color.White,
+                        color = if (nome.isBlank()) GrayText else TextoForte,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -254,7 +256,7 @@ fun TelaPerfil(
         ) {
             Text(
                 "Metas Financeiras",
-                color = Color.White,
+                color = TextoForte,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
@@ -313,7 +315,7 @@ private fun CardMeta(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     meta.descricao,
-                    color = Color.White,
+                    color = TextoForte,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
@@ -327,7 +329,7 @@ private fun CardMeta(
                 progress = { meta.progresso },
                 modifier = Modifier.fillMaxWidth().height(8.dp),
                 color = if (meta.progresso >= 1f) MoneyGreen else GojoPurple,
-                trackColor = Color(0xFF222222)
+                trackColor = TrilhoProgresso
             )
             Spacer(Modifier.height(6.dp))
             Text(
@@ -377,7 +379,7 @@ private fun DialogoNovaMeta(
     AlertDialog(
         onDismissRequest = aoCancelar,
         containerColor = CardBg,
-        title = { Text("Nova Meta", color = Color.White) },
+        title = { Text("Nova Meta", color = TextoForte) },
         text = {
             Column {
                 OutlinedTextField(
@@ -418,7 +420,7 @@ private fun campoColors() = OutlinedTextFieldDefaults.colors(
     unfocusedBorderColor = GrayText,
     focusedLabelColor = GojoPurple,
     unfocusedLabelColor = GrayText,
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
+    focusedTextColor = TextoForte,
+    unfocusedTextColor = TextoForte,
     cursorColor = GojoPurple
 )

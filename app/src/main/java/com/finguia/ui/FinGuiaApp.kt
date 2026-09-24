@@ -54,6 +54,7 @@ import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
+import com.finguia.ui.theme.TextoForte
 import com.finguia.ui.transacoes.CategoriaViewModel
 import com.finguia.ui.transacoes.TelaLancar
 import com.finguia.ui.transacoes.TelaTransacoes
@@ -173,7 +174,7 @@ private fun ItemBarraInferior(
     aoSelecionar: () -> Unit
 ) {
     val fundoIcone = if (selecionado) GojoPurple.copy(alpha = 0.16f) else Color.Transparent
-    val corConteudo = if (selecionado) Color.White else GrayText
+    val corConteudo = if (selecionado) TextoForte else GrayText
 
     Column(
         modifier = Modifier
@@ -199,7 +200,7 @@ private fun ItemBarraInferior(
 
         Text(
             text = destino.rotulo,
-            color = if (selecionado) Color.White else GrayText,
+            color = if (selecionado) TextoForte else GrayText,
             fontSize = 10.sp,
             fontWeight = if (selecionado) FontWeight.SemiBold else FontWeight.Normal,
             maxLines = 1,

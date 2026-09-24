@@ -41,11 +41,14 @@ import com.finguia.dados.GNewsArtigo
 import com.finguia.motor.NumeroBR
 import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.theme.CardBg
+import com.finguia.ui.theme.CardElevado
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
+import com.finguia.ui.theme.DestaqueTopo
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import com.finguia.ui.theme.MoneyGreen
+import com.finguia.ui.theme.TextoForte
 import kotlinx.coroutines.delay
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -131,10 +134,10 @@ fun TelaDetalheAtivo(
                         Box(
                             Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (ativo) GojoPurple else Color(0xFF22222E))
+                                .background(if (ativo) GojoPurple else CardElevado)
                                 .clickable { rangeSelecionado = k }
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) { Text(lbl, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.SemiBold) }
+                        ) { Text(lbl, color = TextoForte, fontSize = 11.sp, fontWeight = FontWeight.SemiBold) }
                     }
                 }
                 if (carregandoGrafico && grafico.isEmpty()) {
@@ -214,13 +217,13 @@ private fun CabecalhoDetalhe(
     Box(
         Modifier
             .fillMaxWidth()
-            .background(Brush.verticalGradient(colors = listOf(Color(0xFF1A1040), DarkBg)))
+            .background(Brush.verticalGradient(colors = listOf(DestaqueTopo, DarkBg)))
             .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = aoVoltar) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = TextoForte)
                 }
                 Spacer(Modifier.width(4.dp))
                 cotacao?.logoUrl?.let {
@@ -231,7 +234,7 @@ private fun CabecalhoDetalhe(
                     Spacer(Modifier.width(10.dp))
                 }
                 Column(Modifier.weight(1f)) {
-                    Text(ticker, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                    Text(ticker, color = TextoForte, fontSize = 18.sp, fontWeight = FontWeight.Black)
                     Text(cotacao?.nomeLongo ?: nome, color = GrayText, fontSize = 12.sp, maxLines = 1)
                 }
                 IconButton(onClick = aoRefresh) {
@@ -245,7 +248,7 @@ private fun CabecalhoDetalhe(
                 else Text("Cotação indisponível para este ativo.", color = DebtRed, fontSize = 13.sp)
             } else {
                 Text(formatarMoeda(cotacao.preco, cotacao.moeda),
-                    color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black)
+                    color = TextoForte, fontSize = 32.sp, fontWeight = FontWeight.Black)
                 val pct = cotacao.variacaoPct ?: 0.0
                 val cor = if (pct >= 0) MoneyGreen else DebtRed
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -271,7 +274,7 @@ private fun CardSecao(titulo: String, content: @Composable ColumnScope.() -> Uni
         shape = RoundedCornerShape(14.dp)
     ) {
         Column(Modifier.padding(14.dp)) {
-            Text(titulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+            Text(titulo, color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 10.dp))
             content()
         }
@@ -283,11 +286,11 @@ private fun GridMetrica(l1: String, v1: String, l2: String, v2: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Column(Modifier.weight(1f)) {
             Text(l1, color = GrayText, fontSize = 10.sp)
-            Text(v1, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text(v1, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         }
         Column(Modifier.weight(1f)) {
             Text(l2, color = GrayText, fontSize = 10.sp)
-            Text(v2, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text(v2, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -316,7 +319,7 @@ private fun GraficoLinha(pontos: List<Double>, moeda: String, modifier: Modifier
                 val pctVsInicio = if (pontos.first() != 0.0) (v - pontos.first()) / pontos.first() * 100 else 0.0
                 val corPct = if (pctVsInicio >= 0) MoneyGreen else DebtRed
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(formatarMoeda(v, moeda), color = Color.White,
+                    Text(formatarMoeda(v, moeda), color = TextoForte,
                         fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(8.dp))
                     Text("${if (pctVsInicio >= 0) "+" else ""}${pctVsInicio.emNumeroBR(2)}%",
@@ -324,6 +327,8 @@ private fun GraficoLinha(pontos: List<Double>, moeda: String, modifier: Modifier
                 }
             }
         }
+        val corLinhaBase = GrayText.copy(alpha = 0.2f)
+        val corMira = TextoForte
         Canvas(
             Modifier
                 .fillMaxSize()
@@ -367,7 +372,7 @@ private fun GraficoLinha(pontos: List<Double>, moeda: String, modifier: Modifier
             }
             drawPath(path, color = cor, style = Stroke(width = 3f))
             drawLine(
-                color = GrayText.copy(alpha = 0.2f),
+                color = corLinhaBase,
                 start = Offset(0f, h - 1),
                 end = Offset(w, h - 1),
                 strokeWidth = 1f
@@ -377,11 +382,11 @@ private fun GraficoLinha(pontos: List<Double>, moeda: String, modifier: Modifier
                 val x = i * passo
                 val y = h - (((pontos[i] - min) / range) * h).toFloat()
                 drawLine(
-                    color = Color.White.copy(alpha = 0.4f),
+                    color = corMira.copy(alpha = 0.4f),
                     start = Offset(x, 0f), end = Offset(x, h),
                     strokeWidth = 1.5f
                 )
-                drawCircle(color = Color.White, radius = 6f, center = Offset(x, y))
+                drawCircle(color = corMira, radius = 6f, center = Offset(x, y))
                 drawCircle(color = cor, radius = 4f, center = Offset(x, y))
             }
         }
@@ -396,7 +401,7 @@ private fun ItemNoticia(art: GNewsArtigo) {
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF1A1A24))
+            .background(CardElevado)
             .clickable(enabled = !url.isNullOrBlank()) {
                 url?.let { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it))) }
             }
@@ -410,7 +415,7 @@ private fun ItemNoticia(art: GNewsArtigo) {
             Spacer(Modifier.width(8.dp))
         }
         Column(Modifier.weight(1f)) {
-            Text(art.title ?: "(sem título)", color = Color.White, fontSize = 12.sp,
+            Text(art.title ?: "(sem título)", color = TextoForte, fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold, maxLines = 3)
             Spacer(Modifier.height(2.dp))
             val data = runCatching { art.publishedAt?.let { formatoDataBr.format(parseDataIso.parse(it)!!) } }.getOrNull()

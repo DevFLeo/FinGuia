@@ -24,6 +24,7 @@ import com.finguia.dados.TipoTransacao
 import com.finguia.ui.formato.emReais
 import com.finguia.ui.gerenciamento.ModalEditarTransacao
 import com.finguia.ui.theme.*
+import com.finguia.ui.theme.TextoForte
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -151,7 +152,7 @@ fun TelaTransacoes(viewModel: TransacaoViewModel = viewModel()) {
                 Column {
                     Text(
                         text = "Extratos Bancários",
-                        color = Color.White,
+                        color = TextoForte,
                         fontSize = m.fontTitle,
                         fontWeight = FontWeight.Bold
                     )
@@ -309,7 +310,7 @@ private fun CartaoTransacao(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = transacao.banco,
-                    color = Color.White,
+                    color = TextoForte,
                     fontSize = m.fontBankName,
                     fontWeight = FontWeight.SemiBold
                 )

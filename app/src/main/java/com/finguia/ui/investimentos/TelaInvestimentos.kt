@@ -48,6 +48,10 @@ import com.finguia.dados.Investimento
 import com.finguia.motor.NumeroBR
 import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.formato.lerNumeroBR
+import com.finguia.ui.theme.BordaSuave
+import com.finguia.ui.theme.CardElevado
+import com.finguia.ui.theme.DestaqueTopo
+import com.finguia.ui.theme.TextoForte
 import kotlinx.coroutines.delay
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
@@ -271,7 +275,7 @@ private fun CabecalhoInvestimentos(
             .fillMaxWidth()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1A1040), DarkBg)
+                    colors = listOf(DestaqueTopo, DarkBg)
                 )
             )
             .padding(horizontal = 20.dp, vertical = 24.dp)
@@ -279,7 +283,7 @@ private fun CabecalhoInvestimentos(
         Column {
             Text(
                 text = "Investimentos",
-                color = Color.White,
+                color = TextoForte,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.ExtraBold
             )
@@ -295,7 +299,7 @@ private fun CabecalhoInvestimentos(
             Text("PATRIMÔNIO INVESTIDO", color = GrayText, fontSize = 10.sp, letterSpacing = 1.sp)
             Text(
                 text = formatoReais.format(totalAtual),
-                color = Color.White,
+                color = TextoForte,
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Black
             )
@@ -323,7 +327,7 @@ private fun TituloSecao(texto: String, icone: ImageVector) {
     ) {
         Icon(icone, contentDescription = null, tint = GojoPurple, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
-        Text(texto, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(texto, color = TextoForte, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -345,7 +349,7 @@ private fun CardCarteira(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .clickable(onClick = aoClicar),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161E)),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
         shape = RoundedCornerShape(16.dp)
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -357,7 +361,7 @@ private fun CardCarteira(
             )
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(inv.nome, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(inv.nome, color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 if (cotacao != null) {
                     Text(
                         "${inv.ticker} • ${formatarMoeda(cotacao.preco, cotacao.moeda)}",
@@ -370,7 +374,7 @@ private fun CardCarteira(
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(formatoReais.format(valorAtualReal),
-                    color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Text(
                     text = "${if (lucro >= 0) "+" else ""}${pct.emNumeroBR(2)}%",
                     color = corLucro, fontSize = 11.sp, fontWeight = FontWeight.SemiBold
@@ -397,7 +401,7 @@ private fun LogoOuIcone(logoUrl: String?, ticker: String, fallback: ImageVector,
             val ex = ticker.split("-").first()
             Text(
                 ex.take(if (ex.length >= 4) 4 else ex.length),
-                color = Color.White,
+                color = TextoForte,
                 fontSize = (size / 4).sp,
                 fontWeight = FontWeight.Black
             )
@@ -439,11 +443,11 @@ private fun CardSugestao(
         if (sug.temCotacaoLive) aoSolicitarCotacao()
     }
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E2E)),
+        colors = CardDefaults.cardColors(containerColor = CardElevado),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .width(170.dp)
-            .border(1.dp, Color(0xFF2A2A3E), RoundedCornerShape(16.dp))
+            .border(1.dp, BordaSuave, RoundedCornerShape(16.dp))
             .clickable(onClick = aoClicar)
     ) {
         Column(Modifier.padding(12.dp)) {
@@ -452,7 +456,7 @@ private fun CardSugestao(
                     ticker = sug.ticker, fallback = iconeCategoria(sug.categoria))
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(sug.ticker, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(sug.ticker, color = TextoForte, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     Text(sug.nome, color = GrayText, fontSize = 10.sp, maxLines = 1)
                 }
             }
@@ -466,7 +470,7 @@ private fun CardSugestao(
                 } else {
                     Text(
                         formatarMoeda(cotacao.preco, cotacao.moeda),
-                        color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold
+                        color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.Bold
                     )
                     val pct = cotacao.variacaoPct ?: 0.0
                     val cor = if (pct >= 0) MoneyGreen else DebtRed
@@ -522,7 +526,7 @@ private fun DialogComprarSugestao(
         title = {
             Column {
                 Text("Adicionar à carteira", color = GrayText, fontSize = 12.sp)
-                Text("${sugestao.ticker} — ${sugestao.nome}", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("${sugestao.ticker} — ${sugestao.nome}", color = TextoForte, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -615,8 +619,8 @@ private fun campoColors() = OutlinedTextFieldDefaults.colors(
     unfocusedBorderColor = GrayText.copy(alpha = 0.3f),
     focusedLabelColor = GojoPurple,
     unfocusedLabelColor = GrayText,
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
+    focusedTextColor = TextoForte,
+    unfocusedTextColor = TextoForte,
     cursorColor = GojoPurple
 )
 
@@ -649,7 +653,7 @@ private fun ItemResultadoBusca(sug: SugestaoAtivo, aoClicar: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 3.dp)
             .clickable(onClick = aoClicar),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161E)),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -661,7 +665,7 @@ private fun ItemResultadoBusca(sug: SugestaoAtivo, aoClicar: () -> Unit) {
             }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text(sug.ticker, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(sug.ticker, color = TextoForte, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Text(sug.nome, color = GrayText, fontSize = 11.sp, maxLines = 1)
             }
             Icon(iconeCategoria(sug.categoria), contentDescription = null,

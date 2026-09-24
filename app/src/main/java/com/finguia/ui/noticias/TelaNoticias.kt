@@ -36,6 +36,7 @@ import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
+import com.finguia.ui.theme.TextoForte
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -235,10 +236,10 @@ fun TelaNoticias(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = aoVoltar) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = TextoForte)
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text("Notícias", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("Notícias", color = TextoForte, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text("InfoMoney", color = GrayText, fontSize = 12.sp)
             }
             IconButton(onClick = { vm.carregar() }) {
@@ -281,14 +282,14 @@ fun TelaNoticias(
                         }
                         .border(
                             width = 1.dp,
-                            color = if (selecionado) GojoPurple.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.08f),
+                            color = if (selecionado) GojoPurple.copy(alpha = 0.5f) else TextoForte.copy(alpha = 0.08f),
                             shape = CircleShape
                         )
                         .padding(horizontal = 14.dp, vertical = 8.dp)
                 ) {
                     Text(
                         text = label,
-                        color = if (selecionado) Color.White else GrayText,
+                        color = if (selecionado) TextoForte else GrayText,
                         fontSize = 12.sp,
                         fontWeight = if (selecionado) FontWeight.Bold else FontWeight.Medium
                     )
@@ -321,7 +322,7 @@ fun TelaNoticias(
                     )
                     Text(
                         text = "Nenhuma notícia encontrada",
-                        color = Color.White,
+                        color = TextoForte,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -367,7 +368,7 @@ fun TelaNoticias(
                             Column(Modifier.padding(if (isDestaque) 20.dp else 16.dp)) {
                                 Text(
                                     text = n.titulo,
-                                    color = Color.White,
+                                    color = TextoForte,
                                     fontSize = if (isDestaque) 18.sp else 15.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     maxLines = 3,

@@ -56,6 +56,8 @@ import com.finguia.ui.theme.DebtRed
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import com.finguia.ui.theme.MoneyGreen
+import com.finguia.ui.theme.TextoForte
+import com.finguia.ui.theme.TrilhoProgresso
 import com.finguia.ui.transacoes.TransacaoViewModel
 
 @Composable
@@ -125,7 +127,7 @@ fun telaHome(
                 )
                 Text(
                     text = if (ocultarSaldo) "R$ ••••••" else formatarMoeda(saldoTotal),
-                    color = if (saldoTotal >= 0) Color.White else DebtRed,
+                    color = if (saldoTotal >= 0) TextoForte else DebtRed,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -193,7 +195,7 @@ fun telaHome(
         // ── Painel financeiro embutido ───────────────────────
         Text(
             text = "PAINEL FINANCEIRO",
-            color = Color.White,
+            color = TextoForte,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 2.sp
@@ -227,7 +229,7 @@ fun BotaoIconeTopo(
             .clickable(onClick = aoClicar)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icone, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(icone, contentDescription = null, tint = TextoForte, modifier = Modifier.size(20.dp))
         }
     }
 }
@@ -253,7 +255,7 @@ fun BotaoAcao(
         ) {
             Icon(icone, contentDescription = null, tint = GojoPurple)
             Spacer(Modifier.height(8.dp))
-            Text(rotulo, color = Color.White, fontSize = 11.sp)
+            Text(rotulo, color = TextoForte, fontSize = 11.sp)
         }
     }
 }
@@ -279,7 +281,7 @@ fun BotaoAcaoRes(
         ) {
             Icon(painterResource(iconeRes), contentDescription = null, tint = GojoPurple)
             Spacer(Modifier.height(8.dp))
-            Text(rotulo, color = Color.White, fontSize = 11.sp)
+            Text(rotulo, color = TextoForte, fontSize = 11.sp)
         }
     }
 }
@@ -308,6 +310,7 @@ fun GraficoRosca(progresso: Float, saldoPositivo: Boolean = true) {
 
     // Glow: cor semitransparente mais larga atrás do arco principal
     val corGlow = corArco.copy(alpha = 0.25f)
+    val corTrilha = TrilhoProgresso
 
     Canvas(modifier = Modifier.size(200.dp)) {
         val strokePx = 15.dp.toPx()
@@ -315,7 +318,7 @@ fun GraficoRosca(progresso: Float, saldoPositivo: Boolean = true) {
 
         // Trilha de fundo
         drawArc(
-            color = Color(0xFF1E1E1E),
+            color = corTrilha,
             startAngle = -90f,
             sweepAngle = 360f,
             useCenter = false,

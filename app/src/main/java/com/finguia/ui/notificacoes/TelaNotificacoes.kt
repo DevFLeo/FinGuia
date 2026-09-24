@@ -42,6 +42,7 @@ import com.finguia.ui.theme.DebtRed
 import com.finguia.ui.theme.GojoPurple
 import com.finguia.ui.theme.GrayText
 import com.finguia.ui.theme.MoneyGreen
+import com.finguia.ui.theme.TextoForte
 import com.finguia.ui.transacoes.TransacaoViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -85,7 +86,7 @@ fun TelaNotificacoes(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val alertas = gerarAlertas(totalReceitas, totalDespesas, transacoes)
+    val alertas = gerarAlertas(totalReceitas, totalDespesas, transacoes, MoneyGreen, DebtRed)
     val capturas = transacoes.sortedByDescending { it.timestampMs }.take(20)
 
     Column(
@@ -98,9 +99,9 @@ fun TelaNotificacoes(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = aoVoltar) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = TextoForte)
             }
-            Text("Notificações", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Notificações", color = TextoForte, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
 
         LazyColumn(
@@ -166,7 +167,7 @@ private fun CardAlerta(alerta: Alerta) {
             Icon(alerta.icone, contentDescription = null, tint = alerta.cor, modifier = Modifier.size(28.dp))
             Spacer(Modifier.width(12.dp))
             Column {
-                Text(alerta.titulo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(alerta.titulo, color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 Text(alerta.descricao, color = GrayText, fontSize = 12.sp)
             }
         }
@@ -200,7 +201,7 @@ private fun CardCapturaTransacao(t: TransacaoBancaria) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     t.banco.ifBlank { "Banco" },
-                    color = Color.White,
+                    color = TextoForte,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -246,7 +247,7 @@ private fun CardStatusPermissao(ativa: Boolean, aoAtivar: () -> Unit) {
                 Spacer(Modifier.width(10.dp))
                 Text(
                     if (ativa) "Captura ativa" else "Captura desativada",
-                    color = Color.White,
+                    color = TextoForte,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -277,7 +278,9 @@ private fun CardStatusPermissao(ativa: Boolean, aoAtivar: () -> Unit) {
 private fun gerarAlertas(
     totalReceitas: Double,
     totalDespesas: Double,
-    transacoes: List<TransacaoBancaria>
+    transacoes: List<TransacaoBancaria>,
+    corPositiva: Color,
+    corNegativa: Color
 ): List<Alerta> {
     val alertas = mutableListOf<Alerta>()
 
@@ -289,7 +292,7 @@ private fun gerarAlertas(
                 titulo = "Gastos ultrapassaram receitas",
                 descricao = "Você gastou ${(pct * 100).emNumeroBR(0)}% das suas entradas. Revise despesas.",
                 icone = Icons.Default.Warning,
-                cor = DebtRed
+                cor = corNegativa
             )
             pct >= 0.9 -> alertas += Alerta(
                 titulo = "Atenção: ${(pct * 100).emNumeroBR(0)}% comprometidos",
@@ -301,7 +304,7 @@ private fun gerarAlertas(
                 titulo = "Saúde financeira em dia",
                 descricao = "Apenas ${(pct * 100).emNumeroBR(0)}% das receitas gastas.",
                 icone = Icons.Default.CheckCircle,
-                cor = MoneyGreen
+                cor = corPositiva
             )
         }
     }
