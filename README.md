@@ -16,6 +16,8 @@ FinGuia é um aplicativo Android de gestão financeira pessoal que automatiza o 
 - [Configuração e Instalação](#configuração-e-instalação)
 - [Permissões Necessárias](#permissões-necessárias)
 - [FinGuia Web](#finguia-web)
+- [Branches e Fluxo de Trabalho](#branches-e-fluxo-de-trabalho)
+- [Guia de Desenvolvimento](DESENVOLVIMENTO.md)
 - [Roadmap](#roadmap)
 
 ---
@@ -234,8 +236,8 @@ XP, Rico, Clear, Nuinvest, Avenue, Toro
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/seu-usuario/finguia.git
-cd finguia
+git clone https://github.com/DevFLeo/FinGuia.git
+cd FinGuia
 
 # 2. Abra no Android Studio
 # File → Open → selecione a pasta do projeto
@@ -264,6 +266,64 @@ web\finguia-web.bat      :: abre o visualizador em http://127.0.0.1:8080
 O arquivo é lido dentro do navegador, com SQLite compilado para WebAssembly
 (sql.js, versionado em `web/vendor`). Nada é enviado para servidor nenhum e não
 é preciso internet. Detalhes e manutenção em [`web/README.md`](web/README.md).
+
+---
+
+## Branches e Fluxo de Trabalho
+
+O repositório usa três branches fixas:
+
+| Branch | Para que serve | Quem mexe |
+|---|---|---|
+| `producao` | Código estável, que vai para o APK entregue e para a apresentação. Só recebe merge de `desenvolvimento` depois de testado. | Ninguém faz commit direto |
+| `desenvolvimento` | Onde o trabalho do dia a dia acontece. Recebe commits e branches de funcionalidade. | Toda a equipe |
+| `main` | Branch padrão do GitHub/GitLab. Acompanha `producao`. | Ninguém faz commit direto |
+
+### Fluxo do dia a dia
+
+```bash
+# 1. Comece sempre atualizado
+git switch desenvolvimento
+git pull
+
+# 2. Trabalhe e commite (uma melhoria por commit)
+git add <arquivos>
+git commit -m "Feat: descreve a melhoria"
+
+# 3. Envie para os dois remotos
+git push origin desenvolvimento   # GitLab
+git push github desenvolvimento   # GitHub
+```
+
+### Publicar uma versão estável
+
+Só depois de `./gradlew testDebugUnitTest` passar e o app ser testado no aparelho:
+
+```bash
+git switch producao
+git merge --ff-only desenvolvimento
+git switch main
+git merge --ff-only producao
+git push origin producao main
+git push github producao main
+git switch desenvolvimento
+```
+
+O `--ff-only` garante que `producao` só avança para commits que já existem em
+`desenvolvimento` — se o comando recusar, alguém commitou direto em `producao`.
+
+### Remotos
+
+| Nome | Endereço |
+|---|---|
+| `origin` | https://gitlab.com/DevFLeo/FinGuia |
+| `github` | https://github.com/DevFLeo/FinGuia |
+
+Quem clonou só de um lugar adiciona o outro com
+`git remote add github https://github.com/DevFLeo/FinGuia` (ou `origin` para o GitLab).
+
+Para entender a lógica do app, as funções e como apresentar o projeto, veja
+o [Guia de Desenvolvimento](DESENVOLVIMENTO.md).
 
 ---
 
