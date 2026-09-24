@@ -36,6 +36,20 @@ interface TransacaoDao {
     @Query("SELECT * FROM transacoes_bancarias WHERE recorrente = 1 ORDER BY timestampMs DESC")
     fun listarRecorrentes(): Flow<List<TransacaoBancaria>>
 
+    // Mesma notificacao ja gravada: mesmo app, mesmo texto e mesmo horario de postagem.
+    // Pega re-entregas (ex.: ao reconectar o listener) sem juntar dois Pix iguais
+    // recebidos em momentos diferentes.
+    @Query("""
+        SELECT EXISTS(
+            SELECT 1 FROM transacoes_bancarias
+            WHERE pacoteApp = :pacote
+              AND tituloNotificacao = :titulo
+              AND textoNotificacao = :texto
+              AND timestampMs = :postadaEmMs
+        )
+    """)
+    suspend fun existeCaptura(pacote: String, titulo: String, texto: String, postadaEmMs: Long): Boolean
+
     @Update
     suspend fun atualizar(transacao: TransacaoBancaria)
 

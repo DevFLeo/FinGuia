@@ -23,6 +23,9 @@ class TransacaoRepository(context: Context) {
 
     fun listarAgendadas(): Flow<List<TransacaoBancaria>> = dao.listarAgendadas()
 
+    suspend fun existeCaptura(pacote: String, titulo: String, texto: String, postadaEmMs: Long): Boolean =
+        dao.existeCaptura(pacote, titulo, texto, postadaEmMs)
+
     suspend fun atualizar(transacao: TransacaoBancaria) = dao.atualizar(transacao)
 
     suspend fun deletar(id: Long) = dao.deletar(id)
