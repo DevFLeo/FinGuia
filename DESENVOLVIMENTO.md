@@ -470,8 +470,8 @@ web\finguia-web.bat       :: abre http://127.0.0.1:8080
 - **Dashboards com templates:** cada usuário cria quantos quiser, escolhendo
   entre Completo, Resumo, Gastos e Investimentos. Como criar um template novo
   está no [`web/README.md`](web/README.md#dashboards-e-templates).
-- **Testes:** `cd web/testes && npm install && npm test` (jsdom) e
-  `npm run test:navegador` (Firefox real).
+- **Testes:** dentro da pasta `FinGuia`: `cd web/testes`, `npm install`,
+  `npm test` (jsdom) e `npm run test:navegador` (Firefox real).
 
 ---
 

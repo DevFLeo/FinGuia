@@ -67,8 +67,11 @@ contexto e devolve um elemento com `data-bloco`.
 
 ## Testes
 
-```bash
-cd web/testes
+Rode a partir da pasta do projeto, `FinGuia` (a que tem `app/` e `web/`), não
+da pasta de cima (`Finguia-Kotlin`), que não tem os arquivos do Node:
+
+```powershell
+cd C:\Projetos\Finguia-Kotlin\FinGuia\web\testes
 npm install
 npm test                  # interface no jsdom (57 verificações)
 npm run test:navegador    # mesmo fluxo num Firefox real (11 verificações)
