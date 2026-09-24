@@ -24,4 +24,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "FinGuia"
 include(":app")
-include(":app")
