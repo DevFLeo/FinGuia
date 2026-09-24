@@ -30,8 +30,11 @@ import com.finguia.motor.MascaraMoeda
 import com.finguia.ui.configuracoes.ConfiguracoesViewModel
 import com.finguia.ui.configuracoes.PadroesApp
 import com.finguia.ui.formato.MascaraMoedaBR
+import com.finguia.ui.formato.corDoSentido
 import com.finguia.ui.formato.digitosMoeda
 import com.finguia.ui.formato.emReais
+import com.finguia.ui.formato.prefixoDoSentido
+import com.finguia.ui.formato.sentido
 import com.finguia.ui.theme.*
 import com.finguia.ui.theme.TextoForte
 
@@ -574,7 +577,7 @@ private fun AbaRecorrente(
             TituloSecao(icone = Icons.Default.List, texto = "SALVOS COMO RECORRENTE", cor = GojoPurple)
 
             recorrentes.forEach { transacao ->
-                val ehEntrada = transacao.ehEntrada()
+                val sentido = transacao.tipo.sentido
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -588,8 +591,8 @@ private fun AbaRecorrente(
                         Text(transacao.banco, color = GrayText, fontSize = 11.sp)
                     }
                     Text(
-                        text       = "${if (ehEntrada) "+" else "-"}${formatarValor(transacao.valor)}",
-                        color      = if (ehEntrada) MoneyGreen else DebtRed,
+                        text       = "${prefixoDoSentido(sentido)}${formatarValor(transacao.valor)}",
+                        color      = corDoSentido(sentido),
                         fontSize   = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -643,8 +646,8 @@ private fun AbaAgendado(
             )
         } else {
             agendadas.forEach { transacao ->
-                val ehEntrada = transacao.ehEntrada()
-                val cor = if (ehEntrada) MoneyGreen else DebtRed
+                val sentido = transacao.tipo.sentido
+                val cor = corDoSentido(sentido)
                 val data = transacao.dataAgendada?.let { fmtData.format(java.util.Date(it)) } ?: "—"
                 Row(
                     modifier = Modifier
@@ -660,7 +663,7 @@ private fun AbaAgendado(
                         Text("Para $data", color = GojoPurple, fontSize = 11.sp)
                     }
                     Text(
-                        text = "${if (ehEntrada) "+" else "-"}${formatarValor(transacao.valor)}",
+                        text = "${prefixoDoSentido(sentido)}${formatarValor(transacao.valor)}",
                         color = cor,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
@@ -1007,9 +1010,3 @@ private fun valorDaMascara(digitos: String): Double? =
 private fun formatarValor(valor: Double): String =
     valor.emReais()
 
-private fun TransacaoBancaria.ehEntrada(): Boolean = tipo in listOf(
-    TipoTransacao.PIX_RECEBIDO,
-    TipoTransacao.TRANSFERENCIA_RECEBIDA,
-    TipoTransacao.DEPOSITO,
-    TipoTransacao.ESTORNO
-)

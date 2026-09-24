@@ -34,8 +34,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.service.NotificationListenerHelper
+import com.finguia.ui.formato.corDoSentido
 import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.formato.emReais
+import com.finguia.ui.formato.prefixoDoSentido
+import com.finguia.ui.formato.sentido
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -177,13 +180,8 @@ private fun CardAlerta(alerta: Alerta) {
 @Composable
 private fun CardCapturaTransacao(t: TransacaoBancaria) {
     val fmtData = SimpleDateFormat("dd/MM HH:mm", Locale("pt", "BR"))
-    val ehEntrada = t.tipo in listOf(
-        TipoTransacao.PIX_RECEBIDO,
-        TipoTransacao.TRANSFERENCIA_RECEBIDA,
-        TipoTransacao.DEPOSITO,
-        TipoTransacao.ESTORNO
-    )
-    val cor = if (ehEntrada) MoneyGreen else DebtRed
+    val sentido = t.tipo.sentido
+    val cor = corDoSentido(sentido)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -218,7 +216,7 @@ private fun CardCapturaTransacao(t: TransacaoBancaria) {
                 )
             }
             Text(
-                text = (if (ehEntrada) "+" else "-") + t.valor.emReais(),
+                text = prefixoDoSentido(sentido) + t.valor.emReais(),
                 color = cor,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold

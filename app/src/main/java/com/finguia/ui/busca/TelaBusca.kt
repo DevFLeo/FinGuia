@@ -34,7 +34,10 @@ import com.finguia.R
 import com.finguia.dados.CategoriaCustom
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.ui.formato.corDoSentido
 import com.finguia.ui.formato.emReais
+import com.finguia.ui.formato.prefixoDoSentido
+import com.finguia.ui.formato.sentido
 import com.finguia.ui.theme.*
 import com.finguia.ui.theme.TextoForte
 import com.finguia.ui.transacoes.CategoriaViewModel
@@ -317,12 +320,9 @@ private fun ItemCategoria(categoria: CategoriaCustom, aoClicar: () -> Unit) {
 
 @Composable
 private fun ItemTransacao(transacao: TransacaoBancaria, aoClicar: () -> Unit) {
-    val ehEntrada = transacao.tipo in listOf(
-        TipoTransacao.PIX_RECEBIDO, TipoTransacao.TRANSFERENCIA_RECEBIDA,
-        TipoTransacao.DEPOSITO, TipoTransacao.ESTORNO
-    )
-    val cor = if (ehEntrada) MoneyGreen else DebtRed
-    val prefixo = if (ehEntrada) "+" else "-"
+    val sentido = transacao.tipo.sentido
+    val cor = corDoSentido(sentido)
+    val prefixo = prefixoDoSentido(sentido)
     val data = SimpleDateFormat("dd/MM/yy HH:mm", Locale("pt", "BR")).format(Date(transacao.timestampMs))
 
     Row(

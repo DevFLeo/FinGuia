@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.ui.formato.emReais
+import com.finguia.ui.formato.sentido
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -407,7 +408,8 @@ private fun GraficoFluxo(transacoes: List<TransacaoBancaria>) {
         val ordenadas = transacoes.sortedBy { it.timestampMs }
         var acumulado = 0.0
         val pontos = ordenadas.map { t ->
-            acumulado += if (t.ehEntrada()) t.valor else -t.valor
+            // Avisos (COBRANCA) nao mexem no saldo; antes eram subtraidos
+            acumulado += t.tipo.sentido.aplicar(t.valor)
             acumulado
         }
 
@@ -457,12 +459,6 @@ private fun calcularGastosPorCategoria(transacoes: List<TransacaoBancaria>): Map
         .associate { it.key to it.value }
 }
 
-private fun TransacaoBancaria.ehEntrada(): Boolean = tipo in listOf(
-    TipoTransacao.PIX_RECEBIDO,
-    TipoTransacao.TRANSFERENCIA_RECEBIDA,
-    TipoTransacao.DEPOSITO,
-    TipoTransacao.ESTORNO
-)
 
 private fun formatarMoedaPainel(valor: Double): String =
     valor.emReais()

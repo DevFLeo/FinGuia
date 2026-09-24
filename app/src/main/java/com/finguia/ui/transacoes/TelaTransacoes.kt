@@ -21,7 +21,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.dados.TipoTransacao
+import com.finguia.ui.formato.corDoSentido
 import com.finguia.ui.formato.emReais
+import com.finguia.ui.formato.prefixoDoSentido
+import com.finguia.ui.formato.sentido
 import com.finguia.ui.gerenciamento.ModalEditarTransacao
 import com.finguia.ui.theme.*
 import com.finguia.ui.theme.TextoForte
@@ -271,14 +274,9 @@ private fun CartaoTransacao(
     onDeletar: () -> Unit,
     onEditar: () -> Unit
 ) {
-    val ehEntrada = transacao.tipo in listOf(
-        TipoTransacao.PIX_RECEBIDO,
-        TipoTransacao.TRANSFERENCIA_RECEBIDA,
-        TipoTransacao.DEPOSITO,
-        TipoTransacao.ESTORNO
-    )
-    val corValor = if (ehEntrada) MoneyGreen else DebtRed
-    val prefixoValor = if (ehEntrada) "+" else "-"
+    val sentido = transacao.tipo.sentido
+    val corValor = corDoSentido(sentido)
+    val prefixoValor = prefixoDoSentido(sentido)
     val dataFormatada = SimpleDateFormat("dd/MM/yy HH:mm", Locale("pt", "BR"))
         .format(Date(transacao.timestampMs))
 

@@ -18,7 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.ui.formato.corDoSentido
 import com.finguia.ui.formato.emReais
+import com.finguia.ui.formato.prefixoDoSentido
+import com.finguia.ui.formato.rotuloDoSentido
+import com.finguia.ui.formato.sentido
 import com.finguia.ui.theme.*
 import com.finguia.ui.theme.TextoForte
 import java.text.SimpleDateFormat
@@ -30,12 +34,9 @@ fun TelaDetalheTransacao(
     modifier: Modifier = Modifier,
     aoVoltar: () -> Unit = {}
 ) {
-    val ehEntrada = transacao.tipo in listOf(
-        TipoTransacao.PIX_RECEBIDO, TipoTransacao.TRANSFERENCIA_RECEBIDA,
-        TipoTransacao.DEPOSITO, TipoTransacao.ESTORNO
-    )
-    val cor = if (ehEntrada) MoneyGreen else DebtRed
-    val prefixo = if (ehEntrada) "+" else "-"
+    val sentido = transacao.tipo.sentido
+    val cor = corDoSentido(sentido)
+    val prefixo = prefixoDoSentido(sentido)
     val dataCompleta = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm:ss", Locale("pt", "BR"))
         .format(Date(transacao.timestampMs))
 
@@ -116,7 +117,7 @@ fun TelaDetalheTransacao(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = if (ehEntrada) "ENTRADA" else "SAÍDA",
+                            text = rotuloDoSentido(sentido),
                             color = cor,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
