@@ -12,19 +12,51 @@
       <span class="logo">FG</span>
       <div>
         <h1>FinGuia Web</h1>
-        <p class="sub">Visualizador do banco de dados do app</p>
+        <p class="sub" id="subtitulo">Visualizador do banco de dados do app</p>
       </div>
     </div>
     <div class="acoes-topo">
-      <button id="btn-tema" class="botao fantasma" type="button">Tema</button>
+      <!-- Controles do dashboard: aparecem depois do login e do banco aberto -->
+      <label class="seletor" id="caixa-dashboard" hidden>
+        <span class="rotulo-seletor">Dashboard</span>
+        <select id="seletor-dashboard" aria-label="Dashboard"></select>
+      </label>
+      <button id="btn-novo-dashboard" class="botao primario" type="button" hidden>+ Novo dashboard</button>
+      <button id="btn-excluir-dashboard" class="botao fantasma" type="button" hidden>Excluir dashboard</button>
       <button id="btn-csv" class="botao fantasma" type="button" hidden>Exportar CSV</button>
       <button id="btn-trocar" class="botao fantasma" type="button" hidden>Trocar banco</button>
+      <button id="btn-tema" class="botao fantasma" type="button">Tema</button>
+      <span id="usuario-logado" class="usuario" hidden></span>
+      <button id="btn-sair" class="botao fantasma" type="button" hidden>Sair</button>
     </div>
   </header>
 
   <main>
-    <!-- Tela inicial: carregar o arquivo .db -->
-    <section id="tela-carregar" class="cartao alvo-arquivo">
+    <!-- 1. Login simulado -->
+    <section id="tela-login" class="cartao entrada-login" hidden>
+      <h2 id="titulo-login">Entrar</h2>
+      <form id="form-login" novalidate>
+        <label class="campo">
+          <span>Usuário</span>
+          <input id="login-usuario" name="usuario" autocomplete="username" required />
+        </label>
+        <label class="campo">
+          <span>Senha</span>
+          <input id="login-senha" name="senha" type="password" autocomplete="current-password" required />
+        </label>
+        <p id="erro-login" class="erro" role="alert" hidden></p>
+        <button id="btn-entrar" class="botao primario largo" type="submit">Entrar</button>
+      </form>
+      <button id="btn-alternar-cadastro" class="botao link" type="button">Não tem conta? Criar conta</button>
+      <p class="aviso-simulado">
+        <strong>Login simulado.</strong> As contas ficam só neste navegador (a senha é guardada como hash,
+        nunca em texto). Serve para demonstração e não protege os dados de quem usa este computador.
+      </p>
+      <p class="dica-demo">Conta de demonstração: <code>demo</code> / <code>finguia</code></p>
+    </section>
+
+    <!-- 2. Abrir o banco (.db) -->
+    <section id="tela-carregar" class="cartao alvo-arquivo" hidden>
       <h2>Abra o banco do FinGuia</h2>
       <p class="ajuda">
         Arraste o arquivo <code>finguia_database</code> aqui, ou clique para escolher.
@@ -41,66 +73,34 @@
       </details>
     </section>
 
-    <!-- Painel principal, exibido depois que o banco é aberto -->
+    <!-- 3. Dashboard ativo, montado a partir do template -->
     <section id="painel" hidden>
       <div id="aviso-tabelas" class="aviso" hidden></div>
-
-      <div class="linha-resumo">
-        <article class="cartao metrica entrada">
-          <span class="rotulo">Receitas</span>
-          <strong id="m-receitas">—</strong>
-        </article>
-        <article class="cartao metrica saida">
-          <span class="rotulo">Despesas</span>
-          <strong id="m-despesas">—</strong>
-        </article>
-        <article class="cartao metrica saldo">
-          <span class="rotulo">Saldo</span>
-          <strong id="m-saldo">—</strong>
-        </article>
-        <article class="cartao metrica">
-          <span class="rotulo">Lançamentos</span>
-          <strong id="m-total">—</strong>
-        </article>
-      </div>
-
-      <nav class="abas" role="tablist">
-        <button class="aba ativa" data-aba="extrato" role="tab">Extrato</button>
-        <button class="aba" data-aba="fluxo" role="tab">Fluxo mensal</button>
-        <button class="aba" data-aba="bancos" role="tab">Por banco</button>
-        <button class="aba" data-aba="agendados" role="tab">Agendados</button>
-        <button class="aba" data-aba="investimentos" role="tab">Investimentos</button>
-      </nav>
-
-      <div id="aba-extrato" class="conteudo-aba">
-        <div class="filtros">
-          <input id="busca" type="search" placeholder="Buscar por descrição, banco ou notificação…" />
-          <select id="filtro-tipo"><option value="">Todos os tipos</option></select>
-          <select id="filtro-banco"><option value="">Todos os bancos</option></select>
-        </div>
-        <div id="lista-transacoes" class="lista"></div>
-      </div>
-
-      <div id="aba-fluxo" class="conteudo-aba" hidden>
-        <div class="cartao">
-          <h3>Entradas e saídas por mês</h3>
-          <div id="grafico-fluxo"></div>
-        </div>
-      </div>
-
-      <div id="aba-bancos" class="conteudo-aba" hidden>
-        <div id="lista-bancos" class="lista"></div>
-      </div>
-
-      <div id="aba-agendados" class="conteudo-aba" hidden>
-        <div id="lista-agendados" class="lista"></div>
-      </div>
-
-      <div id="aba-investimentos" class="conteudo-aba" hidden>
-        <div id="lista-investimentos" class="lista"></div>
-      </div>
+      <div id="dashboard"></div>
     </section>
   </main>
+
+  <!-- Novo dashboard: nome + template -->
+  <div id="modal-novo" class="modal-fundo" hidden>
+    <div class="cartao modal" role="dialog" aria-modal="true" aria-labelledby="titulo-novo">
+      <h2 id="titulo-novo">Novo dashboard</h2>
+      <form id="form-novo" novalidate>
+        <label class="campo">
+          <span>Nome</span>
+          <input id="novo-nome" maxlength="40" placeholder="Ex.: Meus gastos" required />
+        </label>
+        <fieldset class="templates">
+          <legend>Template</legend>
+          <div id="lista-templates" class="grade-templates"></div>
+        </fieldset>
+        <p id="erro-novo" class="erro" role="alert" hidden></p>
+        <div class="acoes-modal">
+          <button id="btn-cancelar-novo" class="botao fantasma" type="button">Cancelar</button>
+          <button id="btn-criar-dashboard" class="botao primario" type="submit">Criar dashboard</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script src="vendor/sql-wasm.js"></script>
   <script type="module" src="app.js"></script>

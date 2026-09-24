@@ -7,6 +7,7 @@
   --texto-fraco: #626676;
   --primaria: #3f5bd9;
   --primaria-fraca: #e8ecfd;
+  --sobre-primaria: #ffffff;
   --entrada: #12855a;
   --saida: #c0392b;
   --sombra: 0 1px 2px rgba(20, 22, 29, .06), 0 8px 24px rgba(20, 22, 29, .05);
@@ -21,6 +22,8 @@
   --texto-fraco: #9aa0b4;
   --primaria: #8aa0ff;
   --primaria-fraca: #232a44;
+  /* primaria clara no escuro: texto escuro por cima (branco daria ~2,5:1) */
+  --sobre-primaria: #0f1116;
   --entrada: #4ade9b;
   --saida: #ff7a6b;
   --sombra: 0 1px 2px rgba(0, 0, 0, .4);
@@ -49,7 +52,7 @@ main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
 .logo {
   display: grid; place-items: center;
   width: 38px; height: 38px; border-radius: 11px;
-  background: var(--primaria); color: #fff; font-weight: 700; letter-spacing: .5px;
+  background: var(--primaria); color: var(--sobre-primaria); font-weight: 700; letter-spacing: .5px;
 }
 .topo h1 { margin: 0; font-size: 17px; }
 .sub { margin: 0; font-size: 12.5px; color: var(--texto-fraco); }
@@ -62,8 +65,8 @@ main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
   background: var(--superficie); color: var(--texto); cursor: pointer;
 }
 .botao:hover { border-color: var(--primaria); color: var(--primaria); }
-.botao.primario { background: var(--primaria); border-color: var(--primaria); color: #fff; }
-.botao.primario:hover { filter: brightness(1.08); color: #fff; }
+.botao.primario { background: var(--primaria); border-color: var(--primaria); color: var(--sobre-primaria); }
+.botao.primario:hover { filter: brightness(1.08); color: var(--sobre-primaria); }
 
 .cartao {
   background: var(--superficie);
@@ -141,7 +144,7 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
 .vazio { color: var(--texto-fraco); text-align: center; padding: 40px 16px; }
 
 /* ---------- gráfico ---------- */
-#grafico-fluxo svg { width: 100%; height: auto; display: block; }
+[data-bloco="fluxo"] svg { width: 100%; height: auto; display: block; }
 .legenda { display: flex; gap: 18px; font-size: 13px; color: var(--texto-fraco); margin-top: 12px; }
 .legenda span::before {
   content: ""; display: inline-block; width: 10px; height: 10px;
@@ -153,4 +156,71 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
 @media (max-width: 560px) {
   .topo { padding: 12px 16px; }
   .metrica strong { font-size: 19px; }
+}
+
+/* ---------- utilitario: hidden sempre vence o display das classes ---------- */
+[hidden] { display: none !important; }
+
+/* ---------- login simulado ---------- */
+.entrada-login { max-width: 400px; margin: 32px auto; padding: 32px 28px; }
+.entrada-login h2 { margin: 0 0 20px; }
+.campo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; font-size: 13.5px; color: var(--texto-fraco); }
+.campo input {
+  font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 9px;
+  border: 1px solid var(--borda); background: var(--fundo); color: var(--texto);
+}
+.campo input:focus { outline: 2px solid var(--primaria); outline-offset: 1px; border-color: transparent; }
+.botao.largo { width: 100%; padding: 11px; font-weight: 600; }
+.botao:disabled { opacity: .55; cursor: default; }
+.botao.link { border: none; background: none; color: var(--primaria); padding: 12px 0 0; }
+.botao.link:hover { text-decoration: underline; }
+.aviso-simulado {
+  margin: 20px 0 0; padding: 10px 12px; border-radius: 8px; font-size: 12.5px;
+  background: var(--primaria-fraca); color: var(--texto-fraco);
+}
+.dica-demo { margin: 12px 0 0; font-size: 13px; color: var(--texto-fraco); text-align: center; }
+
+/* ---------- topo: usuario e seletor de dashboard ---------- */
+.acoes-topo { flex-wrap: wrap; align-items: center; }
+.usuario { font-size: 13px; color: var(--texto-fraco); padding: 0 4px; }
+.usuario::before { content: "● "; color: var(--entrada); }
+.seletor { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--texto-fraco); }
+.seletor select {
+  font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 9px;
+  border: 1px solid var(--borda); background: var(--superficie); color: var(--texto); max-width: 260px;
+}
+
+/* ---------- blocos do dashboard ---------- */
+#dashboard { display: flex; flex-direction: column; gap: 16px; }
+#dashboard > .linha-resumo, #dashboard > [data-bloco] > .linha-resumo { margin-bottom: 0; }
+.titulo-bloco { margin: 0 0 14px; font-size: 15px; }
+.valor.neutro { color: var(--texto-fraco); }
+.barras { display: flex; flex-direction: column; gap: 12px; }
+.barra-topo { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; margin-bottom: 5px; }
+.barra-valor { color: var(--texto-fraco); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.barra-trilho { height: 10px; border-radius: 999px; background: var(--primaria-fraca); overflow: hidden; }
+.barra-preenchida { height: 100%; border-radius: 999px; background: var(--saida); }
+
+/* ---------- modal "novo dashboard" ---------- */
+.modal-fundo {
+  position: fixed; inset: 0; z-index: 10; display: grid; place-items: center;
+  padding: 16px; background: rgba(10, 12, 18, .55);
+}
+.modal { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; }
+.modal h2 { margin: 0 0 18px; }
+.templates { border: none; padding: 0; margin: 4px 0 8px; }
+.templates legend { font-size: 13.5px; color: var(--texto-fraco); margin-bottom: 8px; }
+.grade-templates { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.opcao-template {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 2px; align-items: start;
+  padding: 12px; border: 1px solid var(--borda); border-radius: 10px; cursor: pointer;
+}
+.opcao-template:has(input:checked) { border-color: var(--primaria); background: var(--primaria-fraca); }
+.opcao-template input { grid-row: span 2; margin-top: 3px; accent-color: var(--primaria); }
+.opcao-template span { font-size: 12.5px; color: var(--texto-fraco); }
+.acoes-modal { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+@media (max-width: 560px) {
+  .seletor .rotulo-seletor { display: none; }
+  .seletor select { max-width: 170px; }
 }
