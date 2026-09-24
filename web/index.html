@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FinGuia Web</title>
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <header class="topo">
+    <div class="marca">
+      <span class="logo">FG</span>
+      <div>
+        <h1>FinGuia Web</h1>
+        <p class="sub">Visualizador do banco de dados do app</p>
+      </div>
+    </div>
+    <div class="acoes-topo">
+      <button id="btn-tema" class="botao fantasma" type="button">Tema</button>
+      <button id="btn-csv" class="botao fantasma" type="button" hidden>Exportar CSV</button>
+      <button id="btn-trocar" class="botao fantasma" type="button" hidden>Trocar banco</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Tela inicial: carregar o arquivo .db -->
+    <section id="tela-carregar" class="cartao alvo-arquivo">
+      <h2>Abra o banco do FinGuia</h2>
+      <p class="ajuda">
+        Arraste o arquivo <code>finguia_database</code> aqui, ou clique para escolher.
+        Nada é enviado para a internet — o arquivo é lido dentro do seu navegador.
+      </p>
+      <input id="entrada-arquivo" type="file" hidden />
+      <button id="btn-escolher" class="botao primario" type="button">Escolher arquivo</button>
+      <p id="erro-carregar" class="erro" hidden></p>
+      <details class="dica">
+        <summary>Como exportar o banco do celular</summary>
+        <p>Com o aparelho conectado e a depuração USB ativa, rode na pasta do projeto:</p>
+        <pre><code>web/exportar-banco.bat</code></pre>
+        <p>O script usa <code>adb</code> para copiar o banco do app para <code>web/dados/</code>.</p>
+      </details>
+    </section>
+
+    <!-- Painel principal, exibido depois que o banco é aberto -->
+    <section id="painel" hidden>
+      <div id="aviso-tabelas" class="aviso" hidden></div>
+
+      <div class="linha-resumo">
+        <article class="cartao metrica entrada">
+          <span class="rotulo">Receitas</span>
+          <strong id="m-receitas">—</strong>
+        </article>
+        <article class="cartao metrica saida">
+          <span class="rotulo">Despesas</span>
+          <strong id="m-despesas">—</strong>
+        </article>
+        <article class="cartao metrica saldo">
+          <span class="rotulo">Saldo</span>
+          <strong id="m-saldo">—</strong>
+        </article>
+        <article class="cartao metrica">
+          <span class="rotulo">Lançamentos</span>
+          <strong id="m-total">—</strong>
+        </article>
+      </div>
+
+      <nav class="abas" role="tablist">
+        <button class="aba ativa" data-aba="extrato" role="tab">Extrato</button>
+        <button class="aba" data-aba="fluxo" role="tab">Fluxo mensal</button>
+        <button class="aba" data-aba="bancos" role="tab">Por banco</button>
+        <button class="aba" data-aba="agendados" role="tab">Agendados</button>
+        <button class="aba" data-aba="investimentos" role="tab">Investimentos</button>
+      </nav>
+
+      <div id="aba-extrato" class="conteudo-aba">
+        <div class="filtros">
+          <input id="busca" type="search" placeholder="Buscar por descrição, banco ou notificação…" />
+          <select id="filtro-tipo"><option value="">Todos os tipos</option></select>
+          <select id="filtro-banco"><option value="">Todos os bancos</option></select>
+        </div>
+        <div id="lista-transacoes" class="lista"></div>
+      </div>
+
+      <div id="aba-fluxo" class="conteudo-aba" hidden>
+        <div class="cartao">
+          <h3>Entradas e saídas por mês</h3>
+          <div id="grafico-fluxo"></div>
+        </div>
+      </div>
+
+      <div id="aba-bancos" class="conteudo-aba" hidden>
+        <div id="lista-bancos" class="lista"></div>
+      </div>
+
+      <div id="aba-agendados" class="conteudo-aba" hidden>
+        <div id="lista-agendados" class="lista"></div>
+      </div>
+
+      <div id="aba-investimentos" class="conteudo-aba" hidden>
+        <div id="lista-investimentos" class="lista"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="vendor/sql-wasm.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
