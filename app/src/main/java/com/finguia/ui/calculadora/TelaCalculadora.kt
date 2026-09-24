@@ -472,7 +472,9 @@ fun TelaCalculadora(
     val historicoAbas = remember { mutableStateListOf<AbaCalculadora>() }
 
     BackHandler(enabled = historicoAbas.isNotEmpty()) {
-        val abaAnterior = historicoAbas.removeLast()
+        // removeAt, nao removeLast(): compilado com JDK 21, removeLast() vira
+        // java.util.List.removeLast, que so existe no Android 15+ (crash antes)
+        val abaAnterior = historicoAbas.removeAt(historicoAbas.lastIndex)
         if (abaAnterior in abasVisiveis) {
             aba = abaAnterior
         } else {
