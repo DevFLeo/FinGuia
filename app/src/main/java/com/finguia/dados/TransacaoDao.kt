@@ -50,6 +50,9 @@ interface TransacaoDao {
     """)
     suspend fun existeCaptura(pacote: String, titulo: String, texto: String, postadaEmMs: Long): Boolean
 
+    @Query("SELECT idExterno FROM transacoes_bancarias WHERE idExterno IN (:ids)")
+    suspend fun idsExternosExistentes(ids: List<String>): List<String>
+
     @Update
     suspend fun atualizar(transacao: TransacaoBancaria)
 

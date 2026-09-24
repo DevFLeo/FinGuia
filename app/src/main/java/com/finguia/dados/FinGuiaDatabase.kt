@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [TransacaoBancaria::class, CategoriaCustom::class, Investimento::class], version = 5, exportSchema = false)
+@Database(entities = [TransacaoBancaria::class, CategoriaCustom::class, Investimento::class], version = 6, exportSchema = false)
 abstract class FinGuiaDatabase : RoomDatabase() {
 
     abstract fun transacaoDao(): TransacaoDao
@@ -76,6 +76,14 @@ abstract class FinGuiaDatabase : RoomDatabase() {
             }
         }
 
+        // Migração 5 → 6: identificador externo de lançamentos importados
+        // (OFX e Open Finance), usado para não importar o mesmo lançamento duas vezes
+        private val MIGRACAO_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE transacoes_bancarias ADD COLUMN idExterno TEXT")
+            }
+        }
+
         fun obterInstancia(context: Context): FinGuiaDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -83,7 +91,7 @@ abstract class FinGuiaDatabase : RoomDatabase() {
                     FinGuiaDatabase::class.java,
                     "finguia_database"
                 )
-                    .addMigrations(MIGRACAO_1_2, MIGRACAO_2_3, MIGRACAO_3_4, MIGRACAO_4_5)
+                    .addMigrations(MIGRACAO_1_2, MIGRACAO_2_3, MIGRACAO_3_4, MIGRACAO_4_5, MIGRACAO_5_6)
                     .build()
                     .also { INSTANCE = it }
             }

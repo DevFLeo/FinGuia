@@ -26,9 +26,18 @@ class TransacaoRepository(context: Context) {
     suspend fun existeCaptura(pacote: String, titulo: String, texto: String, postadaEmMs: Long): Boolean =
         dao.existeCaptura(pacote, titulo, texto, postadaEmMs)
 
+    /** Quais destes identificadores externos já estão gravados. Consulta em lotes. */
+    suspend fun idsExternosExistentes(ids: Collection<String>): Set<String> =
+        ids.chunked(LOTE_SQL).flatMap { dao.idsExternosExistentes(it) }.toSet()
+
     suspend fun atualizar(transacao: TransacaoBancaria) = dao.atualizar(transacao)
 
     suspend fun deletar(id: Long) = dao.deletar(id)
 
     suspend fun buscar(query: String): List<TransacaoBancaria> = dao.buscar(query)
+
+    private companion object {
+        // Abaixo do limite de 999 parâmetros do SQLite em Androids antigos
+        const val LOTE_SQL = 500
+    }
 }

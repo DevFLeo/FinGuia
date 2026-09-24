@@ -35,5 +35,8 @@ data class TransacaoBancaria(
     // Data de efetivação agendada (null = lançamento imediato)
     val dataAgendada: Long? = null,
     // Se false, é um lançamento futuro ainda não efetivado (não entra em totais)
-    val efetivado: Boolean = true
+    val efetivado: Boolean = true,
+    // Identificador na origem de lançamentos importados, para não importar duas
+    // vezes: "ofx:<FITID>" ou "openfinance:<transactionId>". Null nos demais.
+    val idExterno: String? = null
 )
