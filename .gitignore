@@ -32,9 +32,39 @@ replay_pid*.log
 deploy_device.bat
 
 # Backups e arquivos temporários locais
+# Contêm o banco real do app (transações e perfil): nunca versionar
 backup_app_data/
+backup_finguia/
 finguia_backup.ab
+*.tar
 Teste de nome
+
+# Bancos SQLite exportados do aparelho (dados pessoais)
+*.db
+*.sqlite
+finguia_database
+finguia_database-wal
+finguia_database-shm
+
+# Artefatos de build Android
+*.apk
+*.aab
+*.ap_
+*.dex
+output-metadata.json
+captures/
+.externalNativeBuild/
+.cxx/
+*.hprof
+
+# Node (ferramentas do FinGuia Web)
+node_modules/
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # Configurações de assinatura (contendo senhas)
 keystore.properties
