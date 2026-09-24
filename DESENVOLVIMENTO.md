@@ -463,6 +463,15 @@ web\finguia-web.bat       :: abre http://127.0.0.1:8080
 - **Pegadinha:** o Room grava em modo WAL. O arquivo `.db` sozinho vem quase
   vazio; os dados recentes estão no `-wal`. O `consolidar-wal.js` junta os dois.
   Sem isso a página abre vazia.
+- **Login simulado:** a página abre pedindo usuário e senha. Conta de
+  demonstração: `demo` / `finguia`. As contas ficam só no navegador (senha em
+  hash SHA-256 com sal); é demonstração, não segurança. O botão **Sair** volta
+  ao login.
+- **Dashboards com templates:** cada usuário cria quantos quiser, escolhendo
+  entre Completo, Resumo, Gastos e Investimentos. Como criar um template novo
+  está no [`web/README.md`](web/README.md#dashboards-e-templates).
+- **Testes:** `cd web/testes && npm install && npm test` (jsdom) e
+  `npm run test:navegador` (Firefox real).
 
 ---
 
@@ -660,7 +669,7 @@ Testes unitários em `app/src/test` (105). Mostre o relatório verde de
 | Problema | Saída |
 |---|---|
 | Pix não chegou | Mostre uma transação que já estava capturada e o texto original dela no detalhe |
-| App travou | Abra o FinGuia Web com o banco exportado |
+| App travou | Abra o FinGuia Web com o banco exportado e entre com `demo` / `finguia` |
 | Sem internet | Captura, extrato e importação funcionam offline; só cotações e notícias dependem de rede |
 
 ---

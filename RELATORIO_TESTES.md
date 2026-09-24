@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Data** | 24/09/2026 |
-| **Versão testada** | branch `desenvolvimento`, commit `cc69a84` |
+| **Versão testada** | branch `desenvolvimento`: rodada 1 no commit `cc69a84`; rodada 2 (FinGuia Web com login e dashboards, [seção 11](#11-rodada-2--finguia-web-com-login-e-dashboards)) no commit `3c34eb0` |
 | **Versão anterior (atualização)** | branch `producao`, commit `06c0eba` (banco versão 5) |
 | **Ambiente** | Windows · JDK 21.0.12 · Gradle 9.3.1 · AGP 8.7.3 · Kotlin 2.0.21 · Node 24.16 |
 | **Aparelho** | Emulador Pixel 10, Android 17 (API 37) |
@@ -23,8 +23,9 @@ Todos os testes usaram **dados fictícios**. Nenhum dado real do app entra neste
 | Ponta a ponta no emulador (11 roteiros) | ✅ Aprovados após correções |
 | Estresse (5.000 toques aleatórios, 2 rodadas) | ✅ 0 crashes, 0 travamentos |
 | FinGuia Web (servidor, interface e WAL) | ✅ 16 de 16 na interface · 10 de 10 no servidor |
+| **Rodada 2:** FinGuia Web com login e dashboards | ✅ **57 de 57** no jsdom · **11 de 11** num Firefox real · app 105/105 de novo |
 
-**5 defeitos encontrados, 4 corrigidos durante os testes** (o quinto era de ambiente, não de código):
+**7 defeitos encontrados, 6 corrigidos** (um era de ambiente, não de código). Os dois últimos saíram da rodada 2:
 
 | # | Defeito | Gravidade | Como foi achado | Correção |
 |---|---|---|---|---|
@@ -33,6 +34,8 @@ Todos os testes usaram **dados fictícios**. Nenhum dado real do app entra neste
 | 3 | Caracteres Unicode invisíveis no código-fonte (4 lugares) | 🟡 Baixa | Lint (`ByteOrderMark`) + varredura | `2b010d5` |
 | 4 | Resumo da importação Open Finance dizia "Open Finance · Open Finance" | ⚪ Cosmético | Ponta a ponta | `cc69a84` |
 | 5 | Dependências de teste instrumentado nunca tinham sido baixadas (Gradle em modo offline) | Ambiente | Lint falhou antes de analisar | Download das dependências |
+| 6 | FinGuia Web: botão principal ilegível no tema escuro (texto branco sobre roxo claro, contraste 2,5:1) | 🟡 Média | Captura no Firefox real | `fbef8be` (agora 7,7:1) |
+| 7 | FinGuia Web: a mensagem de erro do login anterior continuava na tela enquanto a nova tentativa era conferida | ⚪ Baixa | Teste da interface | `fbef8be` |
 
 ---
 
@@ -284,3 +287,94 @@ Todas com dados fictícios.
 | Extrato no tema claro: o aviso de boleto em cinza, fora dos totais | Máscara: `123456` digitado vira `R$ 1.234,56` | Confirmação de exclusão (defeito #2 corrigido) |
 | ![Importação OFX](docs/relatorio-testes/importacao-ofx.png) | ![Calculadora científica](docs/relatorio-testes/calculadora-cientifica.png) | ![Configurações](docs/relatorio-testes/configuracoes-tema-claro.png) |
 | Resumo da importação de OFX | Calculadora: memória `M = 4,5` e erro tratado | Aparência e padrões |
+
+---
+
+## 11. Rodada 2 — FinGuia Web com login e dashboards
+
+Rodada feita depois de acrescentar ao FinGuia Web o **login simulado**, o botão
+**Sair** e a criação de **dashboards a partir de templates** (commit `fbef8be`).
+Os testes estão versionados em `web/testes/` e qualquer pessoa pode rodá-los de
+novo (instruções no [`web/README.md`](web/README.md#testes)).
+
+| Suíte | Onde roda | Resultado |
+|---|---|---|
+| Interface (`npm test`) | `index.html` real no jsdom, banco fictício | ✅ **57 de 57** |
+| Navegador (`npm run test:navegador`) | Firefox 156 real, headless, via `servidor.js` | ✅ **11 de 11** |
+| Unitários do app (`./gradlew testDebugUnitTest`) | JVM | ✅ **105 de 105** (sem mudança no app) |
+
+### 11.1 Login simulado
+
+| Verificação | Resultado |
+|---|---|
+| Página abre na tela de login | ✅ |
+| Conta de demonstração criada sozinha | ✅ `demo` |
+| Senha guardada como hash SHA-256 (64 hexadecimais), sem campo de senha | ✅ |
+| Senha errada | ✅ "Usuário ou senha incorretos." e campo de senha limpo |
+| Usuário inexistente | ✅ Mesma mensagem (não revela quem existe) |
+| Login certo, digitando o usuário em maiúsculas | ✅ Abre o painel |
+| Sessão só nesta aba (`sessionStorage`) | ✅ |
+| Criptografia e WebAssembly num navegador real | ✅ Firefox |
+| Recarregar a página com sessão aberta | ✅ Não pede login de novo |
+
+### 11.2 Criar conta e isolamento
+
+| Verificação | Resultado |
+|---|---|
+| Senha com menos de 4 caracteres | ✅ Recusada |
+| Usuário com menos de 3 caracteres | ✅ Recusado |
+| Usuário que já existe | ✅ "Esse usuário já existe." |
+| Conta nova já entra logada | ✅ |
+| Conta nova começa só com o dashboard "Principal" | ✅ Não vê os dashboards de outro usuário |
+| Senha da conta nova não aparece no armazenamento | ✅ |
+| Voltar para `demo` | ✅ Os 3 dashboards dele e o último ativo, intactos |
+
+### 11.3 Dashboards e templates
+
+| Verificação | Resultado |
+|---|---|
+| Primeiro acesso | ✅ Um dashboard "Principal · Completo"; excluir desabilitado |
+| Template Completo: receitas, despesas, saldo, lançamentos | ✅ Iguais ao SQLite (R$ 3.330,00 / R$ 2.641,51 / R$ 688,49 / 13) |
+| Template Completo: abas, extrato, agendados, bancos, gráfico | ✅ 5 abas · 13 · 1 · 4 · gráfico desenhado |
+| Busca no extrato + CSV | ✅ Busca "maria" = 1; CSV exporta só o filtrado (cabeçalho + 1), com BOM |
+| "+ Novo dashboard" | ✅ Oferece os 4 templates |
+| Nome vazio / nome repetido (sem diferenciar maiúsculas) | ✅ Recusados com mensagem |
+| Template **Gastos** | ✅ Blocos certos; total R$ 2.641,51; 8 saídas; maior R$ 1.234,56; 4 barras por tipo, a primeira é "Compra no débito" (o tipo com mais gasto) |
+| Template **Resumo** | ✅ Totais, fluxo mensal, maiores gastos |
+| Template **Investimentos** | ✅ Métricas e carteira; carteira vazia mostra aviso |
+| Trocar de dashboard | ✅ Redesenha com o template escolhido |
+| Excluir → Cancelar / Confirmar | ✅ Mantém / apaga; outro dashboard assume |
+| Dashboards salvos por usuário | ✅ Continuam após recarregar a página |
+| Largura de celular (390 px) | ✅ Sem rolagem horizontal |
+| Erros de JavaScript no console | ✅ Nenhum |
+
+### 11.4 Sair
+
+| Verificação | Resultado |
+|---|---|
+| Volta ao login | ✅ |
+| Sessão encerrada | ✅ |
+| Painel limpo e controles escondidos | ✅ |
+| Recarregar depois de sair | ✅ Continua no login |
+
+### 11.5 O que esta rodada não cobre
+
+- **Segurança real.** O login é simulado: quem tem acesso ao computador lê o
+  `localStorage`. Não há servidor, recuperação de senha nem limite de tentativas.
+- **Outros navegadores.** Testado no Firefox; Chrome e Edge não estão instalados
+  nesta máquina.
+- **Abrir o `index.html` direto do disco** (`file://`): o navegador bloqueia a
+  criptografia e o WebAssembly. O caminho suportado é o `finguia-web.bat`.
+
+### 11.6 Capturas (Firefox real, dados fictícios)
+
+| | |
+|---|---|
+| ![Login com erro](docs/relatorio-testes/web-02-login-erro.png) | ![Dashboard Completo](docs/relatorio-testes/web-03-dashboard-completo.png) |
+| Login: senha errada | Dashboard "Principal", template Completo |
+| ![Novo dashboard](docs/relatorio-testes/web-04-novo-dashboard.png) | ![Dashboard Gastos](docs/relatorio-testes/web-05-dashboard-gastos.png) |
+| Novo dashboard: escolha do template | Dashboard "Meus gastos", template Gastos |
+
+![Celular](docs/relatorio-testes/web-07-celular.png)
+
+*Largura de celular (390 px), tema claro.*
