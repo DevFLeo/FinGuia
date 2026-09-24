@@ -26,8 +26,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.dados.CategoriaCustom
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.motor.MascaraMoeda
+import com.finguia.ui.formato.MascaraMoedaBR
+import com.finguia.ui.formato.digitosMoeda
 import com.finguia.ui.formato.emReais
-import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.*
 
 // ─────────────────────────────────────────────
@@ -239,7 +241,7 @@ private fun DialogLancamento(
         confirmButton = {
             Button(
                 onClick = {
-                    val valor = parsearValorBrasileiro(valorTexto)
+                    val valor = valorDaMascara(valorTexto)
                     if (valor == null || valor <= 0.0) erroValor = true
                     else aoConfirmar(valor, descricao.ifBlank { categoria.label })
                 },
@@ -322,7 +324,7 @@ private fun DialogLancamentoAvulso(
         confirmButton = {
             Button(
                 onClick = {
-                    val valor = parsearValorBrasileiro(valorTexto)
+                    val valor = valorDaMascara(valorTexto)
                     if (valor == null || valor <= 0.0) erroValor = true
                     else aoConfirmar(valor, descricao.ifBlank { if (ehEntrada) "Entrada avulsa" else "Saída avulsa" }, tipoSelecionado)
                 },
@@ -752,7 +754,7 @@ private fun DialogLancamentoAgendado(
         confirmButton = {
             Button(
                 onClick = {
-                    val valor = parsearValorBrasileiro(valorTexto)
+                    val valor = valorDaMascara(valorTexto)
                     val data = dataSelecionada
                     when {
                         valor == null || valor <= 0.0 -> erroValor = true
@@ -937,14 +939,15 @@ private fun CampoValor(
 ) {
     OutlinedTextField(
         value          = valor,
-        onValueChange  = { onChange(it.filter { c -> c.isDigit() || c == ',' || c == '.' }) },
-        label          = { Text("Valor (R$)", color = GrayText) },
-        placeholder    = { Text("Ex: 1.500,00", color = GrayText.copy(alpha = 0.5f)) },
+        onValueChange  = { onChange(digitosMoeda(it)) },
+        visualTransformation = MascaraMoedaBR,
+        label          = { Text("Valor", color = GrayText) },
+        prefix         = { Text("R$ ", color = GrayText) },
         isError        = isError,
         supportingText = if (isError) {
             { Text("Informe um valor válido maior que zero", color = DebtRed, fontSize = 11.sp) }
         } else null,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine     = true,
         colors         = OutlinedTextFieldDefaults.colors(
             focusedBorderColor   = corAcento,
@@ -986,8 +989,9 @@ private fun CampoDescricao(
 // UTILITÁRIOS
 // ─────────────────────────────────────────────
 
-private fun parsearValorBrasileiro(texto: String): Double? =
-    texto.lerNumeroBR()?.takeIf { it > 0 }
+/** Digitos da MascaraMoedaBR (ex.: "123456") para reais; zero vira null. */
+private fun valorDaMascara(digitos: String): Double? =
+    MascaraMoeda.reais(digitos).takeIf { it > 0 }
 
 private fun formatarValor(valor: Double): String =
     valor.emReais()

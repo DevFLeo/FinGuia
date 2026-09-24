@@ -13,7 +13,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.finguia.dados.TransacaoBancaria
-import com.finguia.ui.formato.lerNumeroBR
+import com.finguia.motor.MascaraMoeda
+import com.finguia.ui.formato.MascaraMoedaBR
+import com.finguia.ui.formato.digitosMoeda
 import com.finguia.ui.theme.*
 
 @Composable
@@ -24,7 +26,7 @@ fun ModalEditarTransacao(
 ) {
     var descricao by remember { mutableStateOf(transacao.descricao) }
     var banco by remember { mutableStateOf(transacao.banco) }
-    var valorTexto by remember { mutableStateOf(transacao.valor.toString()) }
+    var valorTexto by remember { mutableStateOf(MascaraMoeda.deReais(transacao.valor)) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -54,11 +56,13 @@ fun ModalEditarTransacao(
 
                 OutlinedTextField(
                     value = valorTexto,
-                    onValueChange = { valorTexto = it },
-                    label = { Text("Valor (R$)", color = GrayText) },
+                    onValueChange = { valorTexto = digitosMoeda(it) },
+                    visualTransformation = MascaraMoedaBR,
+                    label = { Text("Valor", color = GrayText) },
+                    prefix = { Text("R$ ", color = GrayText) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = outlinedFieldColors(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )
 
@@ -69,7 +73,8 @@ fun ModalEditarTransacao(
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val novoValor = valorTexto.lerNumeroBR() ?: transacao.valor
+                            // Campo apagado mantem o valor antigo em vez de gravar zero
+                            val novoValor = MascaraMoeda.reais(valorTexto).takeIf { it > 0 } ?: transacao.valor
                             onConfirmar(transacao.copy(banco = banco.trim(), descricao = descricao.trim(), valor = novoValor))
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
