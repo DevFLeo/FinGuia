@@ -629,7 +629,7 @@ private fun BlocoConversao(vm: MoedasViewModel = viewModel()) {
                         Text("Variação 24h: ${m.variacaoPct.emNumeroBR(2)}%",
                             color = if (m.variacaoPct >= 0) MoneyGreen else DebtRed, fontSize = 12.sp)
                     }
-                    Text("R$ ${m.valorEmReais.emNumeroBR(4)}", color = TextoForte, fontWeight = FontWeight.Bold)
+                    Text("R$ ${NumeroBR.formatarFlexivel(m.valorEmReais, 2, 4)}", color = TextoForte, fontWeight = FontWeight.Bold)
                 }
             }
         }
