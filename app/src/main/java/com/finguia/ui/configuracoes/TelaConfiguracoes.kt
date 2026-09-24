@@ -242,7 +242,8 @@ fun TelaConfiguracoes(
 
 private fun textoResumo(r: ResumoImportacao): String = buildString {
     append(r.formato.rotulo)
-    r.instituicao?.let { append(" · $it") }
+    // No Open Finance a instituicao padrao e o proprio nome do formato: nao repete
+    r.instituicao?.takeIf { it != r.formato.rotulo }?.let { append(" · $it") }
     append("\n\n")
     append(
         when (r.importados) {
