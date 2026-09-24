@@ -9,6 +9,8 @@ class TransacaoRepository(context: Context) {
 
     suspend fun salvar(transacao: TransacaoBancaria): Long = dao.inserir(transacao)
 
+    suspend fun salvarTodas(transacoes: List<TransacaoBancaria>): List<Long> = dao.inserirTodas(transacoes)
+
     fun listarTodas(): Flow<List<TransacaoBancaria>> = dao.listarTodas()
 
     fun listarReceitas(): Flow<List<TransacaoBancaria>> = dao.listarReceitas()

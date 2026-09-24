@@ -13,6 +13,11 @@ interface TransacaoDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun inserir(transacao: TransacaoBancaria): Long
 
+    // Numa unica transacao do SQLite: importar um extrato de centenas de linhas
+    // uma a uma levaria segundos
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun inserirTodas(transacoes: List<TransacaoBancaria>): List<Long>
+
     @Query("SELECT * FROM transacoes_bancarias WHERE efetivado = 1 ORDER BY timestampMs DESC")
     fun listarTodas(): Flow<List<TransacaoBancaria>>
 

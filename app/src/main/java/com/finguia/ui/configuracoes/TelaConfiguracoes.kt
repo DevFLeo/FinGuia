@@ -1,5 +1,7 @@
 package com.finguia.ui.configuracoes
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,13 +14,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -43,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.finguia.dados.ResumoImportacao
 import com.finguia.ui.DestinosApp
 import com.finguia.ui.calculadora.AbaCalculadora
 import com.finguia.ui.calculadora.CalcCacheViewModel
@@ -57,8 +66,15 @@ import com.finguia.ui.theme.TextoForte
 fun TelaConfiguracoes(
     modifier: Modifier = Modifier,
     configViewModel: ConfiguracoesViewModel = viewModel(),
-    cacheVm: CalcCacheViewModel = viewModel()
+    cacheVm: CalcCacheViewModel = viewModel(),
+    importacaoVm: ImportacaoViewModel = viewModel()
 ) {
+    val estadoImportacao by importacaoVm.estado.collectAsState()
+    // Seletor de arquivos do Android; "*/*" porque bancos entregam OFX com tipos
+    // variados (application/x-ofx, text/plain, octet-stream)
+    val escolherArquivo = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(importacaoVm::importar)
+    }
     val ocultarSaldo by configViewModel.ocultarSaldo.collectAsState()
     val tema by configViewModel.tema.collectAsState()
     val padroes by configViewModel.padroes.collectAsState()
@@ -153,6 +169,38 @@ fun TelaConfiguracoes(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        SecaoConfiguracoes(titulo = "Dados") {
+            Column(modifier = Modifier.padding(vertical = 12.dp)) {
+                Text("Importar extrato", color = TextoForte, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    "Arquivo OFX exportado pelo app ou site do banco, ou resposta da API " +
+                        "de Contas do Open Finance (JSON). Lançamentos já importados são ignorados.",
+                    color = GrayText,
+                    fontSize = 12.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = { escolherArquivo.launch(arrayOf("*/*")) },
+                    enabled = estadoImportacao != EstadoImportacao.Importando,
+                    colors = ButtonDefaults.buttonColors(containerColor = GojoPurple)
+                ) {
+                    if (estadoImportacao == EstadoImportacao.Importando) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Importando…", color = Color.White)
+                    } else {
+                        Text("Escolher arquivo", color = Color.White)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         SecaoConfiguracoes(titulo = "Privacidade") {
             ItemSwitch(
                 rotulo = "Ocultar saldo",
@@ -176,6 +224,45 @@ fun TelaConfiguracoes(
             }
         }
     }
+
+    when (val e = estadoImportacao) {
+        is EstadoImportacao.Concluida -> DialogoImportacao(
+            titulo = "Importação concluída",
+            texto = textoResumo(e.resumo),
+            aoFechar = importacaoVm::dispensarResultado
+        )
+        is EstadoImportacao.Falhou -> DialogoImportacao(
+            titulo = "Não foi possível importar",
+            texto = e.mensagem,
+            aoFechar = importacaoVm::dispensarResultado
+        )
+        else -> Unit
+    }
+}
+
+private fun textoResumo(r: ResumoImportacao): String = buildString {
+    append(r.formato.rotulo)
+    r.instituicao?.let { append(" · $it") }
+    append("\n\n")
+    append(
+        when (r.importados) {
+            0 -> "Nenhum lançamento novo."
+            1 -> "1 lançamento importado."
+            else -> "${r.importados} lançamentos importados."
+        }
+    )
+    if (r.jaExistiam > 0) append("\n${r.jaExistiam} já estavam no app.")
+    if (r.ignorados > 0) append("\n${r.ignorados} linha(s) sem valor ou data ignorada(s).")
+}
+
+@Composable
+private fun DialogoImportacao(titulo: String, texto: String, aoFechar: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = aoFechar,
+        confirmButton = { TextButton(onClick = aoFechar) { Text("OK", color = GojoPurple) } },
+        title = { Text(titulo) },
+        text = { Text(texto) }
+    )
 }
 
 @Composable

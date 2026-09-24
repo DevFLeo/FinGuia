@@ -77,9 +77,11 @@ public final class LeitorOfx {
         if (ofx == null || !ofx.toUpperCase(Locale.ROOT).contains("<OFX>")) {
             throw new IllegalArgumentException("Arquivo não parece ser um extrato OFX.");
         }
-        String instituicao = campo(ofx, "ORG");
+        // Nome conhecido pelo codigo do banco primeiro: o ORG costuma trazer a
+        // razao social ou um codigo interno ("NU PAGAMENTOS S.A.")
+        String instituicao = InstituicoesBR.nome(campo(ofx, "BANKID"));
         if (instituicao == null) {
-            instituicao = InstituicoesBR.nome(campo(ofx, "BANKID"));
+            instituicao = campo(ofx, "ORG");
         }
         String conta = campo(ofx, "ACCTID");
         boolean cartao = ofx.toUpperCase(Locale.ROOT).contains("<CCSTMTRS>");
