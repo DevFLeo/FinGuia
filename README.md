@@ -15,6 +15,7 @@ FinGuia é um aplicativo Android de gestão financeira pessoal que automatiza o 
 - [Bancos Suportados](#bancos-suportados)
 - [Configuração e Instalação](#configuração-e-instalação)
 - [Permissões Necessárias](#permissões-necessárias)
+- [FinGuia Web](#finguia-web)
 - [Roadmap](#roadmap)
 
 ---
@@ -245,6 +246,24 @@ cd finguia
 # 4. Execute no dispositivo ou emulador
 # Run → Run 'app' (Shift+F10)
 ```
+
+---
+
+## FinGuia Web
+
+Visualizador do banco de dados do app no navegador. Abre o mesmo arquivo SQLite
+que o Room grava no aparelho (`finguia_database`) e mostra extrato, fluxo mensal,
+totais por banco, lançamentos agendados e investimentos — útil para conferir os
+dados no computador e para apresentar o projeto sem depender do celular.
+
+```bat
+web\exportar-banco.bat   :: copia o banco do aparelho via adb
+web\finguia-web.bat      :: abre o visualizador em http://127.0.0.1:8080
+```
+
+O arquivo é lido dentro do navegador, com SQLite compilado para WebAssembly
+(sql.js, versionado em `web/vendor`). Nada é enviado para servidor nenhum e não
+é preciso internet. Detalhes e manutenção em [`web/README.md`](web/README.md).
 
 ---
 
