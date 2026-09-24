@@ -41,6 +41,8 @@ Teste de nome
 
 # Bancos SQLite exportados do aparelho (dados pessoais)
 *.db
+# ... exceto o banco ficticio dos testes do FinGuia Web
+!web/testes/dados-teste/*.db
 *.sqlite
 finguia_database
 finguia_database-wal

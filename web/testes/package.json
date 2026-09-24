@@ -1,0 +1,16 @@
+{
+  "name": "finguia-web-testes",
+  "private": true,
+  "description": "Testes do FinGuia Web: interface no jsdom e fluxo num Firefox real",
+  "type": "module",
+  "scripts": {
+    "test": "node teste_interface.mjs",
+    "test:navegador": "node teste_navegador.mjs",
+    "test:tudo": "node teste_interface.mjs && node teste_navegador.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.0",
+    "puppeteer-core": "^25.12.0",
+    "sql.js": "^1.14.2"
+  }
+}
