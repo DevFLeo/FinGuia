@@ -27,6 +27,7 @@ import com.finguia.dados.CategoriaCustom
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.motor.MascaraMoeda
+import com.finguia.ui.componentes.rememberConfirmacaoExclusao
 import com.finguia.ui.configuracoes.ConfiguracoesViewModel
 import com.finguia.ui.configuracoes.PadroesApp
 import com.finguia.ui.formato.MascaraMoedaBR
@@ -558,6 +559,7 @@ private fun AbaRecorrente(
     viewModel: TransacaoViewModel,
     aoClicarCategoria: (Categoria) -> Unit
 ) {
+    val pedirExclusao = rememberConfirmacaoExclusao { viewModel.deletar(it.id) }
     val recorrentes by viewModel.recorrentes.collectAsState()
 
     Column(
@@ -597,7 +599,7 @@ private fun AbaRecorrente(
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.width(8.dp))
-                    IconButton(onClick = { viewModel.deletar(transacao.id) }, modifier = Modifier.size(28.dp)) {
+                    IconButton(onClick = { pedirExclusao(transacao) }, modifier = Modifier.size(28.dp)) {
                         Icon(Icons.Default.DeleteOutline, contentDescription = "Remover", tint = GrayText, modifier = Modifier.size(17.dp))
                     }
                 }
@@ -618,6 +620,7 @@ private fun AbaAgendado(
     viewModel: TransacaoViewModel,
     aoCriarAgendamento: () -> Unit
 ) {
+    val pedirExclusao = rememberConfirmacaoExclusao { viewModel.deletar(it.id) }
     val agendadas by viewModel.agendadas.collectAsState()
     val fmtData = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale("pt", "BR")) }
 
@@ -672,7 +675,7 @@ private fun AbaAgendado(
                     IconButton(onClick = { viewModel.efetivar(transacao) }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.CheckCircle, contentDescription = "Efetivar", tint = MoneyGreen, modifier = Modifier.size(20.dp))
                     }
-                    IconButton(onClick = { viewModel.deletar(transacao.id) }, modifier = Modifier.size(28.dp)) {
+                    IconButton(onClick = { pedirExclusao(transacao) }, modifier = Modifier.size(28.dp)) {
                         Icon(Icons.Default.DeleteOutline, contentDescription = "Remover", tint = GrayText, modifier = Modifier.size(17.dp))
                     }
                 }

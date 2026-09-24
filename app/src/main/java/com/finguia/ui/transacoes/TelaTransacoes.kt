@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.dados.TipoTransacao
+import com.finguia.ui.componentes.rememberConfirmacaoExclusao
 import com.finguia.ui.formato.corDoSentido
 import com.finguia.ui.formato.emReais
 import com.finguia.ui.formato.prefixoDoSentido
@@ -206,13 +207,14 @@ fun TelaTransacoes(viewModel: TransacaoViewModel = viewModel()) {
                 EstadoVazio(m)
             } else {
                 var transacaoEditando by remember { mutableStateOf<TransacaoBancaria?>(null) }
+                val pedirExclusao = rememberConfirmacaoExclusao { viewModel.deletar(it.id) }
 
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(m.cardGap)) {
                     items(transacoes, key = { it.id }) { transacao ->
                         CartaoTransacao(
                             transacao = transacao,
                             m         = m,
-                            onDeletar = { viewModel.deletar(transacao.id) },
+                            onDeletar = { pedirExclusao(transacao) },
                             onEditar  = { transacaoEditando = transacao }
                         )
                     }

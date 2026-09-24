@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.ui.componentes.rememberConfirmacaoExclusao
 import com.finguia.ui.theme.*
 import com.finguia.ui.theme.TextoForte
 import com.finguia.ui.transacoes.TransacaoViewModel
@@ -34,6 +35,7 @@ fun TelaHistoricoEdicao(
 ) {
     val transacoes by viewModel.todasTransacoes.collectAsState(initial = emptyList())
     var transacaoParaEditar by remember { mutableStateOf<TransacaoBancaria?>(null) }
+    val pedirExclusao = rememberConfirmacaoExclusao { viewModel.deletar(it.id) }
     var textoBusca by remember { mutableStateOf("") }
 
     Scaffold(
@@ -100,7 +102,7 @@ fun TelaHistoricoEdicao(
                     CardTransacaoEditavel(
                         transacao = transacao,
                         onClique = { transacaoParaEditar = transacao },
-                        onDeletar = { viewModel.deletar(transacao.id) }
+                        onDeletar = { pedirExclusao(transacao) }
                     )
                 }
             }
