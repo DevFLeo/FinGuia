@@ -38,22 +38,26 @@ Você recebe uma notificação do Nubank → FinGuia captura → Classifica como
 
 | Funcionalidade | Descrição |
 |---|---|
-| **Captura Automática de Notificações** | Lê notificações de 40+ bancos e fintechs em segundo plano |
-| **Classificação de Transações** | Identifica tipo: Pix, compra, boleto, transferência, cobrança, saque, etc. |
-| **Extração de Valores** | Regex para capturar valores monetários em formato BR (R$ 1.250,00) |
-| **Extrato Consolidado** | Tela com todas as transações capturadas, separadas por banco |
-| **Resumo Financeiro** | Totais de entradas e saídas no período |
-| **Criptomoedas** | Cotações em tempo real via CoinGecko API, atualização a cada 30 segundos |
-| **Dashboard** | Painel com visão geral de fluxo mensal |
-| **Navegação Adaptativa** | Bottom navigation em celulares, side rail em tablets |
+| **Captura Automática de Notificações** | Lê notificações de 40+ bancos e fintechs em segundo plano, e recupera as que chegaram com o app fechado |
+| **Filtro de Ruído** | Descarta propaganda (ofertas, renegociação, SMS de operadora) e notificações sem valor |
+| **Classificação de Transações** | Identifica tipo: Pix, compra, boleto, transferência, cobrança, saque, etc., e quem pagou ou recebeu |
+| **Extração de Valores** | Valores em formato BR (R$ 1.250,00), ignorando saldo e limite no mesmo texto |
+| **Importação de Extrato** | Arquivos OFX dos bancos e respostas da API de Contas do Open Finance, sem duplicar |
+| **Extrato Consolidado** | Todas as transações, com avisos (lembretes de boleto) separados de entradas e saídas |
+| **Resumo Financeiro** | Totais de entradas e saídas, gastos por categoria e fluxo de caixa |
+| **Lançamento Manual** | Avulso, recorrente e agendado, com digitação de valor estilo app de banco |
+| **Calculadoras** | Conversão de moedas, financeira, científica, investimentos, markup e empréstimos |
+| **Investimentos** | Carteira com cotações (Yahoo Finance) e taxas do Banco Central (Selic, CDI, IPCA) |
+| **Busca e Metas** | Busca no extrato e metas de economia no perfil |
+| **Tema Claro e Escuro** | Escolha em Configurações, ou seguindo o sistema |
+| **Padrões Configuráveis** | Tela inicial, aba do Lançar, calculadora e conta dos lançamentos manuais |
+| **Padrão Brasileiro** | Todos os números em 0.000,00, independente do idioma do celular |
+| **FinGuia Web** | Visualizador do banco de dados no navegador ([detalhes](#finguia-web)) |
 
-### Em Desenvolvimento
+### Próximos Passos
 
-- Gráficos de evolução de gastos por categoria
-- Metas de economia
-- Lançamento manual de transações (tela criada, lógica de persistência pendente)
-- Calculadora financeira integrada
-- Busca e filtros no extrato
+- Conexão com um agregador credenciado de Open Finance (o conversor do formato já existe; ver [Guia de Desenvolvimento](DESENVOLVIMENTO.md#7-importação-de-extratos-e-open-finance))
+- Limpeza assistida de capturas antigas gravadas antes do filtro de propaganda
 
 ---
 
