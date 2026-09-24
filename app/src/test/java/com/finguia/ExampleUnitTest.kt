@@ -1,4 +1,4 @@
-package com.example.finguia
+package com.finguia
 
 import org.junit.Test
 

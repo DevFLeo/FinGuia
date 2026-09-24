@@ -90,4 +90,8 @@ dependencies {
     implementation(libs.coil.svg)
     implementation(libs.okhttp)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }
