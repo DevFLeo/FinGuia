@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.dados.TipoTransacao
+import com.finguia.ui.formato.emReais
 import com.finguia.ui.gerenciamento.ModalEditarTransacao
 import com.finguia.ui.theme.*
 import java.text.SimpleDateFormat
@@ -403,4 +404,4 @@ private fun iconeParaTipo(tipo: TipoTransacao): ImageVector = when (tipo) {
 }
 
 private fun formatarValor(valor: Double): String =
-    "R$ %,.2f".format(valor).replace(",", "X").replace(".", ",").replace("X", ".")
+    valor.emReais()

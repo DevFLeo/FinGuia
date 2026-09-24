@@ -1,6 +1,7 @@
 package com.finguia.service
 
 import com.finguia.dados.TipoTransacao
+import com.finguia.motor.NumeroBR
 
 /**
  * Analisa o conteúdo textual de notificações bancárias para extrair
@@ -151,7 +152,7 @@ object AnalisadorNotificacao {
      * Gera uma descrição legível resumindo a transação capturada.
      */
     fun gerarDescricao(tipo: TipoTransacao, banco: String, valor: Double): String {
-        val valorFormatado = "R$ %.2f".format(valor).replace(".", ",")
+        val valorFormatado = NumeroBR.moeda(valor)
         return when (tipo) {
             TipoTransacao.PIX_RECEBIDO         -> "Pix recebido de $valorFormatado via $banco"
             TipoTransacao.PIX_ENVIADO          -> "Pix enviado de $valorFormatado via $banco"

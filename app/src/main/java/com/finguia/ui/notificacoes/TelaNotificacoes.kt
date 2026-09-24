@@ -34,6 +34,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.service.NotificationListenerHelper
+import com.finguia.ui.formato.emNumeroBR
+import com.finguia.ui.formato.emReais
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -215,7 +217,7 @@ private fun CardCapturaTransacao(t: TransacaoBancaria) {
                 )
             }
             Text(
-                text = (if (ehEntrada) "+" else "-") + "R$ %,.2f".format(t.valor),
+                text = (if (ehEntrada) "+" else "-") + t.valor.emReais(),
                 color = cor,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
@@ -285,19 +287,19 @@ private fun gerarAlertas(
         when {
             pct >= 1.0 -> alertas += Alerta(
                 titulo = "Gastos ultrapassaram receitas",
-                descricao = "Você gastou ${"%.0f".format(pct * 100)}% das suas entradas. Revise despesas.",
+                descricao = "Você gastou ${(pct * 100).emNumeroBR(0)}% das suas entradas. Revise despesas.",
                 icone = Icons.Default.Warning,
                 cor = DebtRed
             )
             pct >= 0.9 -> alertas += Alerta(
-                titulo = "Atenção: ${"%.0f".format(pct * 100)}% comprometidos",
+                titulo = "Atenção: ${(pct * 100).emNumeroBR(0)}% comprometidos",
                 descricao = "Gastos próximos do total de receitas.",
                 icone = Icons.Default.Warning,
                 cor = Color(0xFFFFB300)
             )
             pct < 0.5 -> alertas += Alerta(
                 titulo = "Saúde financeira em dia",
-                descricao = "Apenas ${"%.0f".format(pct * 100)}% das receitas gastas.",
+                descricao = "Apenas ${(pct * 100).emNumeroBR(0)}% das receitas gastas.",
                 icone = Icons.Default.CheckCircle,
                 cor = MoneyGreen
             )
@@ -319,7 +321,7 @@ private fun gerarAlertas(
     if (maiorGasto != null && maiorGasto.valor > 500) {
         alertas += Alerta(
             titulo = "Gasto alto nas últimas 24h",
-            descricao = "R$ %,.2f em %s".format(maiorGasto.valor, maiorGasto.descricao.take(40).ifBlank { "transação" }),
+            descricao = "${maiorGasto.valor.emReais()} em ${maiorGasto.descricao.take(40).ifBlank { "transação" }}",
             icone = Icons.Default.Info,
             cor = GojoPurple
         )

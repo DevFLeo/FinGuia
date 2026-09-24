@@ -34,6 +34,7 @@ import com.finguia.R
 import com.finguia.dados.CategoriaCustom
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.ui.formato.emReais
 import com.finguia.ui.theme.*
 import com.finguia.ui.transacoes.CategoriaViewModel
 import com.finguia.ui.transacoes.TransacaoViewModel
@@ -368,4 +369,4 @@ private fun iconeParaTipo(tipo: TipoTransacao): ImageVector = when (tipo) {
 }
 
 private fun formatarValor(valor: Double): String =
-    "R$ %,.2f".format(valor).replace(",", "X").replace(".", ",").replace("X", ".")
+    valor.emReais()

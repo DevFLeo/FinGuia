@@ -58,6 +58,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.motor.NumeroBR
+import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
@@ -431,9 +432,9 @@ fun calcularInvestimentos(p: ParametrosInvestimento): List<ResultadoAtivo> {
         ResultadoAtivo("Tesouro Selic", tsBruto, tsCustos, tsIr, tsLiq, rentAA(tsLiq, total, meses)),
         ResultadoAtivo("Tesouro Prefixado", tpBruto, tpCustos, tpIr, tpLiq, rentAA(tpLiq, total, meses)),
         ResultadoAtivo("Tesouro IPCA+", tipcaBruto, tipcaCustos, tipcaIr, tipcaLiq, rentAA(tipcaLiq, total, meses)),
-        ResultadoAtivo("CDB (${"%.0f".format(p.rentCdbPctCdi)}% CDI)", cdbBruto, 0.0, cdbIr, cdbLiq, rentAA(cdbLiq, total, meses)),
-        ResultadoAtivo("LCI/LCA (${"%.0f".format(p.rentLciLcaPctCdi)}% CDI)", lciBruto, 0.0, lciIr, lciLiq, rentAA(lciLiq, total, meses)),
-        ResultadoAtivo("Fundo DI (${"%.0f".format(p.rentFundoDiPctCdi)}% CDI)", fdiBruto, fdiCustos, fdiIr, fdiLiq, rentAA(fdiLiq, total, meses)),
+        ResultadoAtivo("CDB (${p.rentCdbPctCdi.emNumeroBR(0)}% CDI)", cdbBruto, 0.0, cdbIr, cdbLiq, rentAA(cdbLiq, total, meses)),
+        ResultadoAtivo("LCI/LCA (${p.rentLciLcaPctCdi.emNumeroBR(0)}% CDI)", lciBruto, 0.0, lciIr, lciLiq, rentAA(lciLiq, total, meses)),
+        ResultadoAtivo("Fundo DI (${p.rentFundoDiPctCdi.emNumeroBR(0)}% CDI)", fdiBruto, fdiCustos, fdiIr, fdiLiq, rentAA(fdiLiq, total, meses)),
         ResultadoAtivo("Poupança", poupBruto, 0.0, poupIr, poupLiq, rentAA(poupLiq, total, meses))
     ).sortedByDescending { it.liquido }
 }
@@ -624,10 +625,10 @@ private fun BlocoConversao(vm: MoedasViewModel = viewModel()) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("${m.codigo}  -  ${m.nome}", color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Variação 24h: ${"%.2f".format(m.variacaoPct)}%",
+                        Text("Variação 24h: ${m.variacaoPct.emNumeroBR(2)}%",
                             color = if (m.variacaoPct >= 0) MoneyGreen else DebtRed, fontSize = 12.sp)
                     }
-                    Text("R$ ${"%.4f".format(m.valorEmReais)}", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("R$ ${m.valorEmReais.emNumeroBR(4)}", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -771,7 +772,7 @@ private fun BlocoFinanceira(cacheVm: CalcCacheViewModel) {
                 val det = buildString {
                     append("Total investido: ${formatarBrl(totalInv)}\n")
                     resultados.forEach {
-                        append("${it.nome}: líquido ${formatarBrl(it.liquido)} (${"%.2f".format(it.rentLiquidaAA)}% a.a.)\n")
+                        append("${it.nome}: líquido ${formatarBrl(it.liquido)} (${it.rentLiquidaAA.emNumeroBR(2)}% a.a.)\n")
                     }
                 }
                 cacheVm.salvar("Financeira", "Melhor: ${melhor.nome}", det.trim())
@@ -792,7 +793,7 @@ private fun CardResultadoAtivo(r: ResultadoAtivo, destaque: Boolean) {
             Text("Líquido: ${formatarBrl(r.liquido)}", color = MoneyGreen, fontWeight = FontWeight.Bold)
             Text("Bruto: ${formatarBrl(r.bruto)}", color = GrayText, fontSize = 12.sp)
             Text("Custos: ${formatarBrl(r.custos)}  |  IR: ${formatarBrl(r.ir)}", color = GrayText, fontSize = 12.sp)
-            Text("Rent. líquida: ${"%.2f".format(r.rentLiquidaAA)}% a.a.", color = Color.White, fontSize = 12.sp)
+            Text("Rent. líquida: ${r.rentLiquidaAA.emNumeroBR(2)}% a.a.", color = Color.White, fontSize = 12.sp)
         }
     }
 }
@@ -995,9 +996,9 @@ private fun BlocoInvestimentos(cacheVm: CalcCacheViewModel) {
 
                     Divider(color = GrayText.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp))
 
-                    LinhaResultado("Rentabilidade Anual Média", if (foundTir && tir > -1) "${"%.2f".format(tir * 100)}% a.a." else "N/A", cor = if (tir > taxaD) MoneyGreen else DebtRed)
-                    LinhaResultado("Retorno Total do Período", "${"%.2f".format(roiBruto)}%")
-                    LinhaResultado("Tempo para recuperar dinheiro", if (payback > 0) "${"%.1f".format(payback)} anos" else "Não se paga no período")
+                    LinhaResultado("Rentabilidade Anual Média", if (foundTir && tir > -1) "${(tir * 100).emNumeroBR(2)}% a.a." else "N/A", cor = if (tir > taxaD) MoneyGreen else DebtRed)
+                    LinhaResultado("Retorno Total do Período", "${roiBruto.emNumeroBR(2)}%")
+                    LinhaResultado("Tempo para recuperar dinheiro", if (payback > 0) "${payback.emNumeroBR(1)} anos" else "Não se paga no período")
                 }
             }
 
@@ -1007,8 +1008,8 @@ private fun BlocoInvestimentos(cacheVm: CalcCacheViewModel) {
                     Lucro Previsto: ${formatarBrl(f1)}, ${formatarBrl(f2)}, ${formatarBrl(f3)}
                     Rendimento Esperado: $taxaDesconto% a.a.
                     Lucro Real Esperado: ${formatarBrl(vpl)}
-                    Rentabilidade Anual: ${if (foundTir) "${"%.2f".format(tir * 100)}%" else "N/A"}
-                    Tempo de Retorno: ${"%.1f".format(payback)} anos
+                    Rentabilidade Anual: ${if (foundTir) "${(tir * 100).emNumeroBR(2)}%" else "N/A"}
+                    Tempo de Retorno: ${payback.emNumeroBR(1)} anos
                 """.trimIndent()
                 cacheVm.salvar("Investimentos", "Lucro Real: ${formatarBrl(vpl)}", det)
             }
@@ -1130,8 +1131,8 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
 
                     LinhaResultado("Lucro Líquido Unitário", formatarBrl(valorLucro), cor = MoneyGreen)
                     LinhaResultado("Margem de Contribuição", formatarBrl(margemContribuicao))
-                    LinhaResultado("Markup Multiplicador", "${"%.4f".format(markupMultiplicador)}x")
-                    LinhaResultado("Markup Divisor", "${"%.4f".format(markupDivisor)}")
+                    LinhaResultado("Markup Multiplicador", "${markupMultiplicador.emNumeroBR(4)}x")
+                    LinhaResultado("Markup Divisor", "${markupDivisor.emNumeroBR(4)}")
                     LinhaResultado("Ponto de Equilíbrio", "${kotlin.math.ceil(qtdBreakEven).toInt()} un / mês", cor = GojoPurple)
                 }
             }
@@ -1160,7 +1161,7 @@ private fun BlocoPrecoVenda(cacheVm: CalcCacheViewModel) {
                     Venda S/ Desconto: ${formatarBrl(precoVendaSemDesconto)}
                     Venda C/ Desconto: ${formatarBrl(precoVendaComDesconto)}
                     Lucro Unitário: ${formatarBrl(valorLucro)}
-                    Markup Mult: ${"%.3f".format(markupMultiplicador)}x
+                    Markup Mult: ${markupMultiplicador.emNumeroBR(3)}x
                 """.trimIndent()
                 cacheVm.salvar("Markup", "Venda ${formatarBrl(if (desc > 0) precoVendaComDesconto else precoVendaSemDesconto)}", det)
             }
@@ -1290,7 +1291,7 @@ private fun BlocoEndividamento(cacheVm: CalcCacheViewModel) {
                     LinhaResultado("Total de Juros", formatarBrl(totalJuros), cor = DebtRed)
                     LinhaResultado("Primeira Parcela", formatarBrl(primeiraParcela))
                     LinhaResultado("Última Parcela", formatarBrl(ultimaParcela))
-                    LinhaResultado("Proporção Juros/Principal", "${"%.1f".format((totalJuros/p)*100)}%")
+                    LinhaResultado("Proporção Juros/Principal", "${((totalJuros/p)*100).emNumeroBR(1)}%")
                 }
             }
             

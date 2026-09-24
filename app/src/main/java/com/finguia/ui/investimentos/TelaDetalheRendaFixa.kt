@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.finguia.dados.GNewsArtigo
 import com.finguia.dados.TaxasBcb
+import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.GojoPurple
@@ -88,7 +89,7 @@ fun TelaDetalheRendaFixa(
                     }
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        "~${"%.1f".format(sugestao.rentabilidadeEstimadaPct)}% a.a. (estimado)",
+                        "~${sugestao.rentabilidadeEstimadaPct.emNumeroBR(1)}% a.a. (estimado)",
                         color = MoneyGreen, fontSize = 22.sp, fontWeight = FontWeight.Bold
                     )
                 }
@@ -101,9 +102,9 @@ fun TelaDetalheRendaFixa(
                         CircularProgressIndicator(color = GojoPurple, strokeWidth = 2.dp, modifier = Modifier.size(22.dp))
                     }
                 } else {
-                    LinhaTaxa("Selic (meta a.a.)", taxas?.selic?.let { "${"%.2f".format(it)}%" } ?: "—")
-                    LinhaTaxa("CDI (anualizado)", taxas?.cdi?.let { "${"%.2f".format(it)}%" } ?: "—")
-                    LinhaTaxa("IPCA 12 meses", taxas?.ipca12m?.let { "${"%.2f".format(it)}%" } ?: "—")
+                    LinhaTaxa("Selic (meta a.a.)", taxas?.selic?.let { "${it.emNumeroBR(2)}%" } ?: "—")
+                    LinhaTaxa("CDI (anualizado)", taxas?.cdi?.let { "${it.emNumeroBR(2)}%" } ?: "—")
+                    LinhaTaxa("IPCA 12 meses", taxas?.ipca12m?.let { "${it.emNumeroBR(2)}%" } ?: "—")
                 }
             }
 
@@ -120,10 +121,10 @@ fun TelaDetalheRendaFixa(
                     val ir = if (sugestao.ticker.startsWith("LCI") || sugestao.ticker.startsWith("LCA")) 0.0
                             else bruto * 0.175 // alíquota média p/ 1 ano
                     val liquido = bruto - ir
-                    LinhaTaxa("Taxa efetiva estimada", "${"%.2f".format(taxaEfetiva)}% a.a.")
-                    LinhaTaxa("Rendimento bruto (1 ano)", "R$ ${"%.2f".format(bruto)}")
-                    LinhaTaxa("IR estimado", if (ir == 0.0) "Isento" else "R$ ${"%.2f".format(ir)}")
-                    LinhaTaxa("Rendimento líquido", "R$ ${"%.2f".format(liquido)}")
+                    LinhaTaxa("Taxa efetiva estimada", "${taxaEfetiva.emNumeroBR(2)}% a.a.")
+                    LinhaTaxa("Rendimento bruto (1 ano)", "R$ ${bruto.emNumeroBR(2)}")
+                    LinhaTaxa("IR estimado", if (ir == 0.0) "Isento" else "R$ ${ir.emNumeroBR(2)}")
+                    LinhaTaxa("Rendimento líquido", "R$ ${liquido.emNumeroBR(2)}")
                 }
             }
 

@@ -112,6 +112,16 @@ public class NumeroBRTest {
     }
 
     @Test
+    public void moedaEstrangeira_noPadraoBR() {
+        assertEquals("US$ 1.234,50", NumeroBR.moeda(1234.5, "US$"));
+        assertEquals("-US$ 3,00", NumeroBR.moeda(-3.0, "US$"));
+        assertEquals("R$", NumeroBR.siglaMoeda("BRL"));
+        assertEquals("R$", NumeroBR.siglaMoeda(null));
+        assertEquals("US$", NumeroBR.siglaMoeda("usd"));
+        assertEquals("EUR", NumeroBR.siglaMoeda("eur"));
+    }
+
+    @Test
     public void percentual_formatos() {
         assertEquals("12,50%", NumeroBR.percentual(12.5, 2));
         assertEquals("+3,2%", NumeroBR.percentualComSinal(3.2, 1));

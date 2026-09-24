@@ -45,6 +45,8 @@ import coil.compose.SubcomposeAsyncImage
 import com.finguia.dados.CategoriaInvestimento
 import com.finguia.dados.CotacaoAtivo
 import com.finguia.dados.Investimento
+import com.finguia.motor.NumeroBR
+import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.formato.lerNumeroBR
 import kotlinx.coroutines.delay
 import com.finguia.ui.theme.CardBg
@@ -57,10 +59,9 @@ import java.text.NumberFormat
 import java.util.Locale
 
 private val formatoReais = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-private val formatoDolar = NumberFormat.getCurrencyInstance(Locale.US)
 
 private fun formatarMoeda(v: Double, moeda: String?) =
-    if (moeda?.equals("BRL", true) != false) formatoReais.format(v) else formatoDolar.format(v)
+    if (moeda?.equals("BRL", true) != false) formatoReais.format(v) else NumeroBR.moeda(v, NumeroBR.siglaMoeda(moeda))
 
 @Composable
 fun TelaInvestimentos(
@@ -371,7 +372,7 @@ private fun CardCarteira(
                 Text(formatoReais.format(valorAtualReal),
                     color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    text = "${if (lucro >= 0) "+" else ""}${"%.2f".format(pct)}%",
+                    text = "${if (lucro >= 0) "+" else ""}${pct.emNumeroBR(2)}%",
                     color = corLucro, fontSize = 11.sp, fontWeight = FontWeight.SemiBold
                 )
             }
@@ -473,7 +474,7 @@ private fun CardSugestao(
                         Icon(if (pct >= 0) Icons.Default.TrendingUp else Icons.Default.TrendingDown,
                             contentDescription = null, tint = cor, modifier = Modifier.size(12.dp))
                         Spacer(Modifier.width(2.dp))
-                        Text("${if (pct >= 0) "+" else ""}${"%.2f".format(pct)}%",
+                        Text("${if (pct >= 0) "+" else ""}${pct.emNumeroBR(2)}%",
                             color = cor, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
@@ -487,7 +488,7 @@ private fun CardSugestao(
                         .padding(horizontal = 6.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = "~${"%.1f".format(sug.rentabilidadeEstimadaPct)}% a.a.",
+                        text = "~${sug.rentabilidadeEstimadaPct.emNumeroBR(1)}% a.a.",
                         color = MoneyGreen,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
@@ -510,7 +511,7 @@ private fun DialogComprarSugestao(
     aoCancelar: () -> Unit
 ) {
     var valor by remember { mutableStateOf("") }
-    var rent by remember { mutableStateOf("%.2f".format(Locale.US, sugestao.rentabilidadeEstimadaPct)) }
+    var rent by remember { mutableStateOf(NumeroBR.paraCampo(sugestao.rentabilidadeEstimadaPct, 2)) }
     var configAberta by remember { mutableStateOf(false) }
     var erro by remember { mutableStateOf(false) }
     val isRendaFixa = cotacao == null
@@ -531,7 +532,7 @@ private fun DialogComprarSugestao(
                         color = MoneyGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(4.dp))
                 } else {
-                    Text("Rentabilidade estimada: ${"%.2f".format(rent.lerNumeroBR() ?: sugestao.rentabilidadeEstimadaPct)}% a.a.",
+                    Text("Rentabilidade estimada: ${(rent.lerNumeroBR() ?: sugestao.rentabilidadeEstimadaPct).emNumeroBR(2)}% a.a.",
                         color = MoneyGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(4.dp))
                 }
@@ -551,7 +552,7 @@ private fun DialogComprarSugestao(
                     val v = valor.lerNumeroBR() ?: 0.0
                     if (v > 0 && cotacao.preco > 0) {
                         val qty = v / cotacao.preco
-                        Text("Aprox. ${"%.4f".format(qty)} unidades de ${sugestao.ticker}",
+                        Text("Aprox. ${qty.emNumeroBR(4)} unidades de ${sugestao.ticker}",
                             color = GrayText, fontSize = 11.sp,
                             modifier = Modifier.padding(top = 4.dp))
                     }

@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.finguia.dados.CotacaoAtivo
 import com.finguia.dados.GNewsArtigo
+import com.finguia.motor.NumeroBR
+import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -50,12 +52,11 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 private val formatoBR = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-private val formatoUS = NumberFormat.getCurrencyInstance(Locale.US)
 private val parseDataIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
 private val formatoDataBr = SimpleDateFormat("dd/MM HH:mm", Locale("pt", "BR"))
 
 private fun formatarMoeda(valor: Double, moeda: String): String =
-    if (moeda.equals("BRL", true)) formatoBR.format(valor) else formatoUS.format(valor)
+    if (moeda.equals("BRL", true)) formatoBR.format(valor) else NumeroBR.moeda(valor, NumeroBR.siglaMoeda(moeda))
 
 @Composable
 fun TelaDetalheAtivo(
@@ -197,8 +198,8 @@ private fun formatarBilhoes(v: Double, moeda: String): String {
         v >= 1e6 -> "M" to v / 1e6
         else -> "" to v
     }
-    val sigla = if (moeda.equals("BRL", true)) "R$" else "$"
-    return "$sigla${"%.2f".format(sufixo.second)}${sufixo.first}"
+    val sigla = NumeroBR.siglaMoeda(moeda) + " "
+    return "$sigla${sufixo.second.emNumeroBR(2)}${sufixo.first}"
 }
 
 @Composable
@@ -253,7 +254,7 @@ private fun CabecalhoDetalhe(
                     Spacer(Modifier.width(4.dp))
                     val abs = cotacao.variacaoAbs?.let { formatarMoeda(it, cotacao.moeda) } ?: ""
                     Text(
-                        "${if (pct >= 0) "+" else ""}${"%.2f".format(pct)}%  $abs (hoje)",
+                        "${if (pct >= 0) "+" else ""}${pct.emNumeroBR(2)}%  $abs (hoje)",
                         color = cor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -318,7 +319,7 @@ private fun GraficoLinha(pontos: List<Double>, moeda: String, modifier: Modifier
                     Text(formatarMoeda(v, moeda), color = Color.White,
                         fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(8.dp))
-                    Text("${if (pctVsInicio >= 0) "+" else ""}${"%.2f".format(pctVsInicio)}%",
+                    Text("${if (pctVsInicio >= 0) "+" else ""}${pctVsInicio.emNumeroBR(2)}%",
                         color = corPct, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                 }
             }

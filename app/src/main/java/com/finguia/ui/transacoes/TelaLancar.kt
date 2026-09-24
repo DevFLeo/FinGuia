@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.dados.CategoriaCustom
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
+import com.finguia.ui.formato.emReais
 import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.*
 
@@ -989,7 +990,7 @@ private fun parsearValorBrasileiro(texto: String): Double? =
     texto.lerNumeroBR()?.takeIf { it > 0 }
 
 private fun formatarValor(valor: Double): String =
-    "R$ %,.2f".format(valor).replace(",", "X").replace(".", ",").replace("X", ".")
+    valor.emReais()
 
 private fun TransacaoBancaria.ehEntrada(): Boolean = tipo in listOf(
     TipoTransacao.PIX_RECEBIDO,

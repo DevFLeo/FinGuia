@@ -108,6 +108,30 @@ public final class NumeroBR {
         return (valor < 0 && !ehZeroNaEscala(valor, 2) ? "-R$ " : "R$ ") + corpo;
     }
 
+    /**
+     * Qualquer moeda no padrao BR, como os bancos brasileiros exibem:
+     * {@code moeda(1234.5, "US$")} vira {@code "US$ 1.234,50"}.
+     */
+    public static String moeda(double valor, String sigla) {
+        String corpo = formatar(Math.abs(valor), 2);
+        boolean negativo = valor < 0 && !ehZeroNaEscala(valor, 2);
+        return (negativo ? "-" : "") + sigla + " " + corpo;
+    }
+
+    /**
+     * Sigla usada na exibicao para um codigo ISO: BRL vira R$, USD vira US$,
+     * EUR vira EUR. Codigo desconhecido ou vazio e exibido como veio.
+     */
+    public static String siglaMoeda(String codigoIso) {
+        if (codigoIso == null || codigoIso.isEmpty() || codigoIso.equalsIgnoreCase("BRL")) {
+            return "R$";
+        }
+        if (codigoIso.equalsIgnoreCase("USD")) {
+            return "US$";
+        }
+        return codigoIso.toUpperCase(Locale.ROOT);
+    }
+
     /** Moeda com sinal explicito: {@code "+R$ 10,00"} ou {@code "-R$ 10,00"}. */
     public static String moedaComSinal(double valor) {
         if (ehZeroNaEscala(valor, 2)) {

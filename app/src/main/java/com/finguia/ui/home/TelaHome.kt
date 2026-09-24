@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.finguia.ui.formato.emReais
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
 import com.finguia.ui.theme.DebtRed
@@ -344,4 +345,4 @@ fun GraficoRosca(progresso: Float, saldoPositivo: Boolean = true) {
 
 // Formata Double para o padrão monetário brasileiro: R$ 1.500,00
 private fun formatarMoeda(valor: Double): String =
-    "R$ %,.2f".format(valor).replace(",", "X").replace(".", ",").replace("X", ".")
+    valor.emReais()

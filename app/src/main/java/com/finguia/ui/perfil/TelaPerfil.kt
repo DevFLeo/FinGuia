@@ -36,6 +36,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.finguia.ui.formato.emReais
 import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.CardBg
 import com.finguia.ui.theme.DarkBg
@@ -330,7 +331,7 @@ private fun CardMeta(
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                text = "R$ %,.2f / R$ %,.2f (%d%%)".format(meta.valorAtual, meta.valorObjetivo, (meta.progresso * 100).toInt()),
+                text = "${meta.valorAtual.emReais()} / ${meta.valorObjetivo.emReais()} (${(meta.progresso * 100).toInt()}%)",
                 color = GrayText,
                 fontSize = 11.sp
             )
