@@ -18,6 +18,7 @@ FinGuia é um aplicativo Android de gestão financeira pessoal que automatiza o 
 - [FinGuia Web](#finguia-web)
 - [Branches e Fluxo de Trabalho](#branches-e-fluxo-de-trabalho)
 - [Guia de Desenvolvimento](DESENVOLVIMENTO.md)
+- [Relatório de Testes](RELATORIO_TESTES.md)
 - [Roadmap](#roadmap)
 
 ---
