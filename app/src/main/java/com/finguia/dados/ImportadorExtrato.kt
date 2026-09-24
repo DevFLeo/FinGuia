@@ -68,7 +68,7 @@ class ImportadorExtrato(private val repository: TransacaoRepository) {
          */
         fun ler(bytes: ByteArray): Leitura {
             val inicio = String(bytes, 0, minOf(bytes.size, 64), Charsets.ISO_8859_1)
-                .trimStart('﻿', 'ï', '»', '¿', ' ', '\n', '\r', '\t')
+                .trimStart('\uFEFF', '\u00EF', '\u00BB', '\u00BF', ' ', '\n', '\r', '\t')
             return if (inicio.startsWith("{") || inicio.startsWith("[")) {
                 val r = LeitorOpenFinance.ler(String(bytes, Charsets.UTF_8), INSTITUICAO_PADRAO_OPEN_FINANCE)
                 Leitura(FormatoExtrato.OPEN_FINANCE, r.lancamentos, INSTITUICAO_PADRAO_OPEN_FINANCE, r.ignorados)

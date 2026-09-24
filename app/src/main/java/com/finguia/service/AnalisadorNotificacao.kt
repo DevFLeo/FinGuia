@@ -356,7 +356,7 @@ object AnalisadorNotificacao {
 
     /** Remove marcas invisiveis de direcao de texto que SMS inserem (U+2066..U+2069). */
     private fun limparTexto(texto: String): String =
-        texto.replace(Regex("[⁦-⁩‎‏]"), "").trim()
+        texto.replace(Regex("[\u2066-\u2069\u200E\u200F]"), "").trim()
 
     /** Minusculo e sem acentos, para comparar palavras sem depender da grafia. */
     private fun normalizar(texto: String): String =
