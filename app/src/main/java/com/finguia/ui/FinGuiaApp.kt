@@ -62,11 +62,11 @@ import com.finguia.ui.transacoes.TransacaoViewModel
 
 @Composable
 fun FinGuiaApp() {
-    var destinoAtual by rememberSaveable { mutableStateOf(DestinosApp.INICIO) }
+    val configViewModel: ConfiguracoesViewModel = viewModel()
+    var destinoAtual by rememberSaveable { mutableStateOf(configViewModel.padroes.value.telaInicial) }
     var transacaoDetalhe by remember { androidx.compose.runtime.mutableStateOf<TransacaoBancaria?>(null) }
 
     val transacaoViewModel: TransacaoViewModel = viewModel()
-    val configViewModel: ConfiguracoesViewModel = viewModel()
     val categoriaViewModel: CategoriaViewModel = viewModel()
     val ocultarSaldo by configViewModel.ocultarSaldo.collectAsState()
 

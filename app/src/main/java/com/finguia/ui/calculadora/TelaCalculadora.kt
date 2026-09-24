@@ -58,6 +58,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finguia.motor.NumeroBR
+import com.finguia.ui.configuracoes.ConfiguracoesViewModel
 import com.finguia.ui.formato.emNumeroBR
 import com.finguia.ui.formato.lerNumeroBR
 import com.finguia.ui.theme.CardBg
@@ -457,11 +458,15 @@ enum class AbaCalculadora(val rotulo: String) {
 @Composable
 fun TelaCalculadora(
     modifier: Modifier = Modifier,
-    cacheVm: CalcCacheViewModel = viewModel()
+    cacheVm: CalcCacheViewModel = viewModel(),
+    configuracoes: ConfiguracoesViewModel = viewModel()
 ) {
     val ocultas by cacheVm.ocultas.collectAsState()
+    val padroes by configuracoes.padroes.collectAsState()
     val abasVisiveis = AbaCalculadora.entries.filter { it.name !in ocultas }
-    val abaInicial = abasVisiveis.firstOrNull() ?: AbaCalculadora.CONVERSAO
+    // A calculadora escolhida nas Configuracoes, se nao estiver oculta
+    val abaInicial = padroes.calculadoraInicial?.takeIf { it in abasVisiveis }
+        ?: abasVisiveis.firstOrNull() ?: AbaCalculadora.CONVERSAO
     var aba by remember { mutableStateOf(abaInicial) }
     
     val historicoAbas = remember { mutableStateListOf<AbaCalculadora>() }

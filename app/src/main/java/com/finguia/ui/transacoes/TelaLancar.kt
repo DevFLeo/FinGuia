@@ -27,6 +27,8 @@ import com.finguia.dados.CategoriaCustom
 import com.finguia.dados.TipoTransacao
 import com.finguia.dados.TransacaoBancaria
 import com.finguia.motor.MascaraMoeda
+import com.finguia.ui.configuracoes.ConfiguracoesViewModel
+import com.finguia.ui.configuracoes.PadroesApp
 import com.finguia.ui.formato.MascaraMoedaBR
 import com.finguia.ui.formato.digitosMoeda
 import com.finguia.ui.formato.emReais
@@ -85,9 +87,13 @@ private fun CategoriaCustom.paraCategoriaUi() = Categoria(
 fun TelaLancar(
     modifier: Modifier = Modifier,
     viewModel: TransacaoViewModel = viewModel(),
-    categoriaVm: CategoriaViewModel = viewModel()
+    categoriaVm: CategoriaViewModel = viewModel(),
+    configuracoes: ConfiguracoesViewModel = viewModel()
 ) {
-    var abaSelecionada by remember { mutableStateOf(0) }
+    val padroes by configuracoes.padroes.collectAsState()
+    // Vazio nas Configuracoes volta para "Manual", para nao gravar banco sem nome
+    val contaManual = padroes.contaManual.ifBlank { PadroesApp.CONTA_MANUAL_PADRAO }
+    var abaSelecionada by remember { mutableStateOf(padroes.abaLancar) }
     val abas = listOf("Lançar", "Recorrente", "Agendado")
 
     var categoriaSelecionada by remember { mutableStateOf<Categoria?>(null) }
@@ -122,10 +128,11 @@ fun TelaLancar(
     // Dialog de lançamento agendado (valor futuro)
     if (mostrarDialogAgendar) {
         DialogLancamentoAgendado(
+            entradaInicial = padroes.entradaPorPadrao,
             aoConfirmar = { valor, descricao, tipo, dataMs ->
                 viewModel.inserir(
                     TransacaoBancaria(
-                        banco             = "Manual",
+                        banco             = contaManual,
                         pacoteApp         = "manual",
                         tipo              = tipo,
                         valor             = valor,
@@ -151,7 +158,7 @@ fun TelaLancar(
             aoConfirmar = { valor, descricao ->
                 viewModel.inserir(
                     TransacaoBancaria(
-                        banco              = "Manual",
+                        banco              = contaManual,
                         pacoteApp          = "manual",
                         tipo               = categoria.tipo,
                         valor              = valor,
@@ -170,10 +177,11 @@ fun TelaLancar(
     // Dialog de lançamento avulso (sem categoria pré-definida)
     if (mostrarDialogAvulso) {
         DialogLancamentoAvulso(
+            entradaInicial = padroes.entradaPorPadrao,
             aoConfirmar = { valor, descricao, tipo ->
                 viewModel.inserir(
                     TransacaoBancaria(
-                        banco             = "Manual",
+                        banco             = contaManual,
                         pacoteApp         = "manual",
                         tipo              = tipo,
                         valor             = valor,
@@ -261,12 +269,13 @@ private fun DialogLancamento(
 
 @Composable
 private fun DialogLancamentoAvulso(
+    entradaInicial: Boolean,
     aoConfirmar: (valor: Double, descricao: String, tipo: TipoTransacao) -> Unit,
     aoCancelar: () -> Unit
 ) {
     var valorTexto by remember { mutableStateOf("") }
     var descricao  by remember { mutableStateOf("") }
-    var ehEntrada  by remember { mutableStateOf(false) }
+    var ehEntrada  by remember { mutableStateOf(entradaInicial) }
     var erroValor  by remember { mutableStateOf(false) }
 
     val corAcento = if (ehEntrada) MoneyGreen else DebtRed
@@ -674,12 +683,13 @@ private fun AbaAgendado(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DialogLancamentoAgendado(
+    entradaInicial: Boolean,
     aoConfirmar: (valor: Double, descricao: String, tipo: TipoTransacao, dataMs: Long) -> Unit,
     aoCancelar: () -> Unit
 ) {
     var valorTexto by remember { mutableStateOf("") }
     var descricao  by remember { mutableStateOf("") }
-    var ehEntrada  by remember { mutableStateOf(false) }
+    var ehEntrada  by remember { mutableStateOf(entradaInicial) }
     var erroValor  by remember { mutableStateOf(false) }
     var mostrarPicker by remember { mutableStateOf(false) }
     val pickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
